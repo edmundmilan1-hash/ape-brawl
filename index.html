@@ -75,7 +75,7 @@ canvas { display:block; width:100%; height:100%; cursor:crosshair; touch-action:
 <body>
 <canvas id="c"></canvas>
 <canvas id="ov"></canvas>
-<div id="ver" style="position:fixed;right:10px;top:6px;z-index:60;font:700 13px 'Comic Sans MS',cursive;color:#1b2a3a;opacity:.7;background:rgba(255,255,255,.55);padding:2px 8px;border-radius:8px;pointer-events:none">v1:210</div>
+<div id="ver" style="position:fixed;right:10px;top:6px;z-index:60;font:700 13px 'Comic Sans MS',cursive;color:#1b2a3a;opacity:.7;background:rgba(255,255,255,.55);padding:2px 8px;border-radius:8px;pointer-events:none">v1:211</div>
 <div id="pz"><h2>Paused</h2><div class="pb" id="pz-main"><button class="big" id="pz-res">Resume</button><button class="big" id="pz-set">Game Settings</button><button class="big" id="pz-map">Map</button><button class="big" id="pz-menu">Main Menu</button></div><div class="pp" id="pz-sp"><b>Game Settings</b><label>Mouse sensitivity <input type="range" id="pz-sens" min="0.3" max="3" step="0.1" value="1"></label><label><span>FOV <b id="pz-fovv">60</b></span> <input type="range" id="pz-fov" min="50" max="110" step="1" value="60"></label><label>Camera <button class="big" id="pz-cam" style="font-size:16px;padding:6px 14px">Third person</button></label><button class="big" data-pz="main">Back</button></div><div class="pp" id="pz-mp"><b>Map</b><div>Current map: Forest Hills</div><small>More maps are coming soon.</small><button class="big" data-pz="main">Back</button></div></div>
 <div id="menu">
 <div id="s-title" class="screen"><h1 class="logo">APE<br>BRAWL</h1><canvas id="hero" width="300" height="300"></canvas><div class="btns"><button class="big" id="b-play">Singleplayer</button><button class="big" data-go="s-char">Character</button><button class="big" id="b-upc">Upgrade Center</button><button class="big" data-go="s-set">Settings</button><button class="big" id="b-endless">Endless Mode</button><button class="big" id="b-mp">Multiplayer</button><button class="big" id="b-3d" hidden>Campaign</button></div></div>
@@ -3222,20 +3222,29 @@ function m3Draw() {
     ell(lw(-0.1, hy + 0.74, 0.54), [0.04, 0.04, 0.04], [235, 235, 235], 6, 4); ell(lw(0.1, hy + 0.74, 0.54), [0.04, 0.04, 0.04], [235, 235, 235], 6, 4);
     ell(lw(-0.28, hy + 0.72, 0.22), [0.07, 0.09, 0.05], FACE, 6, 4); ell(lw(0.28, hy + 0.72, 0.22), [0.07, 0.09, 0.05], FACE, 6, 4); }
   PF = F;
-  for (const b of M3.bots || []) { const dxb = b.x - P.x, dzb = b.z - P.z; if (dxb*dxb + dzb*dzb > 75*75) continue; { const qb = tr(b.x, b.y + 1, b.z); if (qb[2] < -2.5 || Math.abs(qb[0]) > qb[2]*(W/H*0.9 + 0.8) + 3) continue; } const cb = Math.cos(b.yaw), sb = Math.sin(b.yaw), amp2 = Math.min(1, b.sp/2.2), bob2 = Math.abs(Math.sin(b.ph))*0.05*amp2 + 0;
+  for (const b of M3.bots || []) { const dxb = b.x - P.x, dzb = b.z - P.z, dd = dxb*dxb + dzb*dzb; if (dd > 75*75) continue; const qb = tr(b.x, b.y + 1, b.z); if (qb[2] < -2.5 || Math.abs(qb[0]) > qb[2]*(W/H*0.9 + 0.8) + 3) continue;
+    const near = dd < 28*28, n0 = obj.length, cb = Math.cos(b.yaw), sb = Math.sin(b.yaw), amp2 = Math.min(1, b.sp/2.2), bob2 = Math.abs(Math.sin(b.ph))*0.05*amp2;
     const bw = (lx, ly, lz) => [b.x + cb*lx + sb*lz, b.y + ly + bob2, b.z - sb*lx + cb*lz];
-    const MET = [168, 176, 188], MET2 = [120, 128, 142], JNT = [52, 58, 70], RED = [206, 64, 58], EYE = [90, 235, 255];
-    const bx = (c, hx, hy, hz, col) => { const v = []; for (const sx of [-1, 1]) for (const sy of [-1, 1]) for (const sz of [-1, 1]) v.push(bw(c[0] + sx*hx, c[1] + sy*hy, c[2] + sz*hz)); // 0..7 index = sx*4+sy*2+sz
+    const MET = [168, 176, 188], MET2 = [118, 126, 142], JNT = [48, 54, 66], RED = [206, 64, 58], EYE = [90, 235, 255], VIS = [18, 22, 30];
+    const bx = (c, hx, hy, hz, col) => { const v = []; for (const sx of [-1, 1]) for (const sy of [-1, 1]) for (const sz of [-1, 1]) v.push(bw(c[0] + sx*hx, c[1] + sy*hy, c[2] + sz*hz));
       for (const f of [[0, 1, 3, 2], [4, 5, 7, 6], [0, 1, 5, 4], [2, 3, 7, 6], [0, 2, 6, 4], [1, 3, 7, 5]]) poly(f.map(i => v[i]), col, false, obj); };
-    for (const sd of [-1, 1]) { const sw2 = Math.sin(b.ph + (sd > 0 ? 0 : Math.PI))*0.42*amp2, lift = Math.max(0, Math.cos(b.ph + (sd > 0 ? 0 : Math.PI)))*0.14*amp2;
-      const hip = bw(sd*0.24, 0.82, 0), knee = bw(sd*0.25, 0.46 + lift*0.5, sw2*0.5 + 0.08), foot = bw(sd*0.25, 0.1 + lift, sw2);
-      limb(hip, knee, 0.12, 0.1, MET2, 4); limb(knee, foot, 0.1, 0.09, MET, 4);
-      { const fc = [sd*0.25, 0.06 + lift, sw2 + 0.1]; bx(fc, 0.11, 0.06, 0.2, JNT); }
-      const sh = bw(sd*0.56, 1.42, 0), hnd = bw(sd*0.62, 0.78 + (sd > 0 ? 0 : 0), -sw2*0.9 + 0.05), elb = bw(sd*0.62, 1.1, -sw2*0.45);
-      bx([sd*0.56, 1.42, 0], 0.1, 0.1, 0.1, JNT); limb(sh, elb, 0.09, 0.08, MET2, 4); limb(elb, hnd, 0.08, 0.07, MET, 4); bx([sd*0.62, 0.78, -sw2*0.9 + 0.05], 0.08, 0.08, 0.08, RED); }
-    bx([0, 1.1, 0], 0.4, 0.36, 0.24, MET); bx([0, 0.84, 0], 0.3, 0.1, 0.2, JNT); bx([0, 1.22, 0.25], 0.2, 0.12, 0.02, RED);
-    bx([0, 1.72, 0.02], 0.22, 0.2, 0.21, MET); bx([0, 1.74, 0.23], 0.17, 0.06, 0.02, EYE); limb(bw(0, 1.92, 0), bw(0, 2.14, 0), 0.025, 0.02, JNT, 4); bx([0, 2.17, 0], 0.04, 0.04, 0.04, RED);
-    { const pts = []; for (let i = 0; i < 10; i++) { const a = i/10*6.2832, x = b.x + Math.cos(a)*0.6, z = b.z + Math.sin(a)*0.6; pts.push([x, m3H(x, z) + 0.06, z]); } if (dxb*dxb + dzb*dzb < 30*30) shad(pts); } }
+    const lim = (a2, b2, w0, w1, col) => limb(bw(a2[0], a2[1], a2[2]), bw(b2[0], b2[1], b2[2]), w0, w1, col, 4);
+    for (const sd of [-1, 1]) { const ph2 = b.ph + (sd > 0 ? 0 : Math.PI), sw2 = Math.sin(ph2)*0.42*amp2, lift = Math.max(0, Math.cos(ph2))*0.14*amp2;
+      const hip = [sd*0.24, 0.8, 0], knee = [sd*0.25, 0.46 + lift*0.5, sw2*0.5 + 0.08], foot = [sd*0.25, 0.1 + lift, sw2];
+      lim(hip, knee, 0.13, 0.11, MET2); bx([knee[0], knee[1], knee[2] + 0.1], 0.1, 0.08, 0.05, MET); lim(knee, foot, 0.11, 0.08, MET);
+      bx([sd*0.25, 0.06 + lift, sw2 + 0.1], 0.11, 0.06, 0.2, JNT); if (near) { bx([sd*0.25, 0.05 + lift, sw2 + 0.3], 0.1, 0.045, 0.06, MET); bx([foot[0], (knee[1] + foot[1])/2, (knee[2] + foot[2])/2 - 0.1], 0.07, 0.14, 0.04, MET2); bx([sd*0.25, 0.2 + lift*0.6, sw2*0.9 + 0.02], 0.08, 0.04, 0.09, JNT); }
+      const sh = [sd*0.58, 1.42, 0], hnd = [sd*0.64, 0.78, -sw2*0.9 + 0.05], elb = [sd*0.64, 1.1, -sw2*0.45];
+      bx([sd*0.6, 1.5, 0], 0.17, 0.1, 0.2, MET); if (near) bx([sd*0.6, 1.6, 0], 0.175, 0.012, 0.21, RED);
+      lim(sh, elb, 0.09, 0.08, MET2); bx(elb, 0.09, 0.08, 0.09, JNT); lim(elb, hnd, 0.1, 0.075, MET);
+      if (near) { bx([(elb[0]*0.3 + hnd[0]*0.7), (elb[1]*0.3 + hnd[1]*0.7), (elb[2]*0.3 + hnd[2]*0.7)], 0.1, 0.05, 0.1, MET2); }
+      bx([hnd[0], hnd[1] - 0.04, hnd[2]], 0.08, 0.08, 0.08, RED); if (near) for (let i = -1; i <= 1; i++) bx([hnd[0] + i*0.045, hnd[1] - 0.15, hnd[2] + 0.02], 0.016, 0.05, 0.02, JNT); }
+    bx([0, 1.12, 0], 0.4, 0.36, 0.24, MET); bx([0, 1.2, 0.25], 0.32, 0.2, 0.03, MET2); bx([0, 0.9, 0], 0.3, 0.07, 0.2, JNT); bx([0, 0.74, 0], 0.34, 0.08, 0.22, MET2); bx([0, 0.69, 0], 0.355, 0.025, 0.235, RED);
+    bx([0, 1.26, 0.285], 0.07, 0.07, 0.012, EYE); if (near) { for (let i = -1; i <= 1; i++) bx([i*0.15, 1.0, 0.262], 0.05, 0.05, 0.012, JNT); bx([0, 1.2, -0.3], 0.22, 0.26, 0.1, MET2); bx([-0.12, 1.42, -0.38], 0.04, 0.1, 0.04, JNT); bx([0.12, 1.42, -0.38], 0.04, 0.1, 0.04, JNT); bx([0, 1.48, -0.1], 0.3, 0.02, 0.2, MET2); }
+    bx([0, 1.52, 0], 0.08, 0.06, 0.08, JNT); bx([0, 1.72, 0.02], 0.23, 0.2, 0.22, MET); bx([0, 1.74, 0.235], 0.19, 0.07, 0.012, VIS); bx([-0.08, 1.74, 0.246], 0.045, 0.03, 0.008, EYE); bx([0.08, 1.74, 0.246], 0.045, 0.03, 0.008, EYE);
+    if (near) { bx([-0.26, 1.72, 0.02], 0.03, 0.08, 0.08, RED); bx([0.26, 1.72, 0.02], 0.03, 0.08, 0.08, RED); bx([0, 1.93, 0], 0.18, 0.025, 0.17, MET2); for (let i = 0; i < 3; i++) bx([0, 1.62 + i*0.025, 0.236], 0.09, 0.008, 0.008, JNT); }
+    lim([0, 1.95, 0], [0, 2.16, 0], 0.025, 0.02, JNT); bx([0, 2.19, 0], 0.04, 0.04, 0.04, RED);
+    { const dc = qb[2]; for (let i = n0; i < obj.length; i++) obj[i].d = dc - 0.25 + (obj[i].d - dc)*0.05; } // the whole robot is sorted as ONE piece, so a tree never cuts half of it off
+    if (near) { const pts = []; for (let i = 0; i < 10; i++) { const a2 = i/10*6.2832, x = b.x + Math.cos(a2)*0.6, z = b.z + Math.sin(a2)*0.6; pts.push([x, m3H(x, z) + 0.06, z]); } shad(pts); } }
   for (const t of M3.trees) { const dx = t.x - P.x, dz = t.z - P.z; if (dx*dx + dz*dz > 42*42) continue; for (const b of t.br) { limb(b.a, b.b, 0.2, 0.12, [104*t.sh, 70*t.sh, 42*t.sh], 5); ell([b.b[0], b.b[1] + 0.15, b.b[2]], [0.7, 0.45, 0.7], [48*t.sh, 140*t.sh, 62*t.sh], 6, 3, 0); } } // grabbable branches
   for (const r of M3.rocks) { const dx = r.x - P.x, dz = r.z - P.z; if (dx*dx + dz*dz > 60*60) continue; ell([r.x, r.y0 + r.r*0.35, r.z], [r.r, r.r*0.7, r.r*0.85], [112, 112, 108], 7, 4, r.a); }
   obj.sort((a, b) => b.d - a.d);
