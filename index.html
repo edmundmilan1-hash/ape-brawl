@@ -3157,7 +3157,7 @@ function m3Step(dt) {
 }
 function m3Draw() {
   const P = M3.p, ey = P.y + 0.95, sY = Math.sin(M3.yaw), cY = Math.cos(M3.yaw), sP = Math.sin(M3.pitch), cP = Math.cos(M3.pitch), F = Math.min(W, H)*0.5/Math.tan((M3.fov || 60)*Math.PI/360), HZ = [200, 226, 214];
-  const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#4f9fd6'); g.addColorStop(0.55, '#a9d6e8'); g.addColorStop(1, 'rgb(200,226,214)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = 'rgb(200,226,214)'; ctx.fillRect(0, 0, W, H); { const hz = H/2 + Math.tan(M3.pitch)*F; if (hz > 2) { const g = ctx.createLinearGradient(0, 0, 0, hz); g.addColorStop(0, '#4f9fd6'); g.addColorStop(0.6, '#a9d6e8'); g.addColorStop(1, 'rgb(200,226,214)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, Math.min(H, hz + 1)); } } // the sky fades into the haze exactly at the horizon, so the far ground melts into it
   M3.F = F; const third = M3.view === 'third'; let Cx = P.x, Cy = ey, Cz = P.z; if (third) { const D = 4.3; Cx = P.x - sY*cP*D; Cz = P.z - cY*cP*D; Cy = Math.max(m3H(Cx, Cz) + 0.6, P.y + 1.0 - sP*D); }
   const tr = (x, y, z) => { const dx = x - Cx, dy = y - Cy, dz = z - Cz, xc = dx*cY - dz*sY, z1 = dx*sY + dz*cY; return [xc, dy*cP - z1*sP, dy*sP + z1*cP]; };
   const L = [0.42, 0.8, 0.3];
@@ -3165,7 +3165,7 @@ function m3Draw() {
     const c = pts.map(q => tr(q[0], q[1], q[2])), cl = []; for (let i = 0; i < c.length; i++) { const a = c[i], b = c[(i + 1) % c.length]; if (a[2] >= 0.2) cl.push(a); if ((a[2] >= 0.2) !== (b[2] >= 0.2)) { const k = (0.2 - a[2])/(b[2] - a[2]); cl.push([a[0] + (b[0] - a[0])*k, a[1] + (b[1] - a[1])*k, 0.2]); } }
     if (cl.length < 3) return; let d = 0; for (const q of cl) d += q[2]; d /= cl.length;
     const u = [pts[1][0] - pts[0][0], pts[1][1] - pts[0][1], pts[1][2] - pts[0][2]], w = [pts[2][0] - pts[0][0], pts[2][1] - pts[0][1], pts[2][2] - pts[0][2]], nx = u[1]*w[2] - u[2]*w[1], ny = u[2]*w[0] - u[0]*w[2], nz = u[0]*w[1] - u[1]*w[0], nl = Math.hypot(nx, ny, nz) || 1;
-    const sh = ground ? 1 : 0.5 + 0.5*Math.abs((nx*L[0] + ny*L[1] + nz*L[2])/nl), f = Math.max(0, Math.min(1, (d - 16)/50));
+    const sh = ground ? 1 : 0.5 + 0.5*Math.abs((nx*L[0] + ny*L[1] + nz*L[2])/nl), f = Math.max(0, Math.min(1, (d - 14)/42));
     const r = Math.round((col[0]*sh)*(1 - f) + HZ[0]*f), gg = Math.round((col[1]*sh)*(1 - f) + HZ[1]*f), bb = Math.round((col[2]*sh)*(1 - f) + HZ[2]*f);
     out.push({ s: cl.map(q => [W/2 + q[0]/q[2]*PF, H/2 - q[1]/q[2]*PF]), d, c: 'rgb(' + r + ',' + gg + ',' + bb + ')' });
   };
@@ -3190,9 +3190,9 @@ function m3Draw() {
     for (let j = 0; j < N; j++) { const k = 1 + ((j*5 % 4) - 1.5)*0.04; poly([A[j], A[(j + 1) % N], B[(j + 1) % N], B[j]], [col[0]*k, col[1]*k, col[2]*k], false, obj); } };
   const FUR = [78, 66, 62], FUR2 = [96, 82, 76], FACE = [190, 146, 108], CHEST = [128, 116, 108], DARK = [22, 19, 19];
   const G = m3H(P.x, P.z), spd = Math.hypot(M3.v.x, M3.v.z), air = P.y > G + 1.1 && !M3.touch, amp = Math.min(1, spd/3), bob = Math.sin(M3.walk*2)*0.045*amp*(air ? 0 : 1), fp = !third;
-  const shad = pts => { const n0 = obj.length; poly(pts, [30, 84, 42], true, obj); if (obj.length > n0) { const f = obj[obj.length - 1]; f.al = 0.5; f.d += 2.9; } };
+  const shad = pts => { const n0 = obj.length; poly(pts, [30, 84, 42], true, obj); if (obj.length > n0) { const f = obj[obj.length - 1]; f.al = 0.5*Math.max(0, 1 - (f.d - 12)/40); f.d += 2.9; } };
   if (third) { const pts = []; for (let i = 0; i < 10; i++) { const a = i/10*6.2832, x = P.x + Math.cos(a)*0.85, z = P.z + Math.sin(a)*0.85; pts.push([x, m3H(x, z) + 0.08, z]); } shad(pts); }
-  for (const t of M3.trees) { const dx = t.x - P.x, dz = t.z - P.z; if (dx*dx + dz*dz > 70*70) continue; const pts = []; for (let i = 0; i < 10; i++) { const a = i/10*6.2832, x = t.x + 1.6 + Math.cos(a)*t.cr*0.95, z = t.z + 1.1 + Math.sin(a)*t.cr*0.95; pts.push([x, m3H(x, z) + 0.08, z]); } shad(pts); }
+  for (const t of M3.trees) { const dx = t.x - P.x, dz = t.z - P.z; if (dx*dx + dz*dz > 36*36) continue; const pts = []; for (let i = 0; i < 10; i++) { const a = i/10*6.2832, x = t.x + 1.6 + Math.cos(a)*t.cr*0.95, z = t.z + 1.1 + Math.sin(a)*t.cr*0.95; pts.push([x, m3H(x, z) + 0.08, z]); } shad(pts); }
   for (let k = 0; k < 2; k++) { const sd = k ? 1 : -1, ph = M3.walk + (k ? Math.PI : 0), sw = Math.sin(M3.walk + (k ? 0 : Math.PI)), on = !!(M3.anc[k] || M3.reach[k]), wa = M3.anc[k] || M3.reach[k], loc = w => [(w[0] - P.x)*cY - (w[2] - P.z)*sY, w[1], (w[0] - P.x)*sY + (w[2] - P.z)*cY];
     if (third) { const hip = lw(sd*0.26, P.y - 0.32 + bob, 0), fz = M3.fling ? Math.sin(M3.t*9 + ph)*0.6 : Math.sin(ph)*0.5*amp + 0.05, fy = M3.fling ? P.y - 0.8 + Math.sin(M3.t*10 + ph)*0.4 : air ? P.y - 0.95 : G + 0.1 + Math.max(0, Math.cos(ph))*0.28*amp, foot = lw(sd*0.28, fy, fz), knee = lw(sd*0.33, (hip[1] + fy)/2 + 0.05, fz/2 + 0.34);
       limb(hip, knee, 0.22, 0.17, FUR); ell(knee, [0.18, 0.17, 0.18], FUR, 7, 4); limb(knee, foot, 0.17, 0.13, FUR); ell([foot[0] + sY*0.08, foot[1] - 0.02, foot[2] + cY*0.08], [0.14, 0.09, 0.24], DARK, 7, 4); }
