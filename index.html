@@ -75,7 +75,7 @@ canvas { display:block; width:100%; height:100%; cursor:crosshair; touch-action:
 <body>
 <canvas id="c"></canvas>
 <canvas id="ov"></canvas>
-<div id="ver" style="position:fixed;right:10px;top:6px;z-index:60;font:700 13px 'Comic Sans MS',cursive;color:#1b2a3a;opacity:.7;background:rgba(255,255,255,.55);padding:2px 8px;border-radius:8px;pointer-events:none">v2:215</div>
+<div id="ver" style="position:fixed;right:10px;top:6px;z-index:60;font:700 13px 'Comic Sans MS',cursive;color:#1b2a3a;opacity:.7;background:rgba(255,255,255,.55);padding:2px 8px;border-radius:8px;pointer-events:none">v2:216</div>
 <div id="pz"><h2>Paused</h2><div class="pb" id="pz-main"><button class="big" id="pz-res">Resume</button><button class="big" id="pz-set">Game Settings</button><button class="big" id="pz-map">Map</button><button class="big" id="pz-menu">Main Menu</button></div><div class="pp" id="pz-sp"><b>Game Settings</b><label>Mouse sensitivity <input type="range" id="pz-sens" min="0.3" max="3" step="0.1" value="1"></label><label><span>FOV <b id="pz-fovv">60</b></span> <input type="range" id="pz-fov" min="50" max="110" step="1" value="60"></label><label>Camera <button class="big" id="pz-cam" style="font-size:16px;padding:6px 14px">Third person</button></label><button class="big" data-pz="main">Back</button></div><div class="pp" id="pz-mp"><b>Map</b><div>Current map: Forest Hills</div><small>More maps are coming soon.</small><button class="big" data-pz="main">Back</button></div></div>
 <div id="menu">
 <div id="s-title" class="screen"><h1 class="logo">APE<br>BRAWL</h1><canvas id="hero" width="300" height="300"></canvas><div class="btns"><button class="big" id="b-play">Singleplayer</button><button class="big" data-go="s-char">Character</button><button class="big" id="b-upc">Upgrade Center</button><button class="big" data-go="s-set">Settings</button><button class="big" id="b-endless">Endless Mode</button><button class="big" id="b-mp">Multiplayer</button><button class="big" id="b-3d" hidden>Campaign</button></div></div>
@@ -3127,6 +3127,25 @@ function m3Grab(k) { if (m3GrabHead(k)) { M3.held[k] = true; return; } // grab o
 function m3Reach(k, h) { const P = M3.p, sx = P.x, sy = P.y + 0.4, sz = P.z, dx = h.x - sx, dy = h.y - sy, dz = h.z - sz, l = Math.hypot(dx, dy, dz) || 1; M3.reach[k] = [sx + dx/l*2.6, sy + dy/l*2.6, sz + dz/l*2.6]; }
 function m3Release(k) { if (M3.grab && M3.grab.k === k) { const g = M3.grab; M3.grab = null; if (g.b) { const b = g.b, dx = b.x - M3.p.x, dz = b.z - M3.p.z, hz = Math.hypot(dx, dz) || 1; b.held = false; b.wait = 1.0; b.tilt = 0; b.kx = dx/hz*2.5; b.kz = dz/hz*2.5; if (M3.viewG) M3.view = M3.viewG; M3.viewG = null; } } else if (M3.headObj && M3.headObj.held && M3.headObj.k === k) m3ThrowHead();
   M3.held[k] = false; M3.anc[k] = null; M3.reach[k] = null; }
+function m3Limb(b, li, T, mode, dt) { // every limb is its own little physics body: root -> mid -> end (arm: shoulder, elbow, hand. leg: hip, knee, foot)
+  if (!b.L) b.L = [null, null, null, null]; const d3 = (A, B) => Math.hypot(A[0] - B[0], A[1] - B[1], A[2] - B[2]); let S = b.L[li];
+  if (S && !S.free && (d3(S.p[1], T[1]) > 2.5 || d3(S.p[2], T[2]) > 3)) S = null;
+  if (!S) S = b.L[li] = { p: T.map(a => a.slice()), v: [[0, 0, 0], [0, 0, 0], [0, 0, 0]], pt: T.map(a => a.slice()), l1: d3(T[0], T[1]), l2: d3(T[1], T[2]), free: false };
+  dt = Math.min(0.05, Math.max(0.001, dt || 0.016)); if (S.free) mode = 2; else { S.l1 = d3(T[0], T[1]); S.l2 = d3(T[1], T[2]); }
+  const n = Math.max(1, Math.ceil(dt/0.012)), h = dt/n, pv = S.pt, j0 = mode < 2 ? 1 : 0;
+  for (let it = 0; it < n; it++) {
+    if (mode < 2) { S.p[0] = T[0].slice(); S.v[0] = [0, 0, 0];
+      for (let j = 1; j < 3; j++) { const kk = mode === 0 ? (j === 1 ? 230 : 170) : 4, cc = mode === 0 ? 17 : 1.2, p = S.p[j], v = S.v[j];
+        for (let a = 0; a < 3; a++) { const tv = mode === 0 ? Math.max(-8, Math.min(8, (T[j][a] - pv[j][a])/dt)) : 0; let ac = (T[j][a] - p[a])*kk + (tv - v[a])*cc; if (a === 1) ac -= mode === 0 ? 3 : 18; v[a] += ac*h; } } }
+    else for (let j = 0; j < 3; j++) { S.v[j][1] -= 18*h; const dm = Math.pow(0.7, h); S.v[j][0] *= dm; S.v[j][2] *= dm; }
+    for (let j = j0; j < 3; j++) for (let a = 0; a < 3; a++) S.p[j][a] += S.v[j][a]*h;
+    for (let q = 0; q < 3; q++) { const pr = (i, j, L, wi, wj) => { const A = S.p[i], B = S.p[j], dx = B[0] - A[0], dy = B[1] - A[1], dz = B[2] - A[2], d = Math.hypot(dx, dy, dz) || 0.001, e = (d - L)/d; for (let a = 0, dd = [dx, dy, dz]; a < 3; a++) { A[a] += dd[a]*e*wi; B[a] -= dd[a]*e*wj; } };
+      if (mode < 2) { pr(0, 1, S.l1, 0, 1); pr(1, 2, S.l2, 0.5, 0.5); } else { pr(0, 1, S.l1, 0.5, 0.5); pr(1, 2, S.l2, 0.5, 0.5); } }
+    for (let j = j0; j < 3; j++) { const p = S.p[j], v = S.v[j], gy = m3H(p[0], p[2]) + 0.07; if (p[1] < gy) { p[1] = gy; if (v[1] < 0) v[1] *= -0.25; const fr = Math.pow(0.02, h); v[0] *= fr; v[2] *= fr; if (mode === 2 && Math.abs(v[1]) < 0.6) v[1] = 0; } } }
+  S.pt = T.map(a => a.slice()); return S; }
+function m3Kick(b, li, kx, kz, f) { const S = b.L && b.L[li]; if (!S) return; for (let j = 1; j < 3; j++) { const w = j === 2 ? 1 : 0.6; S.v[j][0] += kx*f*w; S.v[j][1] += f*0.3*w; S.v[j][2] += kz*f*w; } }
+function m3Detach(b, li, kx, kz, f) { const S = b.L && b.L[li]; if (!S || S.free) return false; S.free = true; for (let j = 0; j < 3; j++) { const w = 0.5 + j*0.3; S.v[j][0] += kx*f*w + (Math.random() - 0.5)*3; S.v[j][1] += 3 + f*0.2; S.v[j][2] += kz*f*w + (Math.random() - 0.5)*3; }
+  M3.fx.push({ x: S.p[0][0], y: S.p[0][1], z: S.p[0][2], gy: b.y, t: 0.1, sc: 0.3, life: 0.6 }); return true; }
 function m3Ko() { const P = M3.p; M3.ko = 1.8; M3.guard = false; if (M3.grab) m3Release(M3.grab.k); toast('KNOCKED OUT!'); for (const b of M3.bots) { b.agg = false; b.st = 'idle'; } }
 function m3HurtPlayer(b) { const P = M3.p, V = M3.v, dx = P.x - b.x, dz = P.z - b.z, d = Math.hypot(dx, dz) || 1; if (d > 2.5 || M3.ko > 0 || M3.inv > 0) return; if ((dx*Math.sin(b.yaw) + dz*Math.cos(b.yaw))/d < 0.35) return;
   let dm = 16; if (M3.guard) { dm = 5; M3.stam = Math.max(0, M3.stam - 14); b.stun = 0.7; b.st = 'idle'; b.stT = 0; b.cd = 1.1; b.kx = -dx/d*3; b.kz = -dz/d*3; toast('BLOCKED!'); } else { M3.flash = 0.45; V.x += dx/d*7; V.z += dz/d*7; V.y = Math.max(V.y, 2.5); }
@@ -3141,10 +3160,10 @@ function m3BotCombat(b, s, P) { b.cd = Math.max(0, b.cd - s); b.stun = Math.max(
   else { b.sp *= Math.pow(0.05, s); b.yaw += da*Math.min(1, (b.st === 'wind' ? 3 : 0.5)*s); b.stT += s;
     if (b.st === 'wind' && b.stT >= 0.55) { b.st = 'swing'; b.stT = 0; } else if (b.st === 'swing') { if (!b.hd && b.stT >= 0.09) { b.hd = true; m3HurtPlayer(b); } if (b.stT >= 0.18) { b.st = 'recover'; b.stT = 0; } } else if (b.st === 'recover' && b.stT >= 0.8) { b.st = 'idle'; b.stT = 0; b.cd = 0.5 + Math.random()*0.9; } }
   return true; }
-function m3BotFields(b) { b.hp = 3; b.hit = 0; b.kx = 0; b.kz = 0; b.yo = 0; b.vy = 0; b.tilt = 0; b.roll = 0; b.spin = 0; b.wp = 0; b.wr = 0; b.hitP = 0; b.hitR = 0; b.dmgH = 0; b.headOff = false; b.held = false; b.fall = false; b.dead = false; b.rt = 0; b.st = 'idle'; b.stT = 0; b.cd = 1; b.stun = 0; b.agg = false; b.sdA = 0; b.hd = false; b.armD = [0, 0]; b.legD = [0, 0]; b.armB = [false, false]; b.legB = [false, false]; }
+function m3BotFields(b) { b.hp = 3; b.hit = 0; b.kx = 0; b.kz = 0; b.yo = 0; b.vy = 0; b.tilt = 0; b.roll = 0; b.spin = 0; b.wp = 0; b.wr = 0; b.hitP = 0; b.hitR = 0; b.dmgH = 0; b.headOff = false; b.held = false; b.fall = false; b.dead = false; b.rt = 0; b.st = 'idle'; b.stT = 0; b.cd = 1; b.stun = 0; b.agg = false; b.sdA = 0; b.hd = false; b.armD = [0, 0]; b.legD = [0, 0]; b.armB = [false, false]; b.legB = [false, false]; b.armX = [false, false]; b.legX = [false, false]; b.L = null; }
 function m3BotRespawn(b) { let x, z, n = 0; do { const a = Math.random()*6.2832, r = 16 + Math.random()*38; x = Math.cos(a)*r; z = Math.sin(a)*r; n++; } while (n < 30 && M3.trees.some(t => Math.hypot(t.x - x, t.z - z) < t.r + 1.5)); b.x = x; b.z = z; b.tx = x; b.tz = z; b.wait = 1; b.sp = 0; m3BotFields(b); }
 function m3Step(dt) {
-  const P = M3.p, V = M3.v, s = Math.min(dt, 50)/1000, sy = Math.sin(M3.yaw), cy = Math.cos(M3.yaw); M3.t += s;
+  const P = M3.p, V = M3.v, s = Math.min(dt, 50)/1000, sy = Math.sin(M3.yaw), cy = Math.cos(M3.yaw); M3.t += s; M3.ds = s;
   const arms = !!(M3.anc[0] || M3.anc[1]), G0 = m3H(P.x, P.z), grounded = P.y <= G0 + 1.06; let wall = null;
   for (const t of M3.trees) { const dx = P.x - t.x, dz = P.z - t.z, d = Math.hypot(dx, dz); if (d < t.r + 0.8 && P.y < t.y0 + t.h + 1) { wall = t; if (d < t.r + 0.55) { const k = (t.r + 0.55)/Math.max(d, 0.01); P.x = t.x + dx*k; P.z = t.z + dz*k; } } }
   M3.touch = grounded || !!wall;
@@ -3309,19 +3328,22 @@ function m3Draw() {
     const MET = [168, 176, 188], MET2 = [118, 126, 142], JNT = [48, 54, 66], RED = [206, 64, 58], EYE = [90, 235, 255], VIS = [18, 22, 30];
     const bx = (c, hx, hy, hz, col) => { const v = []; for (const sx of [-1, 1]) for (const sy of [-1, 1]) for (const sz of [-1, 1]) v.push(bw(c[0] + sx*hx, c[1] + sy*hy, c[2] + sz*hz));
       for (const f of [[0, 1, 3, 2], [4, 5, 7, 6], [0, 1, 5, 4], [2, 3, 7, 6], [0, 2, 6, 4], [1, 3, 7, 5]]) poly(f.map(i => v[i]), col, false, obj); };
-    const lim = (a2, b2, w0, w1, col) => limb(bw(a2[0], a2[1], a2[2]), bw(b2[0], b2[1], b2[2]), w0, w1, col, 4);
+    const lim = (a2, b2, w0, w1, col) => limb(bw(a2[0], a2[1], a2[2]), bw(b2[0], b2[1], b2[2]), w0, w1, col, 4), late = [];
+    const bxw = (c, hx, hy, hz, col) => { const v = []; for (const sx of [-1, 1]) for (const sy of [-1, 1]) for (const sz of [-1, 1]) v.push([c[0] + cb*sx*hx + sb*sz*hz, c[1] + sy*hy, c[2] - sb*sx*hx + cb*sz*hz]);
+      for (const f of [[0, 1, 3, 2], [4, 5, 7, 6], [0, 1, 5, 4], [2, 3, 7, 6], [0, 2, 6, 4], [1, 3, 7, 5]]) poly(f.map(i => v[i]), col, false, obj); };
+    const drawLeg = S => { const [a, k, f] = S.p; limb(a, k, 0.13, 0.11, MET2, 4); bxw([k[0] + sb*0.1, k[1], k[2] + cb*0.1], 0.1, 0.08, 0.05, MET); limb(k, f, 0.11, 0.08, MET, 4); bxw([f[0] + sb*0.1, f[1] - 0.04, f[2] + cb*0.1], 0.11, 0.06, 0.2, JNT);
+      if (near) { bxw([f[0] + sb*0.3, f[1] - 0.05, f[2] + cb*0.3], 0.1, 0.045, 0.06, MET); bxw([(k[0] + f[0])/2 - sb*0.1, (k[1] + f[1])/2, (k[2] + f[2])/2 - cb*0.1], 0.07, 0.14, 0.04, MET2); } };
+    const drawArm = S => { const [s0, e, h] = S.p; limb(s0, e, 0.09, 0.08, MET2, 4); bxw(e, 0.09, 0.08, 0.09, JNT); limb(e, h, 0.1, 0.075, MET, 4);
+      if (near) bxw([e[0]*0.3 + h[0]*0.7, e[1]*0.3 + h[1]*0.7, e[2]*0.3 + h[2]*0.7], 0.1, 0.05, 0.1, MET2); bxw([h[0], h[1] - 0.04, h[2]], 0.08, 0.08, 0.08, RED); if (near) for (let i = -1; i <= 1; i++) bxw([h[0] + cb*i*0.045, h[1] - 0.15, h[2] - sb*i*0.045], 0.016, 0.05, 0.02, JNT); };
     for (const sd of [-1, 1]) { const ph2 = b.ph + (sd > 0 ? 0 : Math.PI), sw2a = Math.sin(ph2)*0.42*amp2, lifta = Math.max(0, Math.cos(ph2))*0.14*amp2, lb = b.legB[sd > 0 ? 1 : 0], sw2 = lb ? -0.25 : sw2a, lift = lb ? 0 : lifta;
-      const hip = [sd*0.24, 0.8, 0], knee = [sd*0.25, 0.46 + lift*0.5, sw2*0.5 + 0.08], foot = [sd*0.25, 0.1 + lift, sw2];
-      lim(hip, knee, 0.13, 0.11, MET2); bx([knee[0], knee[1], knee[2] + 0.1], 0.1, 0.08, 0.05, MET); lim(knee, foot, 0.11, 0.08, MET);
-      bx([sd*0.25, 0.06 + lift, sw2 + 0.1], 0.11, 0.06, 0.2, JNT); if (near) { bx([sd*0.25, 0.05 + lift, sw2 + 0.3], 0.1, 0.045, 0.06, MET); bx([foot[0], (knee[1] + foot[1])/2, (knee[2] + foot[2])/2 - 0.1], 0.07, 0.14, 0.04, MET2); bx([sd*0.25, 0.2 + lift*0.6, sw2*0.9 + 0.02], 0.08, 0.04, 0.09, JNT); }
+      const hip = [sd*0.24, 0.8, 0], knee = [sd*0.25, 0.46 + lift*0.5, sw2*0.5 + 0.08], foot = [sd*0.25, 0.1 + lift, sw2], lg = sd > 0 ? 1 : 0;
+      { const LS = m3Limb(b, 2 + lg, [bw(hip[0], hip[1], hip[2]), bw(knee[0], knee[1], knee[2]), bw(foot[0], foot[1], foot[2])], b.legX[lg] ? 2 : b.legB[lg] ? 1 : 0, M3.ds); if (LS.free) late.push(() => drawLeg(LS)); else { drawLeg(LS); if (near) bx([sd*0.25, 0.2 + lift*0.6, sw2*0.9 + 0.02], 0.08, 0.04, 0.09, JNT); } }
       const sh = [sd*0.58, 1.42, 0], ai = sd > 0 ? 1 : 0; let hnd = [sd*0.64, 0.78, -sw2*0.9 + 0.05], elb = [sd*0.64, 1.1, -sw2*0.45];
       if (b.armB[ai]) { hnd = [sd*0.7, 0.55, 0.15]; elb = [sd*0.68, 0.95, 0.05]; }
       else if (b.st !== 'idle' && b.sdA === ai && !b.fall) { const lpz = (A, B, u) => A.map((v, i) => v + (B[i] - v)*u), WH = [sd*0.7, 1.75, -0.35], WE = [sd*0.7, 1.5, -0.1], SH = [sd*0.2, 1.3, 1.45], SE = [sd*0.4, 1.4, 0.7], rh0 = hnd, re0 = elb;
         if (b.st === 'wind') { const u = Math.min(1, b.stT/0.55); hnd = lpz(rh0, WH, u); elb = lpz(re0, WE, u); } else if (b.st === 'swing') { const u = Math.min(1, b.stT/0.18); hnd = lpz(WH, SH, u); elb = lpz(WE, SE, u); } else { const u = Math.min(1, b.stT/0.5); hnd = lpz(SH, rh0, u); elb = lpz(SE, re0, u); } }
       bx([sd*0.6, 1.5, 0], 0.17, 0.1, 0.2, MET); if (near) bx([sd*0.6, 1.6, 0], 0.175, 0.012, 0.21, RED);
-      lim(sh, elb, 0.09, 0.08, MET2); bx(elb, 0.09, 0.08, 0.09, JNT); lim(elb, hnd, 0.1, 0.075, MET);
-      if (near) { bx([(elb[0]*0.3 + hnd[0]*0.7), (elb[1]*0.3 + hnd[1]*0.7), (elb[2]*0.3 + hnd[2]*0.7)], 0.1, 0.05, 0.1, MET2); }
-      bx([hnd[0], hnd[1] - 0.04, hnd[2]], 0.08, 0.08, 0.08, RED); if (near) for (let i = -1; i <= 1; i++) bx([hnd[0] + i*0.045, hnd[1] - 0.15, hnd[2] + 0.02], 0.016, 0.05, 0.02, JNT); }
+      { const AS = m3Limb(b, ai, [bw(sh[0], sh[1], sh[2]), bw(elb[0], elb[1], elb[2]), bw(hnd[0], hnd[1], hnd[2])], b.armX[ai] ? 2 : b.armB[ai] ? 1 : 0, M3.ds); if (AS.free) late.push(() => drawArm(AS)); else drawArm(AS); } }
     bx([0, 1.12, 0], 0.4, 0.36, 0.24, MET); bx([0, 1.2, 0.25], 0.32, 0.2, 0.03, MET2); bx([0, 0.9, 0], 0.3, 0.07, 0.2, JNT); bx([0, 0.74, 0], 0.34, 0.08, 0.22, MET2); bx([0, 0.69, 0], 0.355, 0.025, 0.235, RED);
     bx([0, 1.26, 0.285], 0.07, 0.07, 0.012, EYE); if (near) { for (let i = -1; i <= 1; i++) bx([i*0.15, 1.0, 0.262], 0.05, 0.05, 0.012, JNT); bx([0, 1.2, -0.3], 0.22, 0.26, 0.1, MET2); bx([-0.12, 1.42, -0.38], 0.04, 0.1, 0.04, JNT); bx([0.12, 1.42, -0.38], 0.04, 0.1, 0.04, JNT); bx([0, 1.48, -0.1], 0.3, 0.02, 0.2, MET2); }
     bx([0, 1.52, 0], 0.08, 0.06, 0.08, JNT);
@@ -3334,7 +3356,7 @@ function m3Draw() {
       if (dh >= 2) { const hp3 = bw(0, 1.8, 0.15), hq = tr(hp3[0], hp3[1], hp3[2]); if (hq[2] > 0.4) obj.push({ fx: true, d: hq[2] - 0.6, run: () => { const X = W/2 + hq[0]/hq[2]*F, Y = H/2 - hq[1]/hq[2]*F, K2 = F/hq[2]; for (let i = 0; i < 5; i++) { const a3 = Math.random()*6.28, r3 = Math.random()*0.22*K2; ctx.fillStyle = Math.random() < 0.5 ? '#ffd24a' : '#fff5c8'; ctx.fillRect(X + Math.cos(a3)*r3, Y + Math.sin(a3)*r3, 2.5, 2.5); }
           if (dh >= 3) for (let i = 0; i < 3; i++) { const u2 = ((M3.t*0.8 + i/3) % 1); ctx.fillStyle = 'rgba(70,70,74,' + 0.4*(1 - u2) + ')'; ctx.beginPath(); ctx.arc(X + Math.sin(M3.t*3 + i)*6, Y - 0.1*K2 - u2*0.7*K2, (0.08 + 0.12*u2)*K2, 0, 7); ctx.fill(); } } }); } }
     else if (b.fall) { const hp3 = bw(0, 1.55, 0), hq = tr(hp3[0], hp3[1], hp3[2]); if (hq[2] > 0.4) obj.push({ fx: true, d: hq[2] - 0.6, run: () => { const X = W/2 + hq[0]/hq[2]*F, Y = H/2 - hq[1]/hq[2]*F, K2 = F/hq[2]; for (let i = 0; i < 7; i++) { const a3 = Math.random()*6.28, r3 = Math.random()*0.18*K2; ctx.fillStyle = Math.random() < 0.5 ? '#ffd24a' : '#fff5c8'; ctx.fillRect(X + Math.cos(a3)*r3, Y + Math.sin(a3)*r3 - Math.random()*0.2*K2, 3, 3); } } }); } // a stump that sparks
-    { const dc = qb[2]; for (let i = n0; i < obj.length; i++) obj[i].d = dc - 0.25 + (obj[i].d - dc)*0.05; } // the whole robot is sorted as ONE piece, so a tree never cuts half of it off
+    { const dc = qb[2]; for (let i = n0; i < obj.length; i++) obj[i].d = dc - 0.25 + (obj[i].d - dc)*0.05; } for (const fn of late) fn(); // the whole robot is sorted as ONE piece, so a tree never cuts half of it off (ripped-off limbs sort on their own)
     if (near) { const pts = []; for (let i = 0; i < 10; i++) { const a2 = i/10*6.2832, x = b.x + Math.cos(a2)*0.6, z = b.z + Math.sin(a2)*0.6; pts.push([x, m3H(x, z) + 0.06, z]); } shad(pts); } }
   for (const t of M3.trees) { const dx = t.x - P.x, dz = t.z - P.z; if (dx*dx + dz*dz > 42*42) continue; for (const b of t.br) { limb(b.a, b.b, 0.2, 0.12, [104*t.sh, 70*t.sh, 42*t.sh], 5); ell([b.b[0], b.b[1] + 0.15, b.b[2]], [0.7, 0.45, 0.7], [48*t.sh, 140*t.sh, 62*t.sh], 6, 3, 0); } } // grabbable branches
   for (const r of M3.rocks) { const dx = r.x - P.x, dz = r.z - P.z; if (dx*dx + dz*dz > 60*60) continue; ell([r.x, r.y0 + r.r*0.35, r.z], [r.r, r.r*0.7, r.r*0.85], [112, 112, 108], 7, 4, r.a); }
@@ -3384,6 +3406,8 @@ function m3PunchKey(e, down) { if (!M3.on || M3.paused) return; const kk = e.key
         b.hp -= dmg; b.hit = 0.3; b.wait = 0.7; b.kx = kx0/kl*kv; b.kz = kz0/kl*kv; b.yaw = Math.atan2(-ux, -uz); rh++;
         if (b.st === 'wind' || b.st === 'swing') { b.st = 'idle'; b.stT = 0; b.stun = 0.5; b.cd = 0.8; } else if (b.st === 'idle') b.stun = Math.max(b.stun, hook ? 0.6 : 0.25);
         if (zone === 2) b.dmgH += pw0*0.6; else if (limbI === 2) { b.armD[si] += pw0; if (b.armD[si] >= 1.7 && !b.armB[si]) { b.armB[si] = true; toast('ARM BROKEN!'); } } else if (limbI === 4) { b.legD[si] += pw0; if (b.legD[si] >= 1.7 && !b.legB[si]) { b.legB[si] = true; toast('LEG BROKEN!'); } }
+        { const li = limbI === 2 ? si : limbI === 4 ? 2 + si : -1, kd0 = Math.hypot(kx0, kz0) || 1; for (let q = 0; q < 4; q++) m3Kick(b, q, kx0/kd0, kz0/kd0, pw0*(q === li ? 7 : 1.6));
+          if (li >= 0 && (li < 2 ? b.armD[si] : b.legD[si]) >= 3.4 && m3Detach(b, li, kx0/kd0, kz0/kd0, pw0*4)) { if (li < 2) { b.armB[si] = b.armX[si] = true; toast('ARM RIPPED OFF!'); } else { b.legB[si] = b.legX[si] = true; toast('LEG RIPPED OFF!'); } } }
         if (b.legB[0] && b.legB[1]) b.hp = Math.min(b.hp, 0);
         b.hitP = zone === 2 ? 0.6 : zone === 0 ? -0.3 : 0.32; b.hitR = side*0.35;
         if (b.hp <= 0.01) { b.fall = true; b.yo = 0.02; b.vy = (hook ? 5 + ch*3 : 3.5) + (zone === 0 ? 1.5 : zone === 2 ? 0.5 : 0); b.kx *= 1.4; b.kz *= 1.4; b.tilt = b.hitP; b.roll = b.hitR;
