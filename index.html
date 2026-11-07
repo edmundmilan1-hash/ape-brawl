@@ -3247,11 +3247,37 @@ function blinkTo3D() { // a couple of blinks, then you open your eyes in 3D
   at(300, () => lids(50)); at(750, () => lids(14)); at(1100, () => lids(50)); at(1550, () => lids(14)); at(1900, () => lids(50));
   at(2300, () => { start3D(); t.style.transition = b.style.transition = 'height 1s ease-out'; lids(0); }); at(3500, () => o.remove());
 }
-function applyUnlock() { const u = !!SAVE.seen3d; $('b-3d').hidden = !u; $('b-play').textContent = u ? 'Tutorial' : 'Singleplayer'; } // beat level ten (or press M): the 3D mode is now the Campaign and the 2D game becomes the Tutorial
+function applyUnlock() { const u = !!SAVE.seen3d; $('b-3d').hidden = !u; $('b-play').textContent = u ? 'Tutorial' : 'Singleplayer'; $('hero').style.width = $('hero').style.height = u ? '230px' : ''; } // beat level ten (or press M): the 3D mode is now the Campaign and the 2D game becomes the Tutorial
 $('b-3d').onclick = start3D; applyUnlock();
 
 buildMenu();
 // the game steps at a fixed 60 per second, so it runs the same speed on 60, 120 or 144 Hz screens
+
+// ===== the title-screen 3D gorilla (shown once you have beaten the tutorial) =====
+function drawHero3D(cv2, t) {
+  const g = cv2.getContext('2d'); g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, cv2.width, cv2.height);
+  const yaw = Math.sin(t/1500)*0.75 + 0.15, cy = Math.cos(yaw), sy = Math.sin(yaw), D = 5.4, F = 640, CX = cv2.width/2, CYc = cv2.height/2 + 6, L = [0.42, 0.8, 0.3], polys = [], br = Math.sin(t/420)*0.02;
+  const FUR = [78, 66, 62], FUR2 = [96, 82, 76], FACE = [190, 146, 108], CHEST = [128, 116, 108], DARK = [22, 19, 19];
+  const rot = p => [cy*p[0] + sy*p[2], p[1], -sy*p[0] + cy*p[2]];
+  const face = (pts, col) => { const w = pts.map(rot), u = [w[1][0] - w[0][0], w[1][1] - w[0][1], w[1][2] - w[0][2]], v = [w[2][0] - w[0][0], w[2][1] - w[0][1], w[2][2] - w[0][2]], n = [u[1]*v[2] - u[2]*v[1], u[2]*v[0] - u[0]*v[2], u[0]*v[1] - u[1]*v[0]], nl = Math.hypot(...n) || 1, sh = 0.5 + 0.5*Math.abs((n[0]*L[0] + n[1]*L[1] + n[2]*L[2])/nl); let d = 0; const sc = w.map(q => { const dp = D - q[2]; d += dp; return [CX + q[0]/dp*F, CYc - q[1]/dp*F]; }); polys.push({ sc, d: d/w.length, c: 'rgb(' + Math.round(col[0]*sh) + ',' + Math.round(col[1]*sh) + ',' + Math.round(col[2]*sh) + ')' }); };
+  const ell = (c, r, col, ns, nr) => { ns = ns || 8; nr = nr || 5; const ring = []; for (let i = 0; i <= nr; i++) { const th = i/nr*Math.PI, y = Math.cos(th), rr = Math.sin(th), row = []; for (let j = 0; j < ns; j++) { const ph = j/ns*6.2832; row.push([c[0] + r[0]*rr*Math.cos(ph), c[1] + r[1]*y, c[2] + r[2]*rr*Math.sin(ph)]); } ring.push(row); }
+    for (let i = 0; i < nr; i++) for (let j = 0; j < ns; j++) { const k = 1 + (((i*7 + j*13) % 5) - 2)*0.045; face([ring[i][j], ring[i][(j + 1) % ns], ring[i + 1][(j + 1) % ns], ring[i + 1][j]], [col[0]*k, col[1]*k, col[2]*k]); } };
+  const limb = (a, b, w0, w1, col) => { const ux = b[0] - a[0], uy = b[1] - a[1], uz = b[2] - a[2], l = Math.hypot(ux, uy, uz) || 1, u = [ux/l, uy/l, uz/l], v = Math.abs(u[1]) < 0.9 ? [0, 1, 0] : [1, 0, 0];
+    let n1 = [u[1]*v[2] - u[2]*v[1], u[2]*v[0] - u[0]*v[2], u[0]*v[1] - u[1]*v[0]]; const nl = Math.hypot(...n1) || 1; n1 = n1.map(x => x/nl); const n2 = [u[1]*n1[2] - u[2]*n1[1], u[2]*n1[0] - u[0]*n1[2], u[0]*n1[1] - u[1]*n1[0]], N = 7;
+    const rg = (q, w) => { const o = []; for (let j = 0; j < N; j++) { const tt = j/N*6.2832, c = Math.cos(tt)*w, sn = Math.sin(tt)*w; o.push([q[0] + n1[0]*c + n2[0]*sn, q[1] + n1[1]*c + n2[1]*sn, q[2] + n1[2]*c + n2[2]*sn]); } return o; }, A = rg(a, w0), B = rg(b, w1);
+    for (let j = 0; j < N; j++) { const k = 1 + ((j*5 % 4) - 1.5)*0.04; face([A[j], A[(j + 1) % N], B[(j + 1) % N], B[j]], [col[0]*k, col[1]*k, col[2]*k]); } };
+  for (const sd of [-1, 1]) { const hip = [sd*0.26, -0.32 + br, 0], foot = [sd*0.28, -0.82, 0.05], knee = [sd*0.33, (hip[1] + foot[1])/2 + 0.05, 0.34];
+    limb(hip, knee, 0.22, 0.17, FUR); ell(knee, [0.18, 0.17, 0.18], FUR, 7, 4); limb(knee, foot, 0.17, 0.13, FUR); ell([foot[0], foot[1] - 0.02, foot[2] + 0.08], [0.14, 0.09, 0.24], DARK, 7, 4);
+    const sh = [sd*0.6, 0.4 + br, 0.05], hnd = [sd*0.9, -0.3 + Math.sin(t/500 + sd)*0.03, 0.1], elb = [(sh[0] + hnd[0])/2 + sd*0.14, (sh[1] + hnd[1])/2 - 0.1, -0.05];
+    ell(sh, [0.24, 0.22, 0.24], FUR, 7, 4); limb(sh, elb, 0.2, 0.16, FUR2); ell(elb, [0.16, 0.15, 0.16], FUR2, 7, 4); limb(elb, hnd, 0.16, 0.14, FUR2); ell(hnd, [0.18, 0.15, 0.18], DARK, 8, 5); }
+  const hy = br;
+  ell([0, hy - 0.05, 0.02], [0.56, 0.5, 0.42], FUR, 10, 6); ell([0, hy + 0.3, 0.1], [0.66, 0.4, 0.44], FUR, 10, 6); ell([0, hy + 0.22, 0.4], [0.36, 0.28, 0.12], CHEST, 8, 5);
+  ell([0, hy + 0.72, 0.25], [0.27, 0.25, 0.29], FUR, 9, 6); ell([0, hy + 0.64, 0.5], [0.17, 0.12, 0.14], FACE, 8, 5); ell([0, hy + 0.82, 0.42], [0.23, 0.06, 0.12], DARK, 8, 4);
+  ell([-0.1, hy + 0.74, 0.54], [0.04, 0.04, 0.04], [235, 235, 235], 6, 4); ell([0.1, hy + 0.74, 0.54], [0.04, 0.04, 0.04], [235, 235, 235], 6, 4);
+  ell([-0.28, hy + 0.72, 0.22], [0.07, 0.09, 0.05], FACE, 6, 4); ell([0.28, hy + 0.72, 0.22], [0.07, 0.09, 0.05], FACE, 6, 4);
+  polys.sort((a, b) => b.d - a.d); g.lineJoin = 'round'; g.lineWidth = 1;
+  for (const f of polys) { g.beginPath(); f.sc.forEach((q, i) => i ? g.lineTo(q[0], q[1]) : g.moveTo(q[0], q[1])); g.closePath(); g.fillStyle = f.c; g.strokeStyle = f.c; g.fill(); g.stroke(); }
+}
 let lastT = 0, acc = 0;
 function loop(t){
   t = t || performance.now(); const dt = Math.min(100, t - (lastT || t)); lastT = t;
@@ -3265,7 +3291,7 @@ function loop(t){
     while (acc >= 1000/60 - 1 && n < 5) { if (cut.on) cutUpdate(); else if (fin.on) finUpdate(); else { step(); if (round.on) { if (MODE === 'solo') { roundTick(); if (round.on) recSnap(); } else if (MODE === 'endless') endlessTick(); else mpTick(); } } acc -= 1000/60; n++; if (round.over) break; }
     if (n === 5) acc = 0; if (acc < 0) acc = 0;
   }
-  else { drawApe($('hero'), chosen.color, t, chosen.skin); acc = 0; }
+  else { if (SAVE.seen3d) drawHero3D($('hero'), t); else drawApe($('hero'), chosen.color, t, chosen.skin); acc = 0; }
   draw(); if (kc) drawKillcamOverlay(); requestAnimationFrame(loop);
 }
 loop();
