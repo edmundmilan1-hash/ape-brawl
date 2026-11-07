@@ -75,7 +75,7 @@ canvas { display:block; width:100%; height:100%; cursor:crosshair; touch-action:
 <body>
 <canvas id="c"></canvas>
 <canvas id="ov"></canvas>
-<div id="ver" style="position:fixed;right:10px;top:6px;z-index:60;font:700 13px 'Comic Sans MS',cursive;color:#1b2a3a;opacity:.7;background:rgba(255,255,255,.55);padding:2px 8px;border-radius:8px;pointer-events:none">v1:214</div>
+<div id="ver" style="position:fixed;right:10px;top:6px;z-index:60;font:700 13px 'Comic Sans MS',cursive;color:#1b2a3a;opacity:.7;background:rgba(255,255,255,.55);padding:2px 8px;border-radius:8px;pointer-events:none">v2:215</div>
 <div id="pz"><h2>Paused</h2><div class="pb" id="pz-main"><button class="big" id="pz-res">Resume</button><button class="big" id="pz-set">Game Settings</button><button class="big" id="pz-map">Map</button><button class="big" id="pz-menu">Main Menu</button></div><div class="pp" id="pz-sp"><b>Game Settings</b><label>Mouse sensitivity <input type="range" id="pz-sens" min="0.3" max="3" step="0.1" value="1"></label><label><span>FOV <b id="pz-fovv">60</b></span> <input type="range" id="pz-fov" min="50" max="110" step="1" value="60"></label><label>Camera <button class="big" id="pz-cam" style="font-size:16px;padding:6px 14px">Third person</button></label><button class="big" data-pz="main">Back</button></div><div class="pp" id="pz-mp"><b>Map</b><div>Current map: Forest Hills</div><small>More maps are coming soon.</small><button class="big" data-pz="main">Back</button></div></div>
 <div id="menu">
 <div id="s-title" class="screen"><h1 class="logo">APE<br>BRAWL</h1><canvas id="hero" width="300" height="300"></canvas><div class="btns"><button class="big" id="b-play">Singleplayer</button><button class="big" data-go="s-char">Character</button><button class="big" id="b-upc">Upgrade Center</button><button class="big" data-go="s-set">Settings</button><button class="big" id="b-endless">Endless Mode</button><button class="big" id="b-mp">Multiplayer</button><button class="big" id="b-3d" hidden>Campaign</button></div></div>
@@ -3127,7 +3127,21 @@ function m3Grab(k) { if (m3GrabHead(k)) { M3.held[k] = true; return; } // grab o
 function m3Reach(k, h) { const P = M3.p, sx = P.x, sy = P.y + 0.4, sz = P.z, dx = h.x - sx, dy = h.y - sy, dz = h.z - sz, l = Math.hypot(dx, dy, dz) || 1; M3.reach[k] = [sx + dx/l*2.6, sy + dy/l*2.6, sz + dz/l*2.6]; }
 function m3Release(k) { if (M3.grab && M3.grab.k === k) { const g = M3.grab; M3.grab = null; if (g.b) { const b = g.b, dx = b.x - M3.p.x, dz = b.z - M3.p.z, hz = Math.hypot(dx, dz) || 1; b.held = false; b.wait = 1.0; b.tilt = 0; b.kx = dx/hz*2.5; b.kz = dz/hz*2.5; if (M3.viewG) M3.view = M3.viewG; M3.viewG = null; } } else if (M3.headObj && M3.headObj.held && M3.headObj.k === k) m3ThrowHead();
   M3.held[k] = false; M3.anc[k] = null; M3.reach[k] = null; }
-function m3BotFields(b) { b.hp = 3; b.hit = 0; b.kx = 0; b.kz = 0; b.yo = 0; b.vy = 0; b.tilt = 0; b.roll = 0; b.spin = 0; b.wp = 0; b.wr = 0; b.hitP = 0; b.hitR = 0; b.dmgH = 0; b.headOff = false; b.held = false; b.fall = false; b.dead = false; b.rt = 0; }
+function m3Ko() { const P = M3.p; M3.ko = 1.8; M3.guard = false; if (M3.grab) m3Release(M3.grab.k); toast('KNOCKED OUT!'); for (const b of M3.bots) { b.agg = false; b.st = 'idle'; } }
+function m3HurtPlayer(b) { const P = M3.p, V = M3.v, dx = P.x - b.x, dz = P.z - b.z, d = Math.hypot(dx, dz) || 1; if (d > 2.5 || M3.ko > 0 || M3.inv > 0) return; if ((dx*Math.sin(b.yaw) + dz*Math.cos(b.yaw))/d < 0.35) return;
+  let dm = 16; if (M3.guard) { dm = 5; M3.stam = Math.max(0, M3.stam - 14); b.stun = 0.7; b.st = 'idle'; b.stT = 0; b.cd = 1.1; b.kx = -dx/d*3; b.kz = -dz/d*3; toast('BLOCKED!'); } else { M3.flash = 0.45; V.x += dx/d*7; V.z += dz/d*7; V.y = Math.max(V.y, 2.5); }
+  M3.hp -= dm; if (M3.hp <= 0) { M3.hp = 0; m3Ko(); } }
+function m3BotCombat(b, s, P) { b.cd = Math.max(0, b.cd - s); b.stun = Math.max(0, b.stun - s); const dx = P.x - b.x, dz = P.z - b.z, d = Math.hypot(dx, dz), lc = (b.legB[0] ? 1 : 0) + (b.legB[1] ? 1 : 0);
+  if (M3.ko > 0) { b.agg = false; b.st = 'idle'; return false; } if (d < 16) b.agg = true; else if (d > 22) b.agg = false; if (!b.agg) { b.st = 'idle'; return false; }
+  let da = Math.atan2(dx, dz) - b.yaw; da = Math.atan2(Math.sin(da), Math.cos(da)); b.wait = 0; b.tx = b.x; b.tz = b.z;
+  if (b.stun > 0) { b.sp *= 0.8; b.st = 'idle'; b.stT = 0; b.yaw += da*Math.min(1, 2*s); return true; }
+  const canA = !(b.armB[0] && b.armB[1]);
+  if (b.st === 'idle') { b.yaw += da*Math.min(1, 6*s); const want = d > 1.8 ? 2.7*(lc === 1 ? 0.45 : lc === 2 ? 0.2 : 1) : 0; b.sp += (want - b.sp)*Math.min(1, 5*s); b.x += Math.sin(b.yaw)*b.sp*s; b.z += Math.cos(b.yaw)*b.sp*s;
+    if (d < 2.1 && b.cd <= 0 && canA && Math.abs(da) < 0.5) { b.st = 'wind'; b.stT = 0; b.hd = false; b.sdA = b.armB[0] ? 1 : b.armB[1] ? 0 : (Math.random() < 0.5 ? 1 : 0); } }
+  else { b.sp *= Math.pow(0.05, s); b.yaw += da*Math.min(1, (b.st === 'wind' ? 3 : 0.5)*s); b.stT += s;
+    if (b.st === 'wind' && b.stT >= 0.55) { b.st = 'swing'; b.stT = 0; } else if (b.st === 'swing') { if (!b.hd && b.stT >= 0.09) { b.hd = true; m3HurtPlayer(b); } if (b.stT >= 0.18) { b.st = 'recover'; b.stT = 0; } } else if (b.st === 'recover' && b.stT >= 0.8) { b.st = 'idle'; b.stT = 0; b.cd = 0.5 + Math.random()*0.9; } }
+  return true; }
+function m3BotFields(b) { b.hp = 3; b.hit = 0; b.kx = 0; b.kz = 0; b.yo = 0; b.vy = 0; b.tilt = 0; b.roll = 0; b.spin = 0; b.wp = 0; b.wr = 0; b.hitP = 0; b.hitR = 0; b.dmgH = 0; b.headOff = false; b.held = false; b.fall = false; b.dead = false; b.rt = 0; b.st = 'idle'; b.stT = 0; b.cd = 1; b.stun = 0; b.agg = false; b.sdA = 0; b.hd = false; b.armD = [0, 0]; b.legD = [0, 0]; b.armB = [false, false]; b.legB = [false, false]; }
 function m3BotRespawn(b) { let x, z, n = 0; do { const a = Math.random()*6.2832, r = 16 + Math.random()*38; x = Math.cos(a)*r; z = Math.sin(a)*r; n++; } while (n < 30 && M3.trees.some(t => Math.hypot(t.x - x, t.z - z) < t.r + 1.5)); b.x = x; b.z = z; b.tx = x; b.tz = z; b.wait = 1; b.sp = 0; m3BotFields(b); }
 function m3Step(dt) {
   const P = M3.p, V = M3.v, s = Math.min(dt, 50)/1000, sy = Math.sin(M3.yaw), cy = Math.cos(M3.yaw); M3.t += s;
@@ -3157,7 +3171,8 @@ function m3Step(dt) {
     if (b.fall) { b.vy -= 22*s; b.yo += b.vy*s; b.x += b.kx*s; b.z += b.kz*s; const df = Math.pow(0.6, s); b.kx *= df; b.kz *= df; b.y = m3H(b.x, b.z); b.ph += s*9; b.yaw += b.spin*s;
       b.tilt += b.wp*s; if (b.wp > 0) b.tilt = Math.min(b.tilt, 1.7); else b.tilt = Math.max(b.tilt, -4.4); b.roll += b.wr*s; b.roll = Math.max(-3.2, Math.min(3.2, b.roll)); // it tumbles differently depending on where it was hit
       if (b.yo <= 0 && b.vy < 0) { b.yo = 0; b.dead = true; b.rt = 7; M3.kills++; M3.fx.push({ x: b.x, y: b.y + 0.7, z: b.z, gy: b.y, t: 0 }); toast('ROBOT DOWN!  (' + M3.kills + ')'); } continue; } // it blows up when it hits the ground
-    if (b.wait > 0) { b.wait -= s; b.sp += (0 - b.sp)*Math.min(1, 6*s); }
+    if (m3BotCombat(b, s, P)) { }
+    else if (b.wait > 0) { b.wait -= s; b.sp += (0 - b.sp)*Math.min(1, 6*s); }
     else { const dx = b.tx - b.x, dz = b.tz - b.z, d = Math.hypot(dx, dz);
       if (d < 0.8) { b.wait = 0.8 + Math.random()*2.2; const a = Math.random()*6.2832, r = 6 + Math.random()*16; b.tx = Math.max(-54, Math.min(54, b.x + Math.cos(a)*r)); b.tz = Math.max(-54, Math.min(54, b.z + Math.sin(a)*r)); }
       else { let da = Math.atan2(dx, dz) - b.yaw; da = Math.atan2(Math.sin(da), Math.cos(da)); b.yaw += da*Math.min(1, 5*s); b.sp += (2.3*(Math.abs(da) < 0.9 ? 1 : 0.2) - b.sp)*Math.min(1, 5*s); b.x += Math.sin(b.yaw)*b.sp*s; b.z += Math.cos(b.yaw)*b.sp*s; } }
@@ -3176,6 +3191,11 @@ function m3Step(dt) {
       if (ho.t > 7) { M3.fx.push({ x: ho.x, y: ho.y, z: ho.z, gy: ho.y - 0.25, t: 0.1, sc: 0.35 }); M3.headObj = null; } } }
   }
   for (const e of M3.fx) e.t += s; M3.fx = M3.fx.filter(e => e.t < (e.life || 4.0));
+  if (M3.hp == null) { M3.hp = 100; M3.stam = 100; M3.sreg = 0; M3.guard = false; M3.flash = 0; M3.ko = 0; }
+  M3.flash = Math.max(0, M3.flash - s); M3.inv = Math.max(0, (M3.inv || 0) - s); M3.sreg = Math.max(0, M3.sreg - s);
+  if (M3.ko > 0) { M3.ko -= s; M3.v.x = M3.v.z = 0; if (M3.ko <= 0) { M3.ko = 0; M3.hp = 100; M3.stam = 100; M3.p.x = 0; M3.p.z = 0; M3.p.y = 1 + m3H(0, 0); M3.v.y = 0; M3.tp = M3.tr = 0; M3.inv = 3; for (const b of M3.bots) if (Math.hypot(b.x, b.z) < 14) { const a = Math.random()*6.2832; b.x = Math.cos(a)*30; b.z = Math.sin(a)*30; b.tx = b.x; b.tz = b.z; } } }
+  M3.guard = !!keys['f'] && M3.stam > 2 && M3.ko <= 0 && !M3.anc[0] && !M3.anc[1] && !M3.fling && !M3.grab && !(M3.headObj && M3.headObj.held);
+  if (M3.guard) { M3.stam = Math.max(0, M3.stam - 14*s); M3.sreg = 0.9; for (let k = 0; k < 2; k++) { M3.pcg[k] = false; } } else if (M3.sreg <= 0) M3.stam = Math.min(100, M3.stam + 22*s);
   for (let k = 0; k < 2; k++) { if (M3.pcg[k]) { M3.pc[k] = Math.min(1, M3.pc[k] + s/1.0); if (M3.anc[k] || M3.fling) { M3.pcg[k] = false; } } if (M3.pt[k] >= 0) { M3.pt[k] += s/(M3.pk[k] ? 0.32 : 0.18); if (M3.pt[k] >= 1) M3.pt[k] = -1; } }
   let walking = false;
   if (M3.touch) { const ax = ((keys['d'] ? 1 : 0) - (keys['a'] ? 1 : 0)), az = ((keys['w'] ? 1 : 0) - (keys['s'] ? 1 : 0));
@@ -3244,6 +3264,7 @@ function m3Draw() {
     if (third) { const hip = lw(sd*0.26, P.y - 0.32 + bob, 0), fz = M3.fling ? Math.sin(M3.t*9 + ph)*0.6 : Math.sin(ph)*0.5*amp + 0.05, fy = M3.fling ? P.y - 0.8 + Math.sin(M3.t*10 + ph)*0.4 : air ? P.y - 0.95 : G + 0.24 + Math.max(0, Math.cos(ph))*0.28*amp, foot = lw(sd*0.28, fy, fz), knee = lw(sd*0.33, (hip[1] + fy)/2 + 0.05, fz/2 + 0.34);
       limb(hip, knee, 0.22, 0.17, FUR); ell(knee, [0.18, 0.17, 0.18], FUR, 7, 4); limb(knee, foot, 0.17, 0.13, FUR); ell([foot[0] + sY*0.08, foot[1] - 0.02, foot[2] + cY*0.08], [0.14, 0.09, 0.24], DARK, 7, 4); }
     const pu = !wa && !M3.fling && (M3.pt[k] >= 0 || M3.pcg[k]), py = P.y + (fp ? 0.75 : 0.3); let ptg = null;
+    if (M3.guard && !wa && !pu) ptg = [sd*0.3, py + 0.1, fp ? 0.85 : 0.75];
     if (pu) { if (M3.pcg[k]) { const c = M3.pc[k], sh2 = c >= 1 ? Math.sin(M3.t*55)*0.04 : 0; ptg = [sd*(0.85 + c*0.15) + sh2, py - 0.05, -0.45 - c*0.35]; } else { const u = M3.pt[k]; if (M3.pk[k]) { const an = -0.3 + u*2.3; ptg = [sd*1.15*Math.cos(an), py, 1.7*Math.sin(an)*(0.8 + 0.2*M3.pw[k])]; } else { const ex = Math.sin(u*Math.PI); ptg = [sd*(fp ? 0.42 : 0.95), py + 0.05, 0.2 + 2.1*ex]; } } }
     if (ptg && !M3.pcg[k]) { const b0 = P.y + (fp ? 0.95 : 0.6), cq = Math.cos(M3.pitch), sq = Math.sin(M3.pitch), yo = ptg[1] - b0, zo = ptg[2]; ptg = [ptg[0], b0 + yo*cq + zo*sq, zo*cq - yo*sq]; } // the punch goes where you are looking, up or down
     const tgt = wa ? loc(wa) : ptg ? ptg : (M3.fling ? [sd*0.9 + Math.sin(M3.t*11 + k*2)*0.45, P.y + 0.1 + Math.cos(M3.t*9 + k)*0.5, Math.sin(M3.t*8 + k)*0.6] : fp ? [sd*0.62, P.y - 0.15 + Math.sin(M3.t*2 + k*2)*0.04, 1.5 - sw*0.3*amp] : [sd*0.88, P.y - 0.7 + Math.sin(M3.t*2 + k*2)*0.02 + Math.max(0, sw)*0.12*amp, 0.1 + sw*0.5*amp]);
@@ -3289,11 +3310,14 @@ function m3Draw() {
     const bx = (c, hx, hy, hz, col) => { const v = []; for (const sx of [-1, 1]) for (const sy of [-1, 1]) for (const sz of [-1, 1]) v.push(bw(c[0] + sx*hx, c[1] + sy*hy, c[2] + sz*hz));
       for (const f of [[0, 1, 3, 2], [4, 5, 7, 6], [0, 1, 5, 4], [2, 3, 7, 6], [0, 2, 6, 4], [1, 3, 7, 5]]) poly(f.map(i => v[i]), col, false, obj); };
     const lim = (a2, b2, w0, w1, col) => limb(bw(a2[0], a2[1], a2[2]), bw(b2[0], b2[1], b2[2]), w0, w1, col, 4);
-    for (const sd of [-1, 1]) { const ph2 = b.ph + (sd > 0 ? 0 : Math.PI), sw2 = Math.sin(ph2)*0.42*amp2, lift = Math.max(0, Math.cos(ph2))*0.14*amp2;
+    for (const sd of [-1, 1]) { const ph2 = b.ph + (sd > 0 ? 0 : Math.PI), sw2a = Math.sin(ph2)*0.42*amp2, lifta = Math.max(0, Math.cos(ph2))*0.14*amp2, lb = b.legB[sd > 0 ? 1 : 0], sw2 = lb ? -0.25 : sw2a, lift = lb ? 0 : lifta;
       const hip = [sd*0.24, 0.8, 0], knee = [sd*0.25, 0.46 + lift*0.5, sw2*0.5 + 0.08], foot = [sd*0.25, 0.1 + lift, sw2];
       lim(hip, knee, 0.13, 0.11, MET2); bx([knee[0], knee[1], knee[2] + 0.1], 0.1, 0.08, 0.05, MET); lim(knee, foot, 0.11, 0.08, MET);
       bx([sd*0.25, 0.06 + lift, sw2 + 0.1], 0.11, 0.06, 0.2, JNT); if (near) { bx([sd*0.25, 0.05 + lift, sw2 + 0.3], 0.1, 0.045, 0.06, MET); bx([foot[0], (knee[1] + foot[1])/2, (knee[2] + foot[2])/2 - 0.1], 0.07, 0.14, 0.04, MET2); bx([sd*0.25, 0.2 + lift*0.6, sw2*0.9 + 0.02], 0.08, 0.04, 0.09, JNT); }
-      const sh = [sd*0.58, 1.42, 0], hnd = [sd*0.64, 0.78, -sw2*0.9 + 0.05], elb = [sd*0.64, 1.1, -sw2*0.45];
+      const sh = [sd*0.58, 1.42, 0], ai = sd > 0 ? 1 : 0; let hnd = [sd*0.64, 0.78, -sw2*0.9 + 0.05], elb = [sd*0.64, 1.1, -sw2*0.45];
+      if (b.armB[ai]) { hnd = [sd*0.7, 0.55, 0.15]; elb = [sd*0.68, 0.95, 0.05]; }
+      else if (b.st !== 'idle' && b.sdA === ai && !b.fall) { const lpz = (A, B, u) => A.map((v, i) => v + (B[i] - v)*u), WH = [sd*0.7, 1.75, -0.35], WE = [sd*0.7, 1.5, -0.1], SH = [sd*0.2, 1.3, 1.45], SE = [sd*0.4, 1.4, 0.7], rh0 = hnd, re0 = elb;
+        if (b.st === 'wind') { const u = Math.min(1, b.stT/0.55); hnd = lpz(rh0, WH, u); elb = lpz(re0, WE, u); } else if (b.st === 'swing') { const u = Math.min(1, b.stT/0.18); hnd = lpz(WH, SH, u); elb = lpz(WE, SE, u); } else { const u = Math.min(1, b.stT/0.5); hnd = lpz(SH, rh0, u); elb = lpz(SE, re0, u); } }
       bx([sd*0.6, 1.5, 0], 0.17, 0.1, 0.2, MET); if (near) bx([sd*0.6, 1.6, 0], 0.175, 0.012, 0.21, RED);
       lim(sh, elb, 0.09, 0.08, MET2); bx(elb, 0.09, 0.08, 0.09, JNT); lim(elb, hnd, 0.1, 0.075, MET);
       if (near) { bx([(elb[0]*0.3 + hnd[0]*0.7), (elb[1]*0.3 + hnd[1]*0.7), (elb[2]*0.3 + hnd[2]*0.7)], 0.1, 0.05, 0.1, MET2); }
@@ -3325,9 +3349,14 @@ function m3Draw() {
     if (h && h.hit) { const q = tr(h.x, h.y, h.z); if (q[2] > 0.3) { const x = W/2 + q[0]/q[2]*F, y = H/2 - q[1]/q[2]*F; ctx.strokeStyle = ok ? 'rgba(255,210,31,0.95)' : 'rgba(255,255,255,0.35)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(x, y, 0.28*F/q[2], 0.14*F/q[2], 0, 0, 7); ctx.stroke(); } }
     ctx.strokeStyle = ok ? '#ffd21f' : '#fff'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(M3.mx, M3.my, 11, 0, 7); ctx.stroke(); ctx.fillStyle = ctx.strokeStyle; ctx.beginPath(); ctx.arc(M3.mx, M3.my, 2.5, 0, 7); ctx.fill(); }
   for (let k = 0; k < 2; k++) if (M3.pcg[k]) { const bw = 90, bx = W/2 + (k ? 24 : -24 - bw), by = H/2 + 34, c = M3.pc[k]; ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(bx - 2, by - 2, bw + 4, 14); ctx.fillStyle = c >= 1 ? '#ff5a3c' : c >= 0.22 ? '#ffd21f' : '#fff'; ctx.fillRect(bx, by, bw*c, 10); ctx.font = "bold 12px 'Comic Sans MS',cursive"; ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.fillText(k ? 'E: right hook' : 'Q: left hook', bx + bw/2, by + 28); ctx.textAlign = 'left'; }
+  if (M3.hp != null) { const bw0 = 190, bx0 = 16, by0 = H - 58; ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(bx0 - 3, by0 - 3, bw0 + 6, 18); ctx.fillRect(bx0 - 3, by0 + 19, bw0 + 6, 14);
+    ctx.fillStyle = M3.hp < 30 ? '#ff3b30' : '#59d36b'; ctx.fillRect(bx0, by0, bw0*M3.hp/100, 12); ctx.fillStyle = M3.stam < 20 ? '#ff9f1a' : '#ffd21f'; ctx.fillRect(bx0, by0 + 22, bw0*M3.stam/100, 8);
+    ctx.font = "bold 12px 'Comic Sans MS',cursive"; ctx.textAlign = 'left'; ctx.fillStyle = '#fff'; ctx.fillText('HEALTH', bx0 + bw0 + 10, by0 + 11); ctx.fillText('STAMINA  (hold F = guard)', bx0 + bw0 + 10, by0 + 30);
+    if (M3.flash > 0) { ctx.fillStyle = 'rgba(210,0,0,' + Math.min(0.5, M3.flash) + ')'; ctx.fillRect(0, 0, W, H); }
+    if (M3.ko > 0) { ctx.fillStyle = 'rgba(0,0,0,' + Math.min(0.85, M3.ko*0.9) + ')'; ctx.fillRect(0, 0, W, H); ctx.font = "bold 60px 'Comic Sans MS',cursive"; ctx.textAlign = 'center'; ctx.fillStyle = '#ff5a3c'; ctx.fillText('KNOCKED OUT', W/2, H/2); } }
   ctx.font = "bold 22px 'Comic Sans MS',cursive"; ctx.textAlign = 'left'; ctx.lineWidth = 5; ctx.strokeStyle = 'rgba(0,0,0,0.6)'; ctx.fillStyle = '#ffd21f'; const tx = 'Bananas ' + M3.got + ' / ' + M3.total + '   Round ' + M3.round; ctx.strokeText(tx, 16, 34); ctx.fillText(tx, 16, 34);
   if (!document.pointerLockElement) { ctx.font = "bold 20px 'Comic Sans MS',cursive"; ctx.textAlign = 'center'; ctx.lineWidth = 5; ctx.strokeStyle = 'rgba(0,0,0,0.7)'; ctx.fillStyle = '#fff'; const ms = M3.lockFail ? 'This page will not let the game lock your mouse. Open the downloaded file in Chrome instead.' : 'Click to capture the mouse'; ctx.strokeText(ms, W/2, H - 40); ctx.fillText(ms, W/2, H - 40); ctx.textAlign = 'left'; }
-  ctx.font = "14px 'Comic Sans MS',cursive"; ctx.fillStyle = '#fff'; ctx.lineWidth = 4; for (const [i, hp] of ['The mouse looks around. Click (left / right hand) to GRAB what the centre ring points at (gold = in reach). Hold it and move the mouse to pull yourself: DOWN = push off / forward', 'Grab rocks, trunks and BRANCHES. Hold SPACE while hanging on to swing and build speed (there is a speed limit). Let go while swinging to FLING yourself far!', 'WASD = walk (Shift = run), Space = jump, arrows = look, C = switch camera, Q / E = left / right punch (tap = jab, hold = charge a hook). Hurt a robot with 1 to 2 jabs, then CLICK its head to grab it and punch the head with your other hand until it comes off. Release the click to THROW it. Esc = pause menu'].entries()) { ctx.strokeText(hp, 16, 58 + i*20); ctx.fillText(hp, 16, 58 + i*20); }
+  ctx.font = "14px 'Comic Sans MS',cursive"; ctx.fillStyle = '#fff'; ctx.lineWidth = 4; for (const [i, hp] of ['The mouse looks around. Click (left / right hand) to GRAB what the centre ring points at (gold = in reach). Hold it and move the mouse to pull yourself: DOWN = push off / forward', 'Grab rocks, trunks and BRANCHES. Hold SPACE while hanging on to swing and build speed (there is a speed limit). Let go while swinging to FLING yourself far!', 'WASD = walk (Shift = run), Space = jump, arrows = look, C = switch camera, Q / E = left / right punch (tap = jab, hold = charge a hook), F = guard, Esc = pause menu', 'Robots chase and swing at you: block (F), hit them mid-swing, aim at arms and legs to BREAK them, run into a punch for more power. Jab a robot, then CLICK its head to grab it, punch it off with your other hand and release to THROW it'].entries()) { ctx.strokeText(hp, 16, 58 + i*20); ctx.fillText(hp, 16, 58 + i*20); }
 }
 M3.pc = [0, 0]; M3.pcg = [false, false]; M3.pt = [-1, -1]; M3.pk = [0, 0]; M3.pw = [1, 1];
 M3.sens = 1; M3.fov = 60; M3.tp = 0; M3.tr = 0; M3.swT = 0; M3.fling = false;
@@ -3342,15 +3371,20 @@ $('pz-cam').onclick = () => { M3.view = M3.view === 'third' ? 'first' : 'third';
 document.querySelectorAll('[data-pz]').forEach(b => b.onclick = () => pzSub('main'));
 document.addEventListener('pointerlockchange', () => { if (document.pointerLockElement) M3.hadLock = true; else if (M3.on && M3.hadLock && !M3.paused) { M3.hadLock = false; pzShow(); } });
 function m3PunchKey(e, down) { if (!M3.on || M3.paused) return; const kk = e.key.toLowerCase(), k = kk === 'q' ? 0 : kk === 'e' ? 1 : -1; if (k < 0) return;
-  if (down) { if (e.repeat || M3.pcg[k] || M3.pt[k] >= 0 || M3.anc[k] || M3.fling || (M3.grab && M3.grab.k === k) || (M3.headObj && M3.headObj.held && M3.headObj.k === k)) return; M3.pcg[k] = true; M3.pc[k] = 0; }
+  if (down) { if (M3.guard || M3.ko > 0 || e.repeat || M3.pcg[k] || M3.pt[k] >= 0 || M3.anc[k] || M3.fling || (M3.grab && M3.grab.k === k) || (M3.headObj && M3.headObj.held && M3.headObj.k === k)) return; M3.pcg[k] = true; M3.pc[k] = 0; }
   else if (M3.pcg[k]) { M3.pcg[k] = false; const ch = M3.pc[k], hook = ch >= 0.22 ? 1 : 0, P = M3.p, V = M3.v, cP = Math.cos(M3.pitch), fx = Math.sin(M3.yaw)*cP, fy = Math.sin(M3.pitch), fz = Math.cos(M3.yaw)*cP;
+    const hs = Math.hypot(V.x, V.z), cost = hook ? 10 + 20*ch : 7, sf = 0.45 + 0.55*Math.min(1, M3.stam/40), pw0 = (hook ? 1 + ch*2.4 : 1)*sf*(1 + Math.min(hs, 12)/14); M3.stam = Math.max(0, M3.stam - cost); M3.sreg = 0.9;
     M3.pk[k] = hook; M3.pw[k] = hook ? 1 + ch*2 : 1; M3.pt[k] = 0; if (M3.grab && M3.grab.b && M3.grab.k !== k) { m3HeadHit(M3.grab.b, hook, ch); return; } // punching the head you are holding const hz = Math.hypot(fx, fz) || 1, lg = hook ? 3 + 4*ch : 2; V.x += fx/hz*lg; V.z += fz/hz*lg; // a punch also lunges you forward a little
     const rng = hook ? 2.5 + ch*1.2 : 2.6; let hit = 0; for (let i = M3.bans.length - 1; i >= 0; i--) { const b = M3.bans[i], dx = b.x - P.x, dy = b.y - (P.y + 0.5), dz = b.z - P.z, d = Math.hypot(dx, dy, dz); if (d < rng && (dx*fx + dy*fy + dz*fz)/Math.max(d, 0.01) > 0.45) { M3.bans.splice(i, 1); M3.got++; M3.best = Math.max(M3.best, M3.got); hit++; } }
     let rh = 0; const hf = Math.hypot(fx, fz) || 1; for (const b of M3.bots || []) { if (b.dead || b.fall) continue; const dx = b.x - P.x, dy = b.y + 1 - (P.y + 0.5), dz = b.z - P.z, d = Math.hypot(dx, dy, dz); if (d < rng + 0.5 && (dx*fx + dy*fy + dz*fz)/Math.max(d, 0.01) > 0.4) {
         const hz2 = Math.hypot(dx, dz) || 1, ux = dx/hz2, uz = dz/hz2, hh = (P.y + 0.5) + fy*hz2 - b.y, zone = hh > 1.5 ? 2 : hh < 0.85 ? 0 : 1, // where you hit it: 0 legs, 1 body, 2 head (aim up or down to choose)
           lat = (dx*fz - dz*fx)/hf, side = Math.max(-1, Math.min(1, lat/0.5*0.6 + (hook ? (k ? -0.4 : 0.4) : 0))), // sideways: where the punch landed + the swing of a hook
-          dmg = hook ? (ch >= 0.9 ? 99 : 1 + ch*2) : 1, kv = hook ? 6 + ch*9 : 3.5, rx = fz/hf, rz = -fx/hf, kx0 = ux + rx*side*0.7, kz0 = uz + rz*side*0.7, kl = Math.hypot(kx0, kz0) || 1;
+          lxv = (P.x + fx/hf*hz2 - b.x)*(-uz) + (P.z + fz/hf*hz2 - b.z)*ux, limbI = zone === 1 && Math.abs(lxv) > 0.45 ? 2 : zone === 0 ? 4 : -1, si = lxv > 0 ? 1 : 0,
+          dmg = (pw0 >= 3 ? 99 : pw0)*(limbI >= 0 ? 0.5 : 1)*(b.st === 'recover' ? 1.3 : 1), kv = (hook ? 6 + ch*9 : 3.5)*Math.min(1.3, 0.6 + pw0*0.4), kv0 = hook ? 6 + ch*9 : 3.5, rx = fz/hf, rz = -fx/hf, kx0 = ux + rx*side*0.7, kz0 = uz + rz*side*0.7, kl = Math.hypot(kx0, kz0) || 1;
         b.hp -= dmg; b.hit = 0.3; b.wait = 0.7; b.kx = kx0/kl*kv; b.kz = kz0/kl*kv; b.yaw = Math.atan2(-ux, -uz); rh++;
+        if (b.st === 'wind' || b.st === 'swing') { b.st = 'idle'; b.stT = 0; b.stun = 0.5; b.cd = 0.8; } else if (b.st === 'idle') b.stun = Math.max(b.stun, hook ? 0.6 : 0.25);
+        if (zone === 2) b.dmgH += pw0*0.6; else if (limbI === 2) { b.armD[si] += pw0; if (b.armD[si] >= 1.7 && !b.armB[si]) { b.armB[si] = true; toast('ARM BROKEN!'); } } else if (limbI === 4) { b.legD[si] += pw0; if (b.legD[si] >= 1.7 && !b.legB[si]) { b.legB[si] = true; toast('LEG BROKEN!'); } }
+        if (b.legB[0] && b.legB[1]) b.hp = Math.min(b.hp, 0);
         b.hitP = zone === 2 ? 0.6 : zone === 0 ? -0.3 : 0.32; b.hitR = side*0.35;
         if (b.hp <= 0.01) { b.fall = true; b.yo = 0.02; b.vy = (hook ? 5 + ch*3 : 3.5) + (zone === 0 ? 1.5 : zone === 2 ? 0.5 : 0); b.kx *= 1.4; b.kz *= 1.4; b.tilt = b.hitP; b.roll = b.hitR;
           if (zone === 2) { b.wp = 7.5; b.wr = side*2; b.spin = side*3.5; } else if (zone === 0) { b.wp = -6.5; b.wr = side*3; b.spin = side*2.5; } else { b.wp = 4.6; b.wr = side*2.5; b.spin = side*1.5; }
