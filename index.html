@@ -71,7 +71,7 @@ canvas { display:block; width:100%; height:100%; cursor:crosshair; touch-action:
 <canvas id="c"></canvas>
 <canvas id="ov"></canvas>
 <div id="menu">
-<div id="s-title" class="screen"><h1 class="logo">APE<br>BRAWL</h1><canvas id="hero" width="300" height="300"></canvas><div class="btns"><button class="big" id="b-play">Singleplayer</button><button class="big" data-go="s-char">Character</button><button class="big" id="b-upc">Upgrade Center</button><button class="big" data-go="s-set">Settings</button><button class="big" id="b-endless">Endless Mode</button><button class="big" id="b-mp">Multiplayer</button><button class="big" id="b-3d">3D Mode</button></div></div>
+<div id="s-title" class="screen"><h1 class="logo">APE<br>BRAWL</h1><canvas id="hero" width="300" height="300"></canvas><div class="btns"><button class="big" id="b-play">Singleplayer</button><button class="big" data-go="s-char">Character</button><button class="big" id="b-upc">Upgrade Center</button><button class="big" data-go="s-set">Settings</button><button class="big" id="b-endless">Endless Mode</button><button class="big" id="b-mp">Multiplayer</button><button class="big" id="b-3d" hidden>Campaign</button></div></div>
 <div id="s-diff" class="screen" hidden><h2>Pick a difficulty</h2><div class="uprow big1 dcard"><div class="utx"><b id="dname"></b><small id="ddesc">Drag the slider: harder means more bots and more bananas</small><div class="sl" id="dsl"><div class="fill"></div><div class="tk-wrap"></div><div class="th"></div><input type="range" id="dslider" min="1" max="10" step="1" value="4"></div><div class="sl-lab" id="dlab"></div></div></div><div class="dboxes"><div class="ybox" id="dbots"></div><div class="ybox" id="dban"></div><div class="ybox" id="dpwr"></div><div class="ybox" id="dult"></div><div class="ybox" id="dlock" style="flex-basis:100%"></div></div><button class="big" id="b-start">Start</button><button class="big" data-go="s-title">Back</button></div>
 <div id="s-char" class="screen" hidden><h2>Choose your ape</h2><div id="cards"></div><button class="big" data-go="s-title">Back</button></div>
 <div id="s-up" class="screen" hidden><h2>Upgrade Center</h2><div id="upbank"> 0</div><canvas id="upstage" width="800" height="260"></canvas><div id="uplist"></div><button class="big" id="up-back">Back</button></div>
@@ -2572,7 +2572,7 @@ addEventListener('keydown', e => { if (kc && (e.key === ' ' || e.key === 'Enter'
 
 function showResults() {
   const R = roundResult; if (!R) return; endScreen = 's-end';
-  if (R.win && R.diff >= 10 && !SAVE.seen3d) { SAVE.seen3d = true; saveGame(); $('b-3d').hidden = false; blinkTo3D(); return; } // beat level ten: blink, and you are in 3D
+  if (R.win && R.diff >= 10 && !SAVE.seen3d) { SAVE.seen3d = true; saveGame(); applyUnlock(); blinkTo3D(); return; } // beat level ten: blink, and you are in 3D
   const rows = R.rows.map((r, i) => '<tr class="' + (r.me ? 'me' : '') + '"><td>' + (i + 1) + '. ' + r.n + '</td><td> ' + r.c + '</td><td>' + (r.k/Math.max(1, r.d)).toFixed(1) + ' (' + r.k + '/' + r.d + ')</td></tr>').join('');
   const st = [['Bananas in the bank', SAVE.bank], ['All-time bananas earned', SAVE.earned], ['Rounds played', SAVE.rounds], ['All-time kills / deaths', SAVE.kills + ' / ' + SAVE.deaths], ['Best kill streak', SAVE.bestStreak], ['Best round (bananas)', SAVE.bestRound]].map(a => '<div><span>' + a[0] + '</span><b>' + a[1] + '</b></div>').join('');
   $('s-end').innerHTML = '<h2>Round over!</h2><div class="banked">+' + R.earned + ' banked' + ' (' + R.raw + (R.mul > 1 ? ' x ' + R.mul + ' K/D bonus' : '') + ' + ' + R.reward + ' round reward)' + '</div>' + (R.best ? '<div class="bestplay">Best play: ' + R.best + '</div>' : '') + '<div class="bestplay">' + (R.win ? 'Difficulty ' + R.diff + ' BEATEN!' + (R.diff < 10 ? ' Difficulty ' + (R.diff + 1) + ' is unlocked.' : ' You beat them all!') : 'Difficulty ' + R.diff + ' not beaten: finish 1st on the leaderboard with at least 1 banana.') + '</div>' +
@@ -2694,7 +2694,7 @@ function toast(t) { let d = $('toast'); if (!d) { d = document.createElement('di
 function toggleMax() {
   if (MODE !== 'solo') return;
   if (SAVE.maxBackup) { SAVE.up = Object.assign({ reach: 0, hearts: 0, strength: 0, slam: 0, slamH: 0, punchH: 0, ult: 0, robot: 0 }, SAVE.maxBackup); SAVE.maxBackup = null; toast('MAX MODE OFF: your old upgrades are back'); }
-  else { SAVE.seen3d = true; { const b3 = $('b-3d'); if (b3) b3.hidden = false; } SAVE.maxBackup = Object.assign({}, SAVE.up); SAVE.up = {}; UPG.forEach(u => { SAVE.up[u.id] = u.costs.length; }); toast('MAX MODE ON: everything unlocked (press M to go back)'); }
+  else { SAVE.seen3d = true; if (typeof applyUnlock === 'function') applyUnlock(); SAVE.maxBackup = Object.assign({}, SAVE.up); SAVE.up = {}; UPG.forEach(u => { SAVE.up[u.id] = u.costs.length; }); toast('MAX MODE ON: everything unlocked (press M to go back)'); }
   saveGame(); if (hearts > maxH()) hearts = maxH(); else if (started && SAVE.maxBackup) hearts = maxH();
   buildUp(); buildMenu();
 }
@@ -3080,22 +3080,25 @@ nickInit(); lbInit();
 })();
 
 // ===== 3D MODE: unlocked by beating difficulty 10. A small software 3D engine (no libraries): jungle, trees you can climb, bananas to collect =====
-const M3 = { on: false, p: { x: 0, y: 1, z: 0 }, v: { x: 0, y: 0, z: 0 }, yaw: 0, pitch: 0, hl: false, hr: false, dx: 0, dy: 0, trees: [], bans: [], got: 0, total: 0, round: 1, t: 0, best: 0, lock: false, touch: false, rocks: [], mx: 0, my: 0, F: 630, anc: [null, null], reach: [null, null], held: [false, false], hov: null, walk: 0, hpos: [null, null], view: 'third' };
+const M3 = { on: false, p: { x: 0, y: 1, z: 0 }, v: { x: 0, y: 0, z: 0 }, yaw: 0, pitch: 0, hl: false, hr: false, dx: 0, dy: 0, trees: [], bans: [], got: 0, total: 0, round: 1, t: 0, best: 0, lock: false, touch: false, rocks: [], rope: 0, sp: false, mx: 0, my: 0, F: 630, anc: [null, null], reach: [null, null], held: [false, false], hov: null, walk: 0, hpos: [null, null], view: 'third' };
 const m3Rng = s => () => (s = (s*1664525 + 1013904223) >>> 0) / 4294967296;
-function m3Build() { const R = m3Rng(777); M3.trees = []; for (let i = 0; i < 90; i++) { const a = R()*6.2832, d = 7 + Math.sqrt(R())*52; M3.trees.push({ x: Math.cos(a)*d, z: Math.sin(a)*d, h: 10 + R()*9, r: 0.55 + R()*0.4, cr: 3 + R()*2.2, sh: 0.85 + R()*0.3, br: [] }); const T = M3.trees[M3.trees.length - 1], nb = 4 + Math.floor(R()*2); for (let b = 0; b < nb; b++) { const y = 2.4 + b*(T.h - 4)/nb + R()*0.8, a = R()*6.2832, len = 2.6 + R()*1.4; T.br.push({ a: [T.x + Math.cos(a)*T.r*0.8, y, T.z + Math.sin(a)*T.r*0.8], b: [T.x + Math.cos(a)*(T.r + len), y + 0.5 + R()*0.7, T.z + Math.sin(a)*(T.r + len)] }); } } M3.rocks = []; for (let i = 0; i < 28; i++) { const a = R()*6.2832, d = 5 + Math.sqrt(R())*52; M3.rocks.push({ x: Math.cos(a)*d, z: Math.sin(a)*d, r: 0.5 + R()*1.1, a: R()*6.28 }); } m3Bananas(); }
-function m3Bananas() { M3.bans = []; for (let i = 0; i < 30; i++) { const a = Math.random()*6.2832, d = 4 + Math.random()*50; M3.bans.push({ x: Math.cos(a)*d, y: 1.5 + Math.random()*Math.random()*10, z: Math.sin(a)*d, ph: Math.random()*6 }); } M3.got = 0; M3.total = M3.bans.length; }
+function m3H(x, z) { // the ground height: gentle hills (flat around where you start)
+  const r = Math.hypot(x, z), f = Math.min(1, Math.max(0, (r - 6)/16)), sm = f*f*(3 - 2*f); return sm*(3.2*Math.sin(x*0.05 + 1.3)*Math.cos(z*0.043) + 2.0*Math.sin(x*0.095 + z*0.08 + 2.1) + 1.0*Math.sin(z*0.14 - x*0.06 + 0.5) + 0.5*Math.cos(x*0.21 + z*0.17));
+}
+function m3Build() { const R = m3Rng(777); M3.trees = []; for (let i = 0; i < 90; i++) { const a = R()*6.2832, d = 7 + Math.sqrt(R())*52; M3.trees.push({ x: Math.cos(a)*d, z: Math.sin(a)*d, h: 10 + R()*9, r: 0.55 + R()*0.4, cr: 3 + R()*2.2, sh: 0.85 + R()*0.3, br: [] }); const T = M3.trees[M3.trees.length - 1], nb = 4 + Math.floor(R()*2); T.y0 = m3H(T.x, T.z); for (let b = 0; b < nb; b++) { const y = T.y0 + 2.4 + b*(T.h - 4)/nb + R()*0.8, a = R()*6.2832, len = 2.6 + R()*1.4; T.br.push({ a: [T.x + Math.cos(a)*T.r*0.8, y, T.z + Math.sin(a)*T.r*0.8], b: [T.x + Math.cos(a)*(T.r + len), y + 0.5 + R()*0.7, T.z + Math.sin(a)*(T.r + len)] }); } } M3.rocks = []; for (let i = 0; i < 28; i++) { const a = R()*6.2832, d = 5 + Math.sqrt(R())*52; M3.rocks.push({ x: Math.cos(a)*d, z: Math.sin(a)*d, y0: m3H(Math.cos(a)*d, Math.sin(a)*d), r: 0.5 + R()*1.1, a: R()*6.28 }); } m3Bananas(); }
+function m3Bananas() { M3.bans = []; for (let i = 0; i < 30; i++) { const a = Math.random()*6.2832, d = 4 + Math.random()*50; M3.bans.push({ x: Math.cos(a)*d, y: m3H(Math.cos(a)*d, Math.sin(a)*d) + 1.5 + Math.random()*Math.random()*10, z: Math.sin(a)*d, ph: Math.random()*6 }); } M3.got = 0; M3.total = M3.bans.length; }
 function start3D() {
   if (!M3.trees.length) m3Build(); else m3Bananas();
-  Object.assign(M3, { on: true, held: [false, false], anc: [null, null], reach: [null, null], mx: W/2, my: H/2, dx: 0, dy: 0, yaw: 0, pitch: 0, t: 0, round: 1 }); M3.p = { x: 0, y: 1, z: 0 }; M3.v = { x: 0, y: 0, z: 0 };
+  Object.assign(M3, { on: true, held: [false, false], anc: [null, null], reach: [null, null], mx: W/2, my: H/2, dx: 0, dy: 0, yaw: 0, pitch: 0, t: 0, round: 1 }); M3.p = { x: 0, y: 1 + m3H(0, 0), z: 0 }; M3.rope = 0; M3.sp = false; M3.v = { x: 0, y: 0, z: 0 };
   started = false; menu.style.display = 'none'; $('hud').style.display = 'none'; octx.clearRect(0, 0, W, H); cv.style.cursor = 'none';
 }
 function m3Exit() { M3.on = false; cv.style.cursor = ''; try { if (document.pointerLockElement) document.exitPointerLock(); } catch (e) {} menu.style.display = ''; show('s-title'); }
-function m3Cam() { const P = M3.p, sY = Math.sin(M3.yaw), cY = Math.cos(M3.yaw), sP = Math.sin(M3.pitch), cP = Math.cos(M3.pitch); let C = [P.x, P.y + 0.95, P.z]; if (M3.view === 'third') { const D = 4.3; C = [P.x - sY*cP*D, Math.max(0.5, P.y + 1.0 - sP*D), P.z - cY*cP*D]; } return { C, sY, cY, sP, cP }; }
+function m3Cam() { const P = M3.p, sY = Math.sin(M3.yaw), cY = Math.cos(M3.yaw), sP = Math.sin(M3.pitch), cP = Math.cos(M3.pitch); let C = [P.x, P.y + 0.95, P.z]; if (M3.view === 'third') { const D = 4.3; { const cx = P.x - sY*cP*D, cz = P.z - cY*cP*D; C = [cx, Math.max(m3H(cx, cz) + 0.6, P.y + 1.0 - sP*D), cz]; } } return { C, sY, cY, sP, cP }; }
 function m3Ray(mx, my) { // what is under the mouse? the ground, a tree trunk or a rock
   const cm = m3Cam(), F = M3.F || 630, xc = (mx - W/2)/F, yc = -(my - H/2)/F, z1 = cm.cP - yc*cm.sP, dy = yc*cm.cP + cm.sP, dx = xc*cm.cY + z1*cm.sY, dz = -xc*cm.sY + z1*cm.cY, l = Math.hypot(dx, dy, dz), D = [dx/l, dy/l, dz/l], O = cm.C; let best = 1e9;
-  if (D[1] < -1e-4) { const t = -O[1]/D[1]; if (t > 0) best = t; }
-  for (const t of M3.trees) { const a = D[0]*D[0] + D[2]*D[2]; if (a < 1e-6) continue; const ox = O[0] - t.x, oz = O[2] - t.z, b = 2*(ox*D[0] + oz*D[2]), c = ox*ox + oz*oz - t.r*t.r, disc = b*b - 4*a*c; if (disc < 0) continue; const tt = (-b - Math.sqrt(disc))/(2*a); if (tt > 0 && tt < best) { const y = O[1] + D[1]*tt; if (y >= 0 && y <= t.h) best = tt; } }
-  for (const r of M3.rocks) { const cx = r.x, cy = r.r*0.35, cz = r.z, rad = r.r*0.85, ox = O[0] - cx, oy = O[1] - cy, oz = O[2] - cz, b = ox*D[0] + oy*D[1] + oz*D[2], disc = b*b - (ox*ox + oy*oy + oz*oz - rad*rad); if (disc < 0) continue; const tt = -b - Math.sqrt(disc); if (tt > 0 && tt < best) best = tt; }
+  { const hAt = t => O[1] + D[1]*t - m3H(O[0] + D[0]*t, O[2] + D[2]*t); if (hAt(0.2) > 0) for (let t = 0.8; t < 70; t += 0.6) { if (hAt(t) < 0) { let lo = t - 0.6, hi = t; for (let k = 0; k < 8; k++) { const m = (lo + hi)/2; if (hAt(m) > 0) lo = m; else hi = m; } best = hi; break; } } }
+  for (const t of M3.trees) { const a = D[0]*D[0] + D[2]*D[2]; if (a < 1e-6) continue; const ox = O[0] - t.x, oz = O[2] - t.z, b = 2*(ox*D[0] + oz*D[2]), c = ox*ox + oz*oz - t.r*t.r, disc = b*b - 4*a*c; if (disc < 0) continue; const tt = (-b - Math.sqrt(disc))/(2*a); if (tt > 0 && tt < best) { const y = O[1] + D[1]*tt; if (y >= t.y0 && y <= t.y0 + t.h) best = tt; } }
+  for (const r of M3.rocks) { const cx = r.x, cy = r.y0 + r.r*0.35, cz = r.z, rad = r.r*0.85, ox = O[0] - cx, oy = O[1] - cy, oz = O[2] - cz, b = ox*D[0] + oy*D[1] + oz*D[2], disc = b*b - (ox*ox + oy*oy + oz*oz - rad*rad); if (disc < 0) continue; const tt = -b - Math.sqrt(disc); if (tt > 0 && tt < best) best = tt; }
   let hp = null;
   for (const t of M3.trees) { const dx = t.x - O[0], dz = t.z - O[2]; if (dx*dx + dz*dz > 45*45) continue; for (const b of t.br) { const A = b.a, v = [b.b[0] - A[0], b.b[1] - A[1], b.b[2] - A[2]], w = [O[0] - A[0], O[1] - A[1], O[2] - A[2]], bb = D[0]*v[0] + D[1]*v[1] + D[2]*v[2], c = v[0]*v[0] + v[1]*v[1] + v[2]*v[2], d = D[0]*w[0] + D[1]*w[1] + D[2]*w[2], e = v[0]*w[0] + v[1]*w[1] + v[2]*w[2], den = c - bb*bb; let tc = den < 1e-6 ? 0 : (e - bb*d)/den; tc = Math.max(0, Math.min(1, tc)); const sc = bb*tc - d; if (sc <= 0 || sc >= best) continue; const Ps = [A[0] + v[0]*tc, A[1] + v[1]*tc, A[2] + v[2]*tc], Pr = [O[0] + D[0]*sc, O[1] + D[1]*sc, O[2] + D[2]*sc]; if (Math.hypot(Pr[0] - Ps[0], Pr[1] - Ps[1], Pr[2] - Ps[2]) < 0.34) { best = sc; hp = Ps; } } }
   const hit = best < 200, t = hit ? best : 40; return hp ? { x: hp[0], y: hp[1], z: hp[2], hit: true } : { x: O[0] + D[0]*t, y: O[1] + D[1]*t, z: O[2] + D[2]*t, hit };
@@ -3108,31 +3111,35 @@ function m3Reach(k, h) { const P = M3.p, sx = P.x, sy = P.y + 0.4, sz = P.z, dx 
 function m3Release(k) { M3.held[k] = false; M3.anc[k] = null; M3.reach[k] = null; }
 function m3Step(dt) {
   const P = M3.p, V = M3.v, s = Math.min(dt, 50)/1000, sy = Math.sin(M3.yaw), cy = Math.cos(M3.yaw); M3.t += s;
-  const arms = !!(M3.anc[0] || M3.anc[1]), grounded = P.y <= 1.06; let wall = null;
-  for (const t of M3.trees) { const dx = P.x - t.x, dz = P.z - t.z, d = Math.hypot(dx, dz); if (d < t.r + 0.8 && P.y < t.h + 1) { wall = t; if (d < t.r + 0.55) { const k = (t.r + 0.55)/Math.max(d, 0.01); P.x = t.x + dx*k; P.z = t.z + dz*k; } } }
+  const arms = !!(M3.anc[0] || M3.anc[1]), G0 = m3H(P.x, P.z), grounded = P.y <= G0 + 1.06; let wall = null;
+  for (const t of M3.trees) { const dx = P.x - t.x, dz = P.z - t.z, d = Math.hypot(dx, dz); if (d < t.r + 0.8 && P.y < t.y0 + t.h + 1) { wall = t; if (d < t.r + 0.55) { const k = (t.r + 0.55)/Math.max(d, 0.01); P.x = t.x + dx*k; P.z = t.z + dz*k; } } }
   M3.touch = grounded || !!wall;
   const cm = m3Cam(); M3.mx = W/2; M3.my = H/2; M3.hov = m3Ray(M3.mx, M3.my);
-  for (let k = 0; k < 2; k++) { const a = M3.anc[k]; if (a && Math.hypot(a[0] - P.x, a[1] - (P.y + 0.4), a[2] - P.z) > 3.8) M3.anc[k] = null; if (M3.held[k] && !M3.anc[k]) m3Reach(k, M3.hov); } // too far: your hand slips off
-  const held = M3.anc[0] || M3.anc[1];
-  if (held) { // your hand is fixed to the spot you grabbed: moving the mouse pulls YOUR BODY around it (mouse down = push off / pull forward)
+  const swing0 = M3.sp && (M3.anc[0] || M3.anc[1]);
+  for (let k = 0; k < 2; k++) { const a = M3.anc[k]; if (a && !swing0 && Math.hypot(a[0] - P.x, a[1] - (P.y + 0.4), a[2] - P.z) > 3.8) M3.anc[k] = null; if (M3.held[k] && !M3.anc[k]) m3Reach(k, M3.hov); } // too far: your hand slips off
+  const held = M3.anc[0] || M3.anc[1], swing = !!(M3.sp && held); // hold SPACE while hanging on to swing
+  if (held && !swing) { // your hand is fixed to the spot you grabbed: moving the mouse pulls YOUR BODY around it (mouse down = push off / pull forward)
     const d = Math.max(1.3, Math.hypot(held[0] - cm.C[0], held[1] - cm.C[1], held[2] - cm.C[2])), q = d/(M3.F || 630)*2.6, hx = M3.dx*q, hy = -M3.dy*q, fw = M3.dy > 0 ? 0.9 : 0.35;
     const bx = -(hx*cm.cY - hy*cm.sY*cm.sP) + cm.sY*M3.dy*q*fw, bz = -(-hx*cm.sY - hy*cm.cY*cm.sP) + cm.cY*M3.dy*q*fw;
     const ty = -hy*cm.cP, k2 = Math.min(1, 12*s), cap = (v, m) => Math.max(-m, Math.min(m, v));
     V.x += (cap(bx/s*0.55, 18) - V.x)*k2; V.z += (cap(bz/s*0.55, 18) - V.z)*k2; V.y += (cap(ty/s*0.55, 16) - V.y)*k2;
   } else { // nothing in your hands: the mouse turns the camera (the mouse stays centred)
     M3.yaw += M3.dx*0.0032; M3.pitch = Math.max(-1.4, Math.min(1.4, M3.pitch - M3.dy*0.0032)); }
+  if (swing) { if (!M3.rope) M3.rope = Math.max(1.6, Math.hypot(P.x - held[0], P.y + 0.5 - held[1], P.z - held[2])); const hs = Math.hypot(V.x, V.z), px = hs > 2 ? V.x/hs : cm.sY, pz = hs > 2 ? V.z/hs : cm.cY; V.x += px*13*s; V.z += pz*13*s; } else M3.rope = 0; // pumping adds speed (there is a speed cap below)
   M3.dx = M3.dy = 0;
   if (keys['arrowleft']) M3.yaw -= 1.9*s; if (keys['arrowright']) M3.yaw += 1.9*s; if (keys['arrowup']) M3.pitch = Math.min(1.4, M3.pitch + 1.5*s); if (keys['arrowdown']) M3.pitch = Math.max(-1.4, M3.pitch - 1.5*s);
   let walking = false;
   if (M3.touch) { const ax = ((keys['d'] ? 1 : 0) - (keys['a'] ? 1 : 0)), az = ((keys['w'] ? 1 : 0) - (keys['s'] ? 1 : 0));
     if (grounded && !arms) { if (ax || az) { walking = true; const l = Math.hypot(ax, az), spd = keys['shift'] ? 8.5 : 5.2, k = Math.min(1, 12*s); V.x += ((cy*ax + sy*az)/l*spd - V.x)*k; V.z += ((-sy*ax + cy*az)/l*spd - V.z)*k; } }
     else { V.x += (cy*ax + sy*az)*14*s; V.z += (-sy*ax + cy*az)*14*s; }
-    if (keys[' ']) { V.y = 9; keys[' '] = false; } }
-  if (!arms && !grounded) V.y -= 22*s; else if (!arms) V.y = Math.max(V.y, 0);
+    if (keys[' ']) { if (!held) V.y = 9; keys[' '] = false; } }
+  if ((!arms || swing) && !grounded) V.y -= 22*s; else if (!arms) V.y = Math.max(V.y, 0);
   if (grounded && !arms && !walking) { const f = Math.pow(0.0008, s); V.x *= f; V.z *= f; } else { const f = Math.pow(0.6, s); V.x *= f; V.z *= f; }
   const sp = Math.hypot(V.x, V.z); if (sp > 20) { V.x *= 20/sp; V.z *= 20/sp; } V.y = Math.max(-30, Math.min(16, V.y));
-  P.x += V.x*s; P.y += V.y*s; P.z += V.z*s; if (P.y <= 1.06) M3.walk += Math.hypot(V.x, V.z)*s*1.9;
-  if (P.y < 1) { P.y = 1; if (V.y < 0) V.y = 0; }
+  P.x += V.x*s; P.y += V.y*s; P.z += V.z*s;
+  if (swing && M3.rope) { const hx = P.x - held[0], hy = P.y + 0.5 - held[1], hz = P.z - held[2], dist = Math.hypot(hx, hy, hz); if (dist > M3.rope) { const k = M3.rope/dist; P.x = held[0] + hx*k; P.y = held[1] + hy*k - 0.5; P.z = held[2] + hz*k; const nx = hx/dist, ny = hy/dist, nz = hz/dist, vr = V.x*nx + V.y*ny + V.z*nz; if (vr > 0) { V.x -= nx*vr; V.y -= ny*vr; V.z -= nz*vr; } } }
+  if (P.y <= m3H(P.x, P.z) + 1.06) M3.walk += Math.hypot(V.x, V.z)*s*1.9;
+  { const G2 = m3H(P.x, P.z); if (P.y < G2 + 1) { P.y = G2 + 1; if (V.y < 0) V.y = 0; } else if (grounded && !arms && V.y <= 0.5 && P.y - (G2 + 1) < 0.45) { P.y = G2 + 1; if (V.y < 0) V.y = 0; } }
   const rr = Math.hypot(P.x, P.z); if (rr > 58) { P.x *= 58/rr; P.z *= 58/rr; V.x *= 0.5; V.z *= 0.5; }
   for (let i = M3.bans.length - 1; i >= 0; i--) { const b = M3.bans[i]; if (Math.hypot(b.x - P.x, b.y - (P.y + 0.3), b.z - P.z) < 1.8) { M3.bans.splice(i, 1); M3.got++; M3.best = Math.max(M3.best, M3.got); toast(M3.got + ' / ' + M3.total); } }
   if (!M3.bans.length) { M3.round++; m3Bananas(); toast('All bananas! Round ' + M3.round); }
@@ -3140,7 +3147,7 @@ function m3Step(dt) {
 function m3Draw() {
   const P = M3.p, ey = P.y + 0.95, sY = Math.sin(M3.yaw), cY = Math.cos(M3.yaw), sP = Math.sin(M3.pitch), cP = Math.cos(M3.pitch), F = Math.min(W, H)*0.9, HZ = [200, 226, 214];
   const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#4f9fd6'); g.addColorStop(0.55, '#a9d6e8'); g.addColorStop(1, 'rgb(200,226,214)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-  M3.F = F; const third = M3.view === 'third'; let Cx = P.x, Cy = ey, Cz = P.z; if (third) { const D = 4.3; Cx = P.x - sY*cP*D; Cy = Math.max(0.5, P.y + 0.6 - sP*D + 0.4); Cz = P.z - cY*cP*D; }
+  M3.F = F; const third = M3.view === 'third'; let Cx = P.x, Cy = ey, Cz = P.z; if (third) { const D = 4.3; Cx = P.x - sY*cP*D; Cz = P.z - cY*cP*D; Cy = Math.max(m3H(Cx, Cz) + 0.6, P.y + 1.0 - sP*D); }
   const tr = (x, y, z) => { const dx = x - Cx, dy = y - Cy, dz = z - Cz, xc = dx*cY - dz*sY, z1 = dx*sY + dz*cY; return [xc, dy*cP - z1*sP, dy*sP + z1*cP]; };
   const L = [0.42, 0.8, 0.3];
   const poly = (pts, col, ground, out) => { // project one face (with near-plane clipping) and shade it
@@ -3152,12 +3159,13 @@ function m3Draw() {
     out.push({ s: cl.map(q => [W/2 + q[0]/q[2]*F, H/2 - q[1]/q[2]*F]), d, c: 'rgb(' + r + ',' + gg + ',' + bb + ')' });
   };
   const gnd = [], obj = [], shd = [], cx0 = Math.floor(P.x/4), cz0 = Math.floor(P.z/4);
-  for (let i = -13; i <= 13; i++) for (let j = -13; j <= 13; j++) { const x = (cx0 + i)*4, z = (cz0 + j)*4, odd = ((cx0 + i + cz0 + j) & 1); poly([[x, 0, z], [x + 4, 0, z], [x + 4, 0, z + 4], [x, 0, z + 4]], odd ? [64, 146, 74] : [54, 128, 64], true, gnd); }
-  gnd.sort((a, b) => b.d - a.d);
+  const HS = {}, hg = (i, j) => { const k = i*64 + j; return HS[k] !== undefined ? HS[k] : (HS[k] = m3H((cx0 + i)*4, (cz0 + j)*4)); };
+  for (let i = -13; i <= 13; i++) for (let j = -13; j <= 13; j++) { const x = (cx0 + i)*4, z = (cz0 + j)*4, odd = ((cx0 + i + cz0 + j) & 1), h00 = hg(i, j), h10 = hg(i + 1, j), h11 = hg(i + 1, j + 1), h01 = hg(i, j + 1), tn = 1.1*(1 + Math.max(-0.5, Math.min(1, (h00 + h10 + h11 + h01)/24))*0.12), bc = odd ? [64, 146, 74] : [54, 128, 64], n0 = obj.length;
+    poly([[x, h00, z], [x + 4, h10, z], [x + 4, h11, z + 4], [x, h01, z + 4]], [bc[0]*tn, bc[1]*tn, bc[2]*tn], false, obj); if (obj.length > n0) obj[obj.length - 1].d += 3; } // the hills (pushed back a little so things standing on them draw on top)
   const cone = (cx, cz, yb, yt, rad, col) => { for (let i = 0; i < 8; i++) { const a0 = i/8*6.2832, a1 = (i + 1)/8*6.2832; poly([[cx + Math.cos(a0)*rad, yb, cz + Math.sin(a0)*rad], [cx + Math.cos(a1)*rad, yb, cz + Math.sin(a1)*rad], [cx, yt, cz]], col, false, obj); } };
   for (const t of M3.trees) { const dx = t.x - P.x, dz = t.z - P.z; if (dx*dx + dz*dz > 80*80) continue;
-    for (let i = 0; i < 6; i++) { const a0 = i/6*6.2832, a1 = (i + 1)/6*6.2832, x0 = t.x + Math.cos(a0)*t.r, z0 = t.z + Math.sin(a0)*t.r, x1 = t.x + Math.cos(a1)*t.r, z1 = t.z + Math.sin(a1)*t.r; poly([[x0, 0, z0], [x1, 0, z1], [x1, t.h, z1], [x0, t.h, z0]], [112*t.sh, 74*t.sh, 42*t.sh], false, obj); }
-    cone(t.x, t.z, t.h*0.45, t.h*0.45 + t.cr*2.2, t.cr, [38*t.sh, 128*t.sh, 58*t.sh]); cone(t.x, t.z, t.h*0.45 + t.cr*1.2, t.h*0.45 + t.cr*3.3, t.cr*0.72, [52*t.sh, 150*t.sh, 66*t.sh]); }
+    for (let i = 0; i < 6; i++) { const a0 = i/6*6.2832, a1 = (i + 1)/6*6.2832, x0 = t.x + Math.cos(a0)*t.r, z0 = t.z + Math.sin(a0)*t.r, x1 = t.x + Math.cos(a1)*t.r, z1 = t.z + Math.sin(a1)*t.r; poly([[x0, t.y0, z0], [x1, t.y0, z1], [x1, t.y0 + t.h, z1], [x0, t.y0 + t.h, z0]], [112*t.sh, 74*t.sh, 42*t.sh], false, obj); }
+    cone(t.x, t.z, t.y0 + t.h*0.45, t.y0 + t.h*0.45 + t.cr*2.2, t.cr, [38*t.sh, 128*t.sh, 58*t.sh]); cone(t.x, t.z, t.y0 + t.h*0.45 + t.cr*1.2, t.y0 + t.h*0.45 + t.cr*3.3, t.cr*0.72, [52*t.sh, 150*t.sh, 66*t.sh]); }
   for (const b of M3.bans) { const q = tr(b.x, b.y + Math.sin(M3.t*2 + b.ph)*0.25, b.z); if (q[2] > 0.4 && q[2] < 70) obj.push({ ban: true, d: q[2], sx: W/2 + q[0]/q[2]*F, sy: H/2 - q[1]/q[2]*F, sc: 1.3*F/q[2]/44, rot: M3.t*2 + b.ph }); }
   // ----- the gorilla: built from real 3D shapes, so it is lit, turns, and hides behind trees like everything else -----
   const handGlow = [], lw = (lx, ly, lz) => [P.x + cY*lx + sY*lz, ly, P.z - sY*lx + cY*lz];
@@ -3169,13 +3177,14 @@ function m3Draw() {
     const rg = (p, w) => { const o = []; for (let j = 0; j < N; j++) { const t = j/N*6.2832, c = Math.cos(t)*w, sn = Math.sin(t)*w; o.push([p[0] + n1[0]*c + n2[0]*sn, p[1] + n1[1]*c + n2[1]*sn, p[2] + n1[2]*c + n2[2]*sn]); } return o; }, A = rg(a, w0), B = rg(b, w1);
     for (let j = 0; j < N; j++) { const k = 1 + ((j*5 % 4) - 1.5)*0.04; poly([A[j], A[(j + 1) % N], B[(j + 1) % N], B[j]], [col[0]*k, col[1]*k, col[2]*k], false, obj); } };
   const FUR = [78, 66, 62], FUR2 = [96, 82, 76], FACE = [190, 146, 108], CHEST = [128, 116, 108], DARK = [22, 19, 19];
-  const spd = Math.hypot(M3.v.x, M3.v.z), air = P.y > 1.1 && !M3.touch, amp = Math.min(1, spd/3), bob = Math.sin(M3.walk*2)*0.045*amp*(air ? 0 : 1), fp = !third;
-  if (third) { const pts = []; for (let i = 0; i < 10; i++) { const a = i/10*6.2832; pts.push([P.x + Math.cos(a)*0.85, 0.03, P.z + Math.sin(a)*0.85]); } poly(pts, [30, 84, 42], true, shd); }
-  for (const t of M3.trees) { const dx = t.x - P.x, dz = t.z - P.z; if (dx*dx + dz*dz > 70*70) continue; const pts = []; for (let i = 0; i < 10; i++) { const a = i/10*6.2832; pts.push([t.x + 1.6 + Math.cos(a)*t.cr*0.95, 0.03, t.z + 1.1 + Math.sin(a)*t.cr*0.95]); } poly(pts, [30, 84, 42], true, shd); }
+  const G = m3H(P.x, P.z), spd = Math.hypot(M3.v.x, M3.v.z), air = P.y > G + 1.1 && !M3.touch, amp = Math.min(1, spd/3), bob = Math.sin(M3.walk*2)*0.045*amp*(air ? 0 : 1), fp = !third;
+  const shad = pts => { const n0 = obj.length; poly(pts, [30, 84, 42], true, obj); if (obj.length > n0) { const f = obj[obj.length - 1]; f.al = 0.5; f.d += 2.9; } };
+  if (third) { const pts = []; for (let i = 0; i < 10; i++) { const a = i/10*6.2832, x = P.x + Math.cos(a)*0.85, z = P.z + Math.sin(a)*0.85; pts.push([x, m3H(x, z) + 0.08, z]); } shad(pts); }
+  for (const t of M3.trees) { const dx = t.x - P.x, dz = t.z - P.z; if (dx*dx + dz*dz > 70*70) continue; const pts = []; for (let i = 0; i < 10; i++) { const a = i/10*6.2832, x = t.x + 1.6 + Math.cos(a)*t.cr*0.95, z = t.z + 1.1 + Math.sin(a)*t.cr*0.95; pts.push([x, m3H(x, z) + 0.08, z]); } shad(pts); }
   for (let k = 0; k < 2; k++) { const sd = k ? 1 : -1, ph = M3.walk + (k ? Math.PI : 0), sw = Math.sin(M3.walk + (k ? 0 : Math.PI)), on = !!(M3.anc[k] || M3.reach[k]), wa = M3.anc[k] || M3.reach[k], loc = w => [(w[0] - P.x)*cY - (w[2] - P.z)*sY, w[1], (w[0] - P.x)*sY + (w[2] - P.z)*cY];
-    if (third) { const hip = lw(sd*0.26, P.y - 0.32 + bob, 0), fz = Math.sin(ph)*0.5*amp + 0.05, fy = air ? P.y - 0.95 : 0.1 + Math.max(0, Math.cos(ph))*0.28*amp, foot = lw(sd*0.28, fy, fz), knee = lw(sd*0.33, (hip[1] + fy)/2 + 0.05, fz/2 + 0.34);
+    if (third) { const hip = lw(sd*0.26, P.y - 0.32 + bob, 0), fz = Math.sin(ph)*0.5*amp + 0.05, fy = air ? P.y - 0.95 : G + 0.1 + Math.max(0, Math.cos(ph))*0.28*amp, foot = lw(sd*0.28, fy, fz), knee = lw(sd*0.33, (hip[1] + fy)/2 + 0.05, fz/2 + 0.34);
       limb(hip, knee, 0.22, 0.17, FUR); ell(knee, [0.18, 0.17, 0.18], FUR, 7, 4); limb(knee, foot, 0.17, 0.13, FUR); ell([foot[0] + sY*0.08, foot[1] - 0.02, foot[2] + cY*0.08], [0.14, 0.09, 0.24], DARK, 7, 4); }
-    const tgt = wa ? loc(wa) : (fp ? [sd*0.62, 0.85 + Math.sin(M3.t*2 + k*2)*0.04, 1.5 - sw*0.3*amp] : [sd*0.88, 0.3 + Math.sin(M3.t*2 + k*2)*0.02 + Math.max(0, sw)*0.12*amp, 0.1 + sw*0.5*amp]);
+    const tgt = wa ? loc(wa) : (fp ? [sd*0.62, G + 0.85 + Math.sin(M3.t*2 + k*2)*0.04, 1.5 - sw*0.3*amp] : [sd*0.88, G + 0.3 + Math.sin(M3.t*2 + k*2)*0.02 + Math.max(0, sw)*0.12*amp, 0.1 + sw*0.5*amp]);
     const hp = M3.hpos[k] = M3.hpos[k] ? M3.hpos[k].map((v, i) => v + (tgt[i] - v)*(M3.anc[k] ? 1 : 0.4)) : tgt.slice(), hnd = lw(hp[0], hp[1], hp[2]), sh = fp ? lw(sd*0.5, ey - 0.35, 0.05) : lw(sd*0.6, P.y + 0.4 + bob, 0.05), elb = lw(fp ? sd*0.55 : (sd*0.6 + hp[0])/2 + sd*0.14, (sh[1] + hnd[1])/2 + (on ? 0.2 : -0.1), (0.05 + hp[2])/2 - (on ? 0 : 0.14));
     ell(sh, [0.24, 0.22, 0.24], FUR, 7, 4); limb(sh, elb, 0.2, 0.16, FUR2); ell(elb, [0.16, 0.15, 0.16], FUR2, 7, 4); limb(elb, hnd, 0.16, 0.14, FUR2); ell(hnd, [0.18, 0.15, 0.18], DARK, 8, 5); if (M3.anc[k]) handGlow.push(hnd); }
   if (third) { const hy = P.y + bob;
@@ -3184,19 +3193,20 @@ function m3Draw() {
     ell(lw(-0.1, hy + 0.74, 0.54), [0.04, 0.04, 0.04], [235, 235, 235], 6, 4); ell(lw(0.1, hy + 0.74, 0.54), [0.04, 0.04, 0.04], [235, 235, 235], 6, 4);
     ell(lw(-0.28, hy + 0.72, 0.22), [0.07, 0.09, 0.05], FACE, 6, 4); ell(lw(0.28, hy + 0.72, 0.22), [0.07, 0.09, 0.05], FACE, 6, 4); }
   for (const t of M3.trees) { const dx = t.x - P.x, dz = t.z - P.z; if (dx*dx + dz*dz > 42*42) continue; for (const b of t.br) { limb(b.a, b.b, 0.2, 0.12, [104*t.sh, 70*t.sh, 42*t.sh], 5); ell([b.b[0], b.b[1] + 0.15, b.b[2]], [0.7, 0.45, 0.7], [48*t.sh, 140*t.sh, 62*t.sh], 6, 3, 0); } } // grabbable branches
-  for (const r of M3.rocks) { const dx = r.x - P.x, dz = r.z - P.z; if (dx*dx + dz*dz > 60*60) continue; ell([r.x, r.r*0.35, r.z], [r.r, r.r*0.7, r.r*0.85], [112, 112, 108], 7, 4, r.a); }
+  for (const r of M3.rocks) { const dx = r.x - P.x, dz = r.z - P.z; if (dx*dx + dz*dz > 60*60) continue; ell([r.x, r.y0 + r.r*0.35, r.z], [r.r, r.r*0.7, r.r*0.85], [112, 112, 108], 7, 4, r.a); }
   obj.sort((a, b) => b.d - a.d);
   ctx.lineJoin = 'round';
   for (const f of gnd) { ctx.fillStyle = f.c; ctx.strokeStyle = f.c; ctx.lineWidth = 1; ctx.beginPath(); f.s.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.closePath(); ctx.fill(); ctx.stroke(); }
   for (const f of shd) { ctx.fillStyle = f.c; ctx.globalAlpha = 0.5; ctx.beginPath(); f.s.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.closePath(); ctx.fill(); ctx.globalAlpha = 1; }
-  for (const f of obj) { if (f.ban) { if (f.sc > 0.04) drawGoldBanana(f.sx, f.sy, f.sc, f.rot, f.d < 22); continue; } ctx.fillStyle = f.c; ctx.strokeStyle = f.c; ctx.lineWidth = 1; ctx.beginPath(); f.s.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.closePath(); ctx.fill(); ctx.stroke(); }
+  for (const f of obj) { ctx.globalAlpha = f.al || 1; if (f.ban) { if (f.sc > 0.04) drawGoldBanana(f.sx, f.sy, f.sc, f.rot, f.d < 22); continue; } ctx.fillStyle = f.c; ctx.strokeStyle = f.c; ctx.lineWidth = 1; ctx.beginPath(); f.s.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.closePath(); ctx.fill(); ctx.stroke(); }
+  ctx.globalAlpha = 1;
   for (const h of handGlow) { const q = tr(h[0], h[1], h[2]); if (q[2] < 0.3) continue; const x = W/2 + q[0]/q[2]*F, y = H/2 - q[1]/q[2]*F, R = 0.42*F/q[2], g2 = ctx.createRadialGradient(x, y, 2, x, y, R); g2.addColorStop(0, 'rgba(255,210,31,0.55)'); g2.addColorStop(1, 'rgba(255,210,31,0)'); ctx.fillStyle = g2; ctx.beginPath(); ctx.arc(x, y, R, 0, 7); ctx.fill(); }
   { const h = M3.hov, P2 = M3.p, ok = h && h.hit && Math.hypot(h.x - P2.x, h.y - (P2.y + 0.4), h.z - P2.z) <= 3.5; // your cursor: gold ring = you can grab here, white = too far
     if (h && h.hit) { const q = tr(h.x, h.y, h.z); if (q[2] > 0.3) { const x = W/2 + q[0]/q[2]*F, y = H/2 - q[1]/q[2]*F; ctx.strokeStyle = ok ? 'rgba(255,210,31,0.95)' : 'rgba(255,255,255,0.35)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(x, y, 0.28*F/q[2], 0.14*F/q[2], 0, 0, 7); ctx.stroke(); } }
     ctx.strokeStyle = ok ? '#ffd21f' : '#fff'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(M3.mx, M3.my, 11, 0, 7); ctx.stroke(); ctx.fillStyle = ctx.strokeStyle; ctx.beginPath(); ctx.arc(M3.mx, M3.my, 2.5, 0, 7); ctx.fill(); }
   ctx.font = "bold 22px 'Comic Sans MS',cursive"; ctx.textAlign = 'left'; ctx.lineWidth = 5; ctx.strokeStyle = 'rgba(0,0,0,0.6)'; ctx.fillStyle = '#ffd21f'; const tx = 'Bananas ' + M3.got + ' / ' + M3.total + '   Round ' + M3.round; ctx.strokeText(tx, 16, 34); ctx.fillText(tx, 16, 34);
   if (!document.pointerLockElement) { ctx.font = "bold 20px 'Comic Sans MS',cursive"; ctx.textAlign = 'center'; ctx.lineWidth = 5; ctx.strokeStyle = 'rgba(0,0,0,0.7)'; ctx.fillStyle = '#fff'; const ms = M3.lockFail ? 'This page will not let the game lock your mouse. Open the downloaded file in Chrome instead.' : 'Click to capture the mouse'; ctx.strokeText(ms, W/2, H - 40); ctx.fillText(ms, W/2, H - 40); ctx.textAlign = 'left'; }
-  ctx.font = "14px 'Comic Sans MS',cursive"; ctx.fillStyle = '#fff'; ctx.lineWidth = 4; for (const [i, hp] of ['The mouse looks around. Click (left / right hand) to GRAB what the centre ring points at (gold = in reach). Hold it and move the mouse to pull yourself: DOWN = push off / forward', 'Grab the ground, rocks, tree trunks and BRANCHES. Swing from branch to branch! Letting go keeps your speed', 'WASD = walk (Shift = run), Space = jump, arrows = look, C = switch camera, Esc = exit'].entries()) { ctx.strokeText(hp, 16, 58 + i*20); ctx.fillText(hp, 16, 58 + i*20); }
+  ctx.font = "14px 'Comic Sans MS',cursive"; ctx.fillStyle = '#fff'; ctx.lineWidth = 4; for (const [i, hp] of ['The mouse looks around. Click (left / right hand) to GRAB what the centre ring points at (gold = in reach). Hold it and move the mouse to pull yourself: DOWN = push off / forward', 'Grab rocks, trunks and BRANCHES. Hold SPACE while hanging on to swing and build speed (there is a speed limit). Let go to fly!', 'WASD = walk (Shift = run), Space = jump, arrows = look, C = switch camera, Esc = exit'].entries()) { ctx.strokeText(hp, 16, 58 + i*20); ctx.fillText(hp, 16, 58 + i*20); }
 }
 function m3Frame(dt) { m3Step(dt); ctx.setTransform(devicePixelRatio || 1, 0, 0, devicePixelRatio || 1, 0, 0); m3Draw(); }
 addEventListener('mousedown', e => { if (!M3.on) return; try { if (!document.fullscreenElement && document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {}); if (!document.pointerLockElement) { const r = cv.requestPointerLock(); if (r && r.catch) r.catch(() => { M3.lockFail = true; }); } } catch (x) { M3.lockFail = true; } if (e.button === 0) m3Grab(0); if (e.button === 2) m3Grab(1); e.preventDefault(); });
@@ -3204,7 +3214,8 @@ addEventListener('mouseup', e => { if (!M3.on) return; if (e.button === 0) m3Rel
 addEventListener('mousemove', e => { if (!M3.on) return; M3.dx += e.movementX || 0; M3.dy += e.movementY || 0; });
 addEventListener('contextmenu', e => { if (M3.on) e.preventDefault(); });
 document.addEventListener('pointerlockerror', () => { M3.lockFail = true; }); document.addEventListener('pointerlockchange', () => { if (document.pointerLockElement) M3.lockFail = false; });
-addEventListener('keydown', e => { if (!M3.on) return; if (e.key === 'Escape') m3Exit(); if ((e.key === 'c' || e.key === 'C') && !e.repeat) M3.view = M3.view === 'third' ? 'first' : 'third'; });
+addEventListener('keyup', e => { if (e.key === ' ') M3.sp = false; });
+addEventListener('keydown', e => { if (M3.on && e.key === ' ') M3.sp = true; if (!M3.on) return; if (e.key === 'Escape') m3Exit(); if ((e.key === 'c' || e.key === 'C') && !e.repeat) M3.view = M3.view === 'third' ? 'first' : 'third'; });
 function blinkTo3D() { // a couple of blinks, then you open your eyes in 3D
   const o = document.createElement('div'); o.style.cssText = 'position:fixed;inset:0;z-index:9998;pointer-events:none';
   o.innerHTML = '<div style="position:absolute;left:0;right:0;top:0;height:0;background:#000;transition:height .22s ease-in-out"></div><div style="position:absolute;left:0;right:0;bottom:0;height:0;background:#000;transition:height .22s ease-in-out"></div>'; document.body.appendChild(o);
@@ -3212,7 +3223,8 @@ function blinkTo3D() { // a couple of blinks, then you open your eyes in 3D
   at(300, () => lids(50)); at(750, () => lids(14)); at(1100, () => lids(50)); at(1550, () => lids(14)); at(1900, () => lids(50));
   at(2300, () => { start3D(); t.style.transition = b.style.transition = 'height 1s ease-out'; lids(0); }); at(3500, () => o.remove());
 }
-$('b-3d').onclick = start3D; if (SAVE.seen3d) $('b-3d').hidden = false;
+function applyUnlock() { const u = !!SAVE.seen3d; $('b-3d').hidden = !u; $('b-play').textContent = u ? 'Tutorial' : 'Singleplayer'; } // beat level ten (or press M): the 3D mode is now the Campaign and the 2D game becomes the Tutorial
+$('b-3d').onclick = start3D; applyUnlock();
 
 buildMenu();
 // the game steps at a fixed 60 per second, so it runs the same speed on 60, 120 or 144 Hz screens
