@@ -75,7 +75,7 @@ canvas { display:block; width:100%; height:100%; cursor:crosshair; touch-action:
 <body>
 <canvas id="c"></canvas>
 <canvas id="ov"></canvas>
-<div id="pz"><h2>Paused</h2><div class="pb" id="pz-main"><button class="big" id="pz-res">Resume</button><button class="big" id="pz-set">Game Settings</button><button class="big" id="pz-map">Map</button><button class="big" id="pz-menu">Main Menu</button></div><div class="pp" id="pz-sp"><b>Game Settings</b><label>Mouse sensitivity <input type="range" id="pz-sens" min="0.3" max="3" step="0.1" value="1"></label><label>Camera <button class="big" id="pz-cam" style="font-size:16px;padding:6px 14px">Third person</button></label><button class="big" data-pz="main">Back</button></div><div class="pp" id="pz-mp"><b>Map</b><div>Current map: Forest Hills</div><small>More maps are coming soon.</small><button class="big" data-pz="main">Back</button></div></div>
+<div id="pz"><h2>Paused</h2><div class="pb" id="pz-main"><button class="big" id="pz-res">Resume</button><button class="big" id="pz-set">Game Settings</button><button class="big" id="pz-map">Map</button><button class="big" id="pz-menu">Main Menu</button></div><div class="pp" id="pz-sp"><b>Game Settings</b><label>Mouse sensitivity <input type="range" id="pz-sens" min="0.3" max="3" step="0.1" value="1"></label><label><span>FOV <b id="pz-fovv">60</b></span> <input type="range" id="pz-fov" min="50" max="110" step="1" value="60"></label><label>Camera <button class="big" id="pz-cam" style="font-size:16px;padding:6px 14px">Third person</button></label><button class="big" data-pz="main">Back</button></div><div class="pp" id="pz-mp"><b>Map</b><div>Current map: Forest Hills</div><small>More maps are coming soon.</small><button class="big" data-pz="main">Back</button></div></div>
 <div id="menu">
 <div id="s-title" class="screen"><h1 class="logo">APE<br>BRAWL</h1><canvas id="hero" width="300" height="300"></canvas><div class="btns"><button class="big" id="b-play">Singleplayer</button><button class="big" data-go="s-char">Character</button><button class="big" id="b-upc">Upgrade Center</button><button class="big" data-go="s-set">Settings</button><button class="big" id="b-endless">Endless Mode</button><button class="big" id="b-mp">Multiplayer</button><button class="big" id="b-3d" hidden>Campaign</button></div></div>
 <div id="s-diff" class="screen" hidden><h2>Pick a difficulty</h2><div class="uprow big1 dcard"><div class="utx"><b id="dname"></b><small id="ddesc">Drag the slider: harder means more bots and more bananas</small><div class="sl" id="dsl"><div class="fill"></div><div class="tk-wrap"></div><div class="th"></div><input type="range" id="dslider" min="1" max="10" step="1" value="4"></div><div class="sl-lab" id="dlab"></div></div></div><div class="dboxes"><div class="ybox" id="dbots"></div><div class="ybox" id="dban"></div><div class="ybox" id="dpwr"></div><div class="ybox" id="dult"></div><div class="ybox" id="dlock" style="flex-basis:100%"></div></div><button class="big" id="b-start">Start</button><button class="big" data-go="s-title">Back</button></div>
@@ -3098,7 +3098,7 @@ function start3D() {
   Object.assign(M3, { on: true, held: [false, false], anc: [null, null], reach: [null, null], mx: W/2, my: H/2, dx: 0, dy: 0, yaw: 0, pitch: 0, t: 0, round: 1 }); M3.p = { x: 0, y: 1 + m3H(0, 0), z: 0 }; M3.rope = 0; M3.sp = false; M3.v = { x: 0, y: 0, z: 0 };
   started = false; menu.style.display = 'none'; $('hud').style.display = 'none'; octx.clearRect(0, 0, W, H); cv.style.cursor = 'none';
 }
-function m3Exit() { M3.on = false; pzHide(); cv.style.cursor = ''; try { if (document.pointerLockElement) document.exitPointerLock(); } catch (e) {} menu.style.display = ''; show('s-title'); }
+function m3Exit() { M3.on = false; M3.tp = M3.tr = 0; M3.swT = 0; M3.fling = false; pzHide(); cv.style.cursor = ''; try { if (document.pointerLockElement) document.exitPointerLock(); } catch (e) {} menu.style.display = ''; show('s-title'); }
 function m3Cam() { const P = M3.p, sY = Math.sin(M3.yaw), cY = Math.cos(M3.yaw), sP = Math.sin(M3.pitch), cP = Math.cos(M3.pitch); let C = [P.x, P.y + 0.95, P.z]; if (M3.view === 'third') { const D = 4.3; { const cx = P.x - sY*cP*D, cz = P.z - cY*cP*D; C = [cx, Math.max(m3H(cx, cz) + 0.6, P.y + 1.0 - sP*D), cz]; } } return { C, sY, cY, sP, cP }; }
 function m3Ray(mx, my) { // what is under the mouse? the ground, a tree trunk or a rock
   const cm = m3Cam(), F = M3.F || 630, xc = (mx - W/2)/F, yc = -(my - H/2)/F, z1 = cm.cP - yc*cm.sP, dy = yc*cm.cP + cm.sP, dx = xc*cm.cY + z1*cm.sY, dz = -xc*cm.sY + z1*cm.cY, l = Math.hypot(dx, dy, dz), D = [dx/l, dy/l, dz/l], O = cm.C; let best = 1e9;
@@ -3131,7 +3131,8 @@ function m3Step(dt) {
     V.x += (cap(bx/s*0.55, 18) - V.x)*k2; V.z += (cap(bz/s*0.55, 18) - V.z)*k2; V.y += (cap(ty/s*0.55, 16) - V.y)*k2;
   } else { // nothing in your hands: the mouse turns the camera (the mouse stays centred)
     M3.yaw += M3.dx*0.0032*M3.sens; M3.pitch = Math.max(-1.4, Math.min(1.4, M3.pitch - M3.dy*0.0032*M3.sens)); }
-  if (swing) { if (!M3.rope) M3.rope = Math.max(1.6, Math.hypot(P.x - held[0], P.y + 0.5 - held[1], P.z - held[2])); const hs = Math.hypot(V.x, V.z), px = hs > 2 ? V.x/hs : cm.sY, pz = hs > 2 ? V.z/hs : cm.cY; V.x += px*13*s; V.z += pz*13*s; } else M3.rope = 0; // pumping adds speed (there is a speed cap below)
+  { const hs0 = Math.hypot(V.x, V.z); if (!held && M3.swT > 0) { if (hs0 > 5 && !M3.fling) { V.x *= 1.3; V.z *= 1.3; V.y += 3.5; M3.fling = true; M3.flingT = 0; M3.wp = (6 + Math.random()*2.5)*(Math.random() < 0.3 ? -1 : 1); M3.viewB = M3.view; M3.view = 'third'; } M3.swT = 0; } else M3.swT = swing ? 0.35 : Math.max(0, M3.swT - s); }
+  if (swing) { if (!M3.rope) M3.rope = Math.max(1.6, Math.hypot(P.x - held[0], P.y + 0.5 - held[1], P.z - held[2])); const hs = Math.hypot(V.x, V.z), px = hs > 2 ? V.x/hs : cm.sY, pz = hs > 2 ? V.z/hs : cm.cY; V.x += px*17*s; V.z += pz*17*s; } else M3.rope = 0; // pumping adds speed (there is a speed cap below)
   M3.dx = M3.dy = 0;
   if (keys['arrowleft']) M3.yaw -= 1.9*s; if (keys['arrowright']) M3.yaw += 1.9*s; if (keys['arrowup']) M3.pitch = Math.min(1.4, M3.pitch + 1.5*s); if (keys['arrowdown']) M3.pitch = Math.max(-1.4, M3.pitch - 1.5*s);
   let walking = false;
@@ -3140,18 +3141,22 @@ function m3Step(dt) {
     else { V.x += (cy*ax + sy*az)*14*s; V.z += (-sy*ax + cy*az)*14*s; }
     if (keys[' ']) { if (!held) V.y = 9; keys[' '] = false; } }
   if ((!arms || swing) && !grounded) V.y -= 22*s; else if (!arms) V.y = Math.max(V.y, 0);
-  if (grounded && !arms && !walking) { const f = Math.pow(0.0008, s); V.x *= f; V.z *= f; } else { const f = Math.pow(0.6, s); V.x *= f; V.z *= f; }
-  const sp = Math.hypot(V.x, V.z); if (sp > 20) { V.x *= 20/sp; V.z *= 20/sp; } V.y = Math.max(-30, Math.min(16, V.y));
+  if (grounded && !arms && !walking) { const f = Math.pow(0.0008, s); V.x *= f; V.z *= f; } else { const f = Math.pow((M3.fling || swing) ? 0.93 : 0.6, s); V.x *= f; V.z *= f; }
+  const sp = Math.hypot(V.x, V.z), capH = M3.fling ? 36 : (swing ? 26 : 20); if (sp > capH) { V.x *= capH/sp; V.z *= capH/sp; } V.y = Math.max(-30, Math.min(16, V.y));
   P.x += V.x*s; P.y += V.y*s; P.z += V.z*s;
   if (swing && M3.rope) { const hx = P.x - held[0], hy = P.y + 0.5 - held[1], hz = P.z - held[2], dist = Math.hypot(hx, hy, hz); if (dist > M3.rope) { const k = M3.rope/dist; P.x = held[0] + hx*k; P.y = held[1] + hy*k - 0.5; P.z = held[2] + hz*k; const nx = hx/dist, ny = hy/dist, nz = hz/dist, vr = V.x*nx + V.y*ny + V.z*nz; if (vr > 0) { V.x -= nx*vr; V.y -= ny*vr; V.z -= nz*vr; } } }
   if (P.y <= m3H(P.x, P.z) + 1.06) M3.walk += Math.hypot(V.x, V.z)*s*1.9;
   { const G2 = m3H(P.x, P.z); if (P.y < G2 + 1) { P.y = G2 + 1; if (V.y < 0) V.y = 0; } else if (grounded && !arms && V.y <= 0.5 && P.y - (G2 + 1) < 0.45) { P.y = G2 + 1; if (V.y < 0) V.y = 0; } }
   const rr = Math.hypot(P.x, P.z); if (rr > 58) { P.x *= 58/rr; P.z *= 58/rr; V.x *= 0.5; V.z *= 0.5; }
+  { const fv = V.x*sy + V.z*cy, sv = V.x*cy - V.z*sy, cl = x => Math.max(-1, Math.min(1, x)), kk = Math.min(1, 8*s);
+    if (M3.fling) { M3.flingT += s; M3.tp += M3.wp*s; M3.tr = Math.sin(M3.t*5)*0.5; if (M3.flingT > 0.3 && (M3.touch || arms)) { M3.fling = false; M3.view = M3.viewB || M3.view; } }
+    else { M3.tp = ((M3.tp + Math.PI)%(2*Math.PI) + 2*Math.PI)%(2*Math.PI) - Math.PI; const tpT = swing ? cl(fv/22)*0.75 : 0, trT = swing ? cl(sv/22)*0.75 : 0; M3.tp += (tpT - M3.tp)*kk; M3.tr += (trT - M3.tr)*kk; }
+    M3.pivo = (Math.abs(M3.tp) + Math.abs(M3.tr) > 0.02) ? (M3.fling ? 0.1 : 0.9) : 0; }
   for (let i = M3.bans.length - 1; i >= 0; i--) { const b = M3.bans[i]; if (Math.hypot(b.x - P.x, b.y - (P.y + 0.3), b.z - P.z) < 1.8) { M3.bans.splice(i, 1); M3.got++; M3.best = Math.max(M3.best, M3.got); toast(M3.got + ' / ' + M3.total); } }
   if (!M3.bans.length) { M3.round++; m3Bananas(); toast('All bananas! Round ' + M3.round); }
 }
 function m3Draw() {
-  const P = M3.p, ey = P.y + 0.95, sY = Math.sin(M3.yaw), cY = Math.cos(M3.yaw), sP = Math.sin(M3.pitch), cP = Math.cos(M3.pitch), F = Math.min(W, H)*0.9, HZ = [200, 226, 214];
+  const P = M3.p, ey = P.y + 0.95, sY = Math.sin(M3.yaw), cY = Math.cos(M3.yaw), sP = Math.sin(M3.pitch), cP = Math.cos(M3.pitch), F = Math.min(W, H)*0.5/Math.tan((M3.fov || 60)*Math.PI/360), HZ = [200, 226, 214];
   const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#4f9fd6'); g.addColorStop(0.55, '#a9d6e8'); g.addColorStop(1, 'rgb(200,226,214)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
   M3.F = F; const third = M3.view === 'third'; let Cx = P.x, Cy = ey, Cz = P.z; if (third) { const D = 4.3; Cx = P.x - sY*cP*D; Cz = P.z - cY*cP*D; Cy = Math.max(m3H(Cx, Cz) + 0.6, P.y + 1.0 - sP*D); }
   const tr = (x, y, z) => { const dx = x - Cx, dy = y - Cy, dz = z - Cz, xc = dx*cY - dz*sY, z1 = dx*sY + dz*cY; return [xc, dy*cP - z1*sP, dy*sP + z1*cP]; };
@@ -3174,7 +3179,7 @@ function m3Draw() {
     cone(t.x, t.z, t.y0 + t.h*0.45, t.y0 + t.h*0.45 + t.cr*2.2, t.cr, [38*t.sh, 128*t.sh, 58*t.sh]); cone(t.x, t.z, t.y0 + t.h*0.45 + t.cr*1.2, t.y0 + t.h*0.45 + t.cr*3.3, t.cr*0.72, [52*t.sh, 150*t.sh, 66*t.sh]); }
   for (const b of M3.bans) { const q = tr(b.x, b.y + Math.sin(M3.t*2 + b.ph)*0.25, b.z); if (q[2] > 0.4 && q[2] < 70) obj.push({ ban: true, d: q[2], sx: W/2 + q[0]/q[2]*F, sy: H/2 - q[1]/q[2]*F, sc: 1.3*F/q[2]/44, rot: M3.t*2 + b.ph }); }
   // ----- the gorilla: built from real 3D shapes, so it is lit, turns, and hides behind trees like everything else -----
-  const handGlow = [], lw = (lx, ly, lz) => [P.x + cY*lx + sY*lz, ly, P.z - sY*lx + cY*lz];
+  const handGlow = [], lw0 = (lx, ly, lz) => [P.x + cY*lx + sY*lz, ly, P.z - sY*lx + cY*lz], lw = (lx, ly, lz) => { const tp = M3.tp || 0, tq = M3.tr || 0; if (!M3.pivo) return lw0(lx, ly, lz); const pv = P.y + M3.pivo, y = ly - pv, cp = Math.cos(tp), sp_ = Math.sin(tp), z = lz*cp + y*sp_, y1 = y*cp - lz*sp_, cr = Math.cos(tq), sr = Math.sin(tq), x = lx*cr + y1*sr, y2 = y1*cr - lx*sr; return [P.x + cY*x + sY*z, pv + y2, P.z - sY*x + cY*z]; };
   const ell = (c, r, col, ns, nr, ang) => { ns = ns || 8; nr = nr || 5; const an = ang === undefined ? M3.yaw : ang, cr = Math.cos(an), sr = Math.sin(an), ring = [];
     for (let i = 0; i <= nr; i++) { const th = i/nr*Math.PI, y = Math.cos(th), rr = Math.sin(th), row = []; for (let j = 0; j < ns; j++) { const ph = j/ns*6.2832, ax = r[0]*rr*Math.cos(ph), az = r[2]*rr*Math.sin(ph); row.push([c[0] + cr*ax + sr*az, c[1] + r[1]*y, c[2] - sr*ax + cr*az]); } ring.push(row); }
     for (let i = 0; i < nr; i++) for (let j = 0; j < ns; j++) { const k = 1 + (((i*7 + j*13) % 5) - 2)*0.045; poly([ring[i][j], ring[i][(j + 1) % ns], ring[i + 1][(j + 1) % ns], ring[i + 1][j]], [col[0]*k, col[1]*k, col[2]*k], false, obj); } };
@@ -3188,10 +3193,10 @@ function m3Draw() {
   if (third) { const pts = []; for (let i = 0; i < 10; i++) { const a = i/10*6.2832, x = P.x + Math.cos(a)*0.85, z = P.z + Math.sin(a)*0.85; pts.push([x, m3H(x, z) + 0.08, z]); } shad(pts); }
   for (const t of M3.trees) { const dx = t.x - P.x, dz = t.z - P.z; if (dx*dx + dz*dz > 70*70) continue; const pts = []; for (let i = 0; i < 10; i++) { const a = i/10*6.2832, x = t.x + 1.6 + Math.cos(a)*t.cr*0.95, z = t.z + 1.1 + Math.sin(a)*t.cr*0.95; pts.push([x, m3H(x, z) + 0.08, z]); } shad(pts); }
   for (let k = 0; k < 2; k++) { const sd = k ? 1 : -1, ph = M3.walk + (k ? Math.PI : 0), sw = Math.sin(M3.walk + (k ? 0 : Math.PI)), on = !!(M3.anc[k] || M3.reach[k]), wa = M3.anc[k] || M3.reach[k], loc = w => [(w[0] - P.x)*cY - (w[2] - P.z)*sY, w[1], (w[0] - P.x)*sY + (w[2] - P.z)*cY];
-    if (third) { const hip = lw(sd*0.26, P.y - 0.32 + bob, 0), fz = Math.sin(ph)*0.5*amp + 0.05, fy = air ? P.y - 0.95 : G + 0.1 + Math.max(0, Math.cos(ph))*0.28*amp, foot = lw(sd*0.28, fy, fz), knee = lw(sd*0.33, (hip[1] + fy)/2 + 0.05, fz/2 + 0.34);
+    if (third) { const hip = lw(sd*0.26, P.y - 0.32 + bob, 0), fz = M3.fling ? Math.sin(M3.t*9 + ph)*0.6 : Math.sin(ph)*0.5*amp + 0.05, fy = M3.fling ? P.y - 0.8 + Math.sin(M3.t*10 + ph)*0.4 : air ? P.y - 0.95 : G + 0.1 + Math.max(0, Math.cos(ph))*0.28*amp, foot = lw(sd*0.28, fy, fz), knee = lw(sd*0.33, (hip[1] + fy)/2 + 0.05, fz/2 + 0.34);
       limb(hip, knee, 0.22, 0.17, FUR); ell(knee, [0.18, 0.17, 0.18], FUR, 7, 4); limb(knee, foot, 0.17, 0.13, FUR); ell([foot[0] + sY*0.08, foot[1] - 0.02, foot[2] + cY*0.08], [0.14, 0.09, 0.24], DARK, 7, 4); }
-    const tgt = wa ? loc(wa) : (fp ? [sd*0.62, G + 0.85 + Math.sin(M3.t*2 + k*2)*0.04, 1.5 - sw*0.3*amp] : [sd*0.88, G + 0.3 + Math.sin(M3.t*2 + k*2)*0.02 + Math.max(0, sw)*0.12*amp, 0.1 + sw*0.5*amp]);
-    const hp = M3.hpos[k] = M3.hpos[k] ? M3.hpos[k].map((v, i) => v + (tgt[i] - v)*(M3.anc[k] ? 1 : 0.4)) : tgt.slice(), hnd = lw(hp[0], hp[1], hp[2]), sh = fp ? lw(sd*0.5, ey - 0.35, 0.05) : lw(sd*0.6, P.y + 0.4 + bob, 0.05), elb = lw(fp ? sd*0.55 : (sd*0.6 + hp[0])/2 + sd*0.14, (sh[1] + hnd[1])/2 + (on ? 0.2 : -0.1), (0.05 + hp[2])/2 - (on ? 0 : 0.14));
+    const tgt = wa ? loc(wa) : (M3.fling ? [sd*0.9 + Math.sin(M3.t*11 + k*2)*0.45, P.y + 0.1 + Math.cos(M3.t*9 + k)*0.5, Math.sin(M3.t*8 + k)*0.6] : fp ? [sd*0.62, P.y - 0.15 + Math.sin(M3.t*2 + k*2)*0.04, 1.5 - sw*0.3*amp] : [sd*0.88, P.y - 0.7 + Math.sin(M3.t*2 + k*2)*0.02 + Math.max(0, sw)*0.12*amp, 0.1 + sw*0.5*amp]);
+    const hp = M3.hpos[k] = M3.hpos[k] ? M3.hpos[k].map((v, i) => v + (tgt[i] - v)*(M3.anc[k] ? 1 : 0.85)) : tgt.slice(), hnd = (M3.anc[k] ? lw0 : lw)(hp[0], hp[1], hp[2]), sh = fp ? lw(sd*0.5, ey - 0.35, 0.05) : lw(sd*0.6, P.y + 0.4 + bob, 0.05), elb = lw(fp ? sd*0.55 : (sd*0.6 + hp[0])/2 + sd*0.14, (sh[1] + hnd[1])/2 + (on ? 0.2 : -0.1), (0.05 + hp[2])/2 - (on ? 0 : 0.14));
     ell(sh, [0.24, 0.22, 0.24], FUR, 7, 4); limb(sh, elb, 0.2, 0.16, FUR2); ell(elb, [0.16, 0.15, 0.16], FUR2, 7, 4); limb(elb, hnd, 0.16, 0.14, FUR2); ell(hnd, [0.18, 0.15, 0.18], DARK, 8, 5); if (M3.anc[k]) handGlow.push(hnd); }
   if (third) { const hy = P.y + bob;
     ell(lw(0, hy - 0.05, 0.02), [0.56, 0.5, 0.42], FUR, 10, 6); ell(lw(0, hy + 0.3, 0.1), [0.66, 0.4, 0.44], FUR, 10, 6); ell(lw(0, hy + 0.22, 0.4), [0.36, 0.28, 0.12], CHEST, 8, 5);
@@ -3212,14 +3217,15 @@ function m3Draw() {
     ctx.strokeStyle = ok ? '#ffd21f' : '#fff'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(M3.mx, M3.my, 11, 0, 7); ctx.stroke(); ctx.fillStyle = ctx.strokeStyle; ctx.beginPath(); ctx.arc(M3.mx, M3.my, 2.5, 0, 7); ctx.fill(); }
   ctx.font = "bold 22px 'Comic Sans MS',cursive"; ctx.textAlign = 'left'; ctx.lineWidth = 5; ctx.strokeStyle = 'rgba(0,0,0,0.6)'; ctx.fillStyle = '#ffd21f'; const tx = 'Bananas ' + M3.got + ' / ' + M3.total + '   Round ' + M3.round; ctx.strokeText(tx, 16, 34); ctx.fillText(tx, 16, 34);
   if (!document.pointerLockElement) { ctx.font = "bold 20px 'Comic Sans MS',cursive"; ctx.textAlign = 'center'; ctx.lineWidth = 5; ctx.strokeStyle = 'rgba(0,0,0,0.7)'; ctx.fillStyle = '#fff'; const ms = M3.lockFail ? 'This page will not let the game lock your mouse. Open the downloaded file in Chrome instead.' : 'Click to capture the mouse'; ctx.strokeText(ms, W/2, H - 40); ctx.fillText(ms, W/2, H - 40); ctx.textAlign = 'left'; }
-  ctx.font = "14px 'Comic Sans MS',cursive"; ctx.fillStyle = '#fff'; ctx.lineWidth = 4; for (const [i, hp] of ['The mouse looks around. Click (left / right hand) to GRAB what the centre ring points at (gold = in reach). Hold it and move the mouse to pull yourself: DOWN = push off / forward', 'Grab rocks, trunks and BRANCHES. Hold SPACE while hanging on to swing and build speed (there is a speed limit). Let go to fly!', 'WASD = walk (Shift = run), Space = jump, arrows = look, C = switch camera, Esc = pause menu'].entries()) { ctx.strokeText(hp, 16, 58 + i*20); ctx.fillText(hp, 16, 58 + i*20); }
+  ctx.font = "14px 'Comic Sans MS',cursive"; ctx.fillStyle = '#fff'; ctx.lineWidth = 4; for (const [i, hp] of ['The mouse looks around. Click (left / right hand) to GRAB what the centre ring points at (gold = in reach). Hold it and move the mouse to pull yourself: DOWN = push off / forward', 'Grab rocks, trunks and BRANCHES. Hold SPACE while hanging on to swing and build speed (there is a speed limit). Let go while swinging to FLING yourself far!', 'WASD = walk (Shift = run), Space = jump, arrows = look, C = switch camera, Esc = pause menu'].entries()) { ctx.strokeText(hp, 16, 58 + i*20); ctx.fillText(hp, 16, 58 + i*20); }
 }
-M3.sens = 1;
+M3.sens = 1; M3.fov = 60; M3.tp = 0; M3.tr = 0; M3.swT = 0; M3.fling = false;
 function pzSub(w) { $('pz-main').style.display = w === 'main' ? 'flex' : 'none'; $('pz-sp').style.display = w === 'set' ? 'flex' : 'none'; $('pz-mp').style.display = w === 'map' ? 'flex' : 'none'; if (w === 'set') $('pz-cam').textContent = M3.view === 'third' ? 'Third person' : 'First person'; }
 function pzShow() { M3.paused = true; M3.dx = M3.dy = 0; M3.sp = false; try { if (document.pointerLockElement) document.exitPointerLock(); } catch (e) {} $('pz').style.display = 'flex'; pzSub('main'); }
 function pzHide() { M3.paused = false; $('pz').style.display = 'none'; }
 $('pz-res').onclick = pzHide; $('pz-set').onclick = () => pzSub('set'); $('pz-map').onclick = () => pzSub('map');
 $('pz-menu').onclick = () => { m3Exit(); };
+$('pz-fov').oninput = e => { M3.fov = +e.target.value; $('pz-fovv').textContent = M3.fov; };
 $('pz-sens').oninput = e => { M3.sens = +e.target.value; };
 $('pz-cam').onclick = () => { M3.view = M3.view === 'third' ? 'first' : 'third'; pzSub('set'); };
 document.querySelectorAll('[data-pz]').forEach(b => b.onclick = () => pzSub('main'));
