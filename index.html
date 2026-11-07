@@ -75,7 +75,7 @@ canvas { display:block; width:100%; height:100%; cursor:crosshair; touch-action:
 <body>
 <canvas id="c"></canvas>
 <canvas id="ov"></canvas>
-<div id="ver" style="position:fixed;right:10px;top:6px;z-index:60;font:700 13px 'Comic Sans MS',cursive;color:#1b2a3a;opacity:.7;background:rgba(255,255,255,.55);padding:2px 8px;border-radius:8px;pointer-events:none">v1:209</div>
+<div id="ver" style="position:fixed;right:10px;top:6px;z-index:60;font:700 13px 'Comic Sans MS',cursive;color:#1b2a3a;opacity:.7;background:rgba(255,255,255,.55);padding:2px 8px;border-radius:8px;pointer-events:none">v1:210</div>
 <div id="pz"><h2>Paused</h2><div class="pb" id="pz-main"><button class="big" id="pz-res">Resume</button><button class="big" id="pz-set">Game Settings</button><button class="big" id="pz-map">Map</button><button class="big" id="pz-menu">Main Menu</button></div><div class="pp" id="pz-sp"><b>Game Settings</b><label>Mouse sensitivity <input type="range" id="pz-sens" min="0.3" max="3" step="0.1" value="1"></label><label><span>FOV <b id="pz-fovv">60</b></span> <input type="range" id="pz-fov" min="50" max="110" step="1" value="60"></label><label>Camera <button class="big" id="pz-cam" style="font-size:16px;padding:6px 14px">Third person</button></label><button class="big" data-pz="main">Back</button></div><div class="pp" id="pz-mp"><b>Map</b><div>Current map: Forest Hills</div><small>More maps are coming soon.</small><button class="big" data-pz="main">Back</button></div></div>
 <div id="menu">
 <div id="s-title" class="screen"><h1 class="logo">APE<br>BRAWL</h1><canvas id="hero" width="300" height="300"></canvas><div class="btns"><button class="big" id="b-play">Singleplayer</button><button class="big" data-go="s-char">Character</button><button class="big" id="b-upc">Upgrade Center</button><button class="big" data-go="s-set">Settings</button><button class="big" id="b-endless">Endless Mode</button><button class="big" id="b-mp">Multiplayer</button><button class="big" id="b-3d" hidden>Campaign</button></div></div>
@@ -3136,6 +3136,15 @@ function m3Step(dt) {
   if (swing) { if (!M3.rope) M3.rope = 2.0; const vl = Math.hypot(V.x, V.y, V.z); if (vl > 2) { V.x += V.x/vl*17*s; V.y += V.y/vl*17*s; V.z += V.z/vl*17*s; } else { V.x += cm.sY*17*s; V.z += cm.cY*17*s; } } else M3.rope = 0; // pumping adds speed (there is a speed cap below)
   M3.dx = M3.dy = 0;
   if (keys['arrowleft']) M3.yaw -= 1.9*s; if (keys['arrowright']) M3.yaw += 1.9*s; if (keys['arrowup']) M3.pitch = Math.min(1.4, M3.pitch + 1.5*s); if (keys['arrowdown']) M3.pitch = Math.max(-1.4, M3.pitch - 1.5*s);
+  if (!M3.bots) { M3.bots = []; for (let i = 0; i < 5; i++) { let x, z, n = 0; do { const a = Math.random()*6.2832, r = 14 + Math.random()*38; x = Math.cos(a)*r; z = Math.sin(a)*r; n++; } while (n < 30 && M3.trees.some(t => Math.hypot(t.x - x, t.z - z) < t.r + 1.5)); M3.bots.push({ x, z, yaw: Math.random()*6.28, tx: x, tz: z, wait: Math.random()*2, ph: Math.random()*6.28, sp: 0 }); } }
+  for (const b of M3.bots) { // each robot picks a spot, walks there, stops for a moment, and picks another one
+    if (b.wait > 0) { b.wait -= s; b.sp += (0 - b.sp)*Math.min(1, 6*s); }
+    else { const dx = b.tx - b.x, dz = b.tz - b.z, d = Math.hypot(dx, dz);
+      if (d < 0.8) { b.wait = 0.8 + Math.random()*2.2; const a = Math.random()*6.2832, r = 6 + Math.random()*16; b.tx = Math.max(-54, Math.min(54, b.x + Math.cos(a)*r)); b.tz = Math.max(-54, Math.min(54, b.z + Math.sin(a)*r)); }
+      else { let da = Math.atan2(dx, dz) - b.yaw; da = Math.atan2(Math.sin(da), Math.cos(da)); b.yaw += da*Math.min(1, 5*s); b.sp += (2.3*(Math.abs(da) < 0.9 ? 1 : 0.2) - b.sp)*Math.min(1, 5*s); b.x += Math.sin(b.yaw)*b.sp*s; b.z += Math.cos(b.yaw)*b.sp*s; } }
+    for (const t of M3.trees) { const dx = b.x - t.x, dz = b.z - t.z, d = Math.hypot(dx, dz); if (d < t.r + 0.7) { const k = (t.r + 0.7)/Math.max(d, 0.01); b.x = t.x + dx*k; b.z = t.z + dz*k; b.wait = 0; b.tx = b.x + dz*3; b.tz = b.z - dx*3; } }
+    { const dx = P.x - b.x, dz = P.z - b.z, d = Math.hypot(dx, dz); if (d < 1.0 && Math.abs(P.y - (m3H(b.x, b.z) + 1)) < 1.8) { const k = 1.0/Math.max(d, 0.01); P.x = b.x + dx*k; P.z = b.z + dz*k; } } // you can't walk through them
+    b.ph += b.sp*s*2.6; b.y = m3H(b.x, b.z); }
   for (let k = 0; k < 2; k++) { if (M3.pcg[k]) { M3.pc[k] = Math.min(1, M3.pc[k] + s/1.0); if (M3.anc[k] || M3.fling) { M3.pcg[k] = false; } } if (M3.pt[k] >= 0) { M3.pt[k] += s/(M3.pk[k] ? 0.32 : 0.18); if (M3.pt[k] >= 1) M3.pt[k] = -1; } }
   let walking = false;
   if (M3.touch) { const ax = ((keys['d'] ? 1 : 0) - (keys['a'] ? 1 : 0)), az = ((keys['w'] ? 1 : 0) - (keys['s'] ? 1 : 0));
@@ -3213,6 +3222,20 @@ function m3Draw() {
     ell(lw(-0.1, hy + 0.74, 0.54), [0.04, 0.04, 0.04], [235, 235, 235], 6, 4); ell(lw(0.1, hy + 0.74, 0.54), [0.04, 0.04, 0.04], [235, 235, 235], 6, 4);
     ell(lw(-0.28, hy + 0.72, 0.22), [0.07, 0.09, 0.05], FACE, 6, 4); ell(lw(0.28, hy + 0.72, 0.22), [0.07, 0.09, 0.05], FACE, 6, 4); }
   PF = F;
+  for (const b of M3.bots || []) { const dxb = b.x - P.x, dzb = b.z - P.z; if (dxb*dxb + dzb*dzb > 75*75) continue; { const qb = tr(b.x, b.y + 1, b.z); if (qb[2] < -2.5 || Math.abs(qb[0]) > qb[2]*(W/H*0.9 + 0.8) + 3) continue; } const cb = Math.cos(b.yaw), sb = Math.sin(b.yaw), amp2 = Math.min(1, b.sp/2.2), bob2 = Math.abs(Math.sin(b.ph))*0.05*amp2 + 0;
+    const bw = (lx, ly, lz) => [b.x + cb*lx + sb*lz, b.y + ly + bob2, b.z - sb*lx + cb*lz];
+    const MET = [168, 176, 188], MET2 = [120, 128, 142], JNT = [52, 58, 70], RED = [206, 64, 58], EYE = [90, 235, 255];
+    const bx = (c, hx, hy, hz, col) => { const v = []; for (const sx of [-1, 1]) for (const sy of [-1, 1]) for (const sz of [-1, 1]) v.push(bw(c[0] + sx*hx, c[1] + sy*hy, c[2] + sz*hz)); // 0..7 index = sx*4+sy*2+sz
+      for (const f of [[0, 1, 3, 2], [4, 5, 7, 6], [0, 1, 5, 4], [2, 3, 7, 6], [0, 2, 6, 4], [1, 3, 7, 5]]) poly(f.map(i => v[i]), col, false, obj); };
+    for (const sd of [-1, 1]) { const sw2 = Math.sin(b.ph + (sd > 0 ? 0 : Math.PI))*0.42*amp2, lift = Math.max(0, Math.cos(b.ph + (sd > 0 ? 0 : Math.PI)))*0.14*amp2;
+      const hip = bw(sd*0.24, 0.82, 0), knee = bw(sd*0.25, 0.46 + lift*0.5, sw2*0.5 + 0.08), foot = bw(sd*0.25, 0.1 + lift, sw2);
+      limb(hip, knee, 0.12, 0.1, MET2, 4); limb(knee, foot, 0.1, 0.09, MET, 4);
+      { const fc = [sd*0.25, 0.06 + lift, sw2 + 0.1]; bx(fc, 0.11, 0.06, 0.2, JNT); }
+      const sh = bw(sd*0.56, 1.42, 0), hnd = bw(sd*0.62, 0.78 + (sd > 0 ? 0 : 0), -sw2*0.9 + 0.05), elb = bw(sd*0.62, 1.1, -sw2*0.45);
+      bx([sd*0.56, 1.42, 0], 0.1, 0.1, 0.1, JNT); limb(sh, elb, 0.09, 0.08, MET2, 4); limb(elb, hnd, 0.08, 0.07, MET, 4); bx([sd*0.62, 0.78, -sw2*0.9 + 0.05], 0.08, 0.08, 0.08, RED); }
+    bx([0, 1.1, 0], 0.4, 0.36, 0.24, MET); bx([0, 0.84, 0], 0.3, 0.1, 0.2, JNT); bx([0, 1.22, 0.25], 0.2, 0.12, 0.02, RED);
+    bx([0, 1.72, 0.02], 0.22, 0.2, 0.21, MET); bx([0, 1.74, 0.23], 0.17, 0.06, 0.02, EYE); limb(bw(0, 1.92, 0), bw(0, 2.14, 0), 0.025, 0.02, JNT, 4); bx([0, 2.17, 0], 0.04, 0.04, 0.04, RED);
+    { const pts = []; for (let i = 0; i < 10; i++) { const a = i/10*6.2832, x = b.x + Math.cos(a)*0.6, z = b.z + Math.sin(a)*0.6; pts.push([x, m3H(x, z) + 0.06, z]); } if (dxb*dxb + dzb*dzb < 30*30) shad(pts); } }
   for (const t of M3.trees) { const dx = t.x - P.x, dz = t.z - P.z; if (dx*dx + dz*dz > 42*42) continue; for (const b of t.br) { limb(b.a, b.b, 0.2, 0.12, [104*t.sh, 70*t.sh, 42*t.sh], 5); ell([b.b[0], b.b[1] + 0.15, b.b[2]], [0.7, 0.45, 0.7], [48*t.sh, 140*t.sh, 62*t.sh], 6, 3, 0); } } // grabbable branches
   for (const r of M3.rocks) { const dx = r.x - P.x, dz = r.z - P.z; if (dx*dx + dz*dz > 60*60) continue; ell([r.x, r.y0 + r.r*0.35, r.z], [r.r, r.r*0.7, r.r*0.85], [112, 112, 108], 7, 4, r.a); }
   obj.sort((a, b) => b.d - a.d);
