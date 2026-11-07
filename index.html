@@ -65,11 +65,17 @@ canvas { display:block; width:100%; height:100%; cursor:crosshair; touch-action:
 .bestplay:empty { display:none; } .big.sel { background:#7be37b; }
 .dcbox { display:flex; flex-direction:column; align-items:center; gap:8px; color:#1b2a3a; font-size:18px; } .dcbox textarea { width:min(560px,90vw); height:84px; font:12px monospace; border:3px solid #1b2a3a; border-radius:10px; padding:6px; box-sizing:border-box; } .dcbox .big { font-size:17px; padding:6px 16px; }
 .lbrow { display:flex; gap:14px; flex-wrap:wrap; justify-content:center; align-items:flex-start; } .lbrow .lbt { min-width:min(240px,90vw); } .lbhost small { display:block; margin-top:6px; color:#1b2a3a; font-weight:700; }
+#pz{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;background:rgba(20,36,30,.62);font-family:inherit;color:#fff}
+#pz h2{margin:0 0 6px;font-size:40px;text-shadow:0 4px 0 #1b2a3a}
+#pz .pb{display:flex;flex-direction:column;gap:14px;align-items:stretch;min-width:min(320px,80vw)}
+#pz .pp{display:none;flex-direction:column;gap:14px;align-items:center;background:#fff3c4;color:#1b2a3a;border:4px solid #1b2a3a;border-radius:18px;padding:18px 24px;max-width:min(460px,88vw);font-weight:700}
+#pz .pp label{display:flex;gap:10px;align-items:center;width:100%;justify-content:space-between}
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
 <canvas id="ov"></canvas>
+<div id="pz"><h2>Paused</h2><div class="pb" id="pz-main"><button class="big" id="pz-res">Resume</button><button class="big" id="pz-set">Game Settings</button><button class="big" id="pz-map">Map</button><button class="big" id="pz-menu">Main Menu</button></div><div class="pp" id="pz-sp"><b>Game Settings</b><label>Mouse sensitivity <input type="range" id="pz-sens" min="0.3" max="3" step="0.1" value="1"></label><label>Camera <button class="big" id="pz-cam" style="font-size:16px;padding:6px 14px">Third person</button></label><button class="big" data-pz="main">Back</button></div><div class="pp" id="pz-mp"><b>Map</b><div>Current map: Forest Hills</div><small>More maps are coming soon.</small><button class="big" data-pz="main">Back</button></div></div>
 <div id="menu">
 <div id="s-title" class="screen"><h1 class="logo">APE<br>BRAWL</h1><canvas id="hero" width="300" height="300"></canvas><div class="btns"><button class="big" id="b-play">Singleplayer</button><button class="big" data-go="s-char">Character</button><button class="big" id="b-upc">Upgrade Center</button><button class="big" data-go="s-set">Settings</button><button class="big" id="b-endless">Endless Mode</button><button class="big" id="b-mp">Multiplayer</button><button class="big" id="b-3d" hidden>Campaign</button></div></div>
 <div id="s-diff" class="screen" hidden><h2>Pick a difficulty</h2><div class="uprow big1 dcard"><div class="utx"><b id="dname"></b><small id="ddesc">Drag the slider: harder means more bots and more bananas</small><div class="sl" id="dsl"><div class="fill"></div><div class="tk-wrap"></div><div class="th"></div><input type="range" id="dslider" min="1" max="10" step="1" value="4"></div><div class="sl-lab" id="dlab"></div></div></div><div class="dboxes"><div class="ybox" id="dbots"></div><div class="ybox" id="dban"></div><div class="ybox" id="dpwr"></div><div class="ybox" id="dult"></div><div class="ybox" id="dlock" style="flex-basis:100%"></div></div><button class="big" id="b-start">Start</button><button class="big" data-go="s-title">Back</button></div>
@@ -3092,7 +3098,7 @@ function start3D() {
   Object.assign(M3, { on: true, held: [false, false], anc: [null, null], reach: [null, null], mx: W/2, my: H/2, dx: 0, dy: 0, yaw: 0, pitch: 0, t: 0, round: 1 }); M3.p = { x: 0, y: 1 + m3H(0, 0), z: 0 }; M3.rope = 0; M3.sp = false; M3.v = { x: 0, y: 0, z: 0 };
   started = false; menu.style.display = 'none'; $('hud').style.display = 'none'; octx.clearRect(0, 0, W, H); cv.style.cursor = 'none';
 }
-function m3Exit() { M3.on = false; cv.style.cursor = ''; try { if (document.pointerLockElement) document.exitPointerLock(); } catch (e) {} menu.style.display = ''; show('s-title'); }
+function m3Exit() { M3.on = false; pzHide(); cv.style.cursor = ''; try { if (document.pointerLockElement) document.exitPointerLock(); } catch (e) {} menu.style.display = ''; show('s-title'); }
 function m3Cam() { const P = M3.p, sY = Math.sin(M3.yaw), cY = Math.cos(M3.yaw), sP = Math.sin(M3.pitch), cP = Math.cos(M3.pitch); let C = [P.x, P.y + 0.95, P.z]; if (M3.view === 'third') { const D = 4.3; { const cx = P.x - sY*cP*D, cz = P.z - cY*cP*D; C = [cx, Math.max(m3H(cx, cz) + 0.6, P.y + 1.0 - sP*D), cz]; } } return { C, sY, cY, sP, cP }; }
 function m3Ray(mx, my) { // what is under the mouse? the ground, a tree trunk or a rock
   const cm = m3Cam(), F = M3.F || 630, xc = (mx - W/2)/F, yc = -(my - H/2)/F, z1 = cm.cP - yc*cm.sP, dy = yc*cm.cP + cm.sP, dx = xc*cm.cY + z1*cm.sY, dz = -xc*cm.sY + z1*cm.cY, l = Math.hypot(dx, dy, dz), D = [dx/l, dy/l, dz/l], O = cm.C; let best = 1e9;
@@ -3124,7 +3130,7 @@ function m3Step(dt) {
     const ty = -hy*cm.cP, k2 = Math.min(1, 12*s), cap = (v, m) => Math.max(-m, Math.min(m, v));
     V.x += (cap(bx/s*0.55, 18) - V.x)*k2; V.z += (cap(bz/s*0.55, 18) - V.z)*k2; V.y += (cap(ty/s*0.55, 16) - V.y)*k2;
   } else { // nothing in your hands: the mouse turns the camera (the mouse stays centred)
-    M3.yaw += M3.dx*0.0032; M3.pitch = Math.max(-1.4, Math.min(1.4, M3.pitch - M3.dy*0.0032)); }
+    M3.yaw += M3.dx*0.0032*M3.sens; M3.pitch = Math.max(-1.4, Math.min(1.4, M3.pitch - M3.dy*0.0032*M3.sens)); }
   if (swing) { if (!M3.rope) M3.rope = Math.max(1.6, Math.hypot(P.x - held[0], P.y + 0.5 - held[1], P.z - held[2])); const hs = Math.hypot(V.x, V.z), px = hs > 2 ? V.x/hs : cm.sY, pz = hs > 2 ? V.z/hs : cm.cY; V.x += px*13*s; V.z += pz*13*s; } else M3.rope = 0; // pumping adds speed (there is a speed cap below)
   M3.dx = M3.dy = 0;
   if (keys['arrowleft']) M3.yaw -= 1.9*s; if (keys['arrowright']) M3.yaw += 1.9*s; if (keys['arrowup']) M3.pitch = Math.min(1.4, M3.pitch + 1.5*s); if (keys['arrowdown']) M3.pitch = Math.max(-1.4, M3.pitch - 1.5*s);
@@ -3206,16 +3212,26 @@ function m3Draw() {
     ctx.strokeStyle = ok ? '#ffd21f' : '#fff'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(M3.mx, M3.my, 11, 0, 7); ctx.stroke(); ctx.fillStyle = ctx.strokeStyle; ctx.beginPath(); ctx.arc(M3.mx, M3.my, 2.5, 0, 7); ctx.fill(); }
   ctx.font = "bold 22px 'Comic Sans MS',cursive"; ctx.textAlign = 'left'; ctx.lineWidth = 5; ctx.strokeStyle = 'rgba(0,0,0,0.6)'; ctx.fillStyle = '#ffd21f'; const tx = 'Bananas ' + M3.got + ' / ' + M3.total + '   Round ' + M3.round; ctx.strokeText(tx, 16, 34); ctx.fillText(tx, 16, 34);
   if (!document.pointerLockElement) { ctx.font = "bold 20px 'Comic Sans MS',cursive"; ctx.textAlign = 'center'; ctx.lineWidth = 5; ctx.strokeStyle = 'rgba(0,0,0,0.7)'; ctx.fillStyle = '#fff'; const ms = M3.lockFail ? 'This page will not let the game lock your mouse. Open the downloaded file in Chrome instead.' : 'Click to capture the mouse'; ctx.strokeText(ms, W/2, H - 40); ctx.fillText(ms, W/2, H - 40); ctx.textAlign = 'left'; }
-  ctx.font = "14px 'Comic Sans MS',cursive"; ctx.fillStyle = '#fff'; ctx.lineWidth = 4; for (const [i, hp] of ['The mouse looks around. Click (left / right hand) to GRAB what the centre ring points at (gold = in reach). Hold it and move the mouse to pull yourself: DOWN = push off / forward', 'Grab rocks, trunks and BRANCHES. Hold SPACE while hanging on to swing and build speed (there is a speed limit). Let go to fly!', 'WASD = walk (Shift = run), Space = jump, arrows = look, C = switch camera, Esc = exit'].entries()) { ctx.strokeText(hp, 16, 58 + i*20); ctx.fillText(hp, 16, 58 + i*20); }
+  ctx.font = "14px 'Comic Sans MS',cursive"; ctx.fillStyle = '#fff'; ctx.lineWidth = 4; for (const [i, hp] of ['The mouse looks around. Click (left / right hand) to GRAB what the centre ring points at (gold = in reach). Hold it and move the mouse to pull yourself: DOWN = push off / forward', 'Grab rocks, trunks and BRANCHES. Hold SPACE while hanging on to swing and build speed (there is a speed limit). Let go to fly!', 'WASD = walk (Shift = run), Space = jump, arrows = look, C = switch camera, Esc = pause menu'].entries()) { ctx.strokeText(hp, 16, 58 + i*20); ctx.fillText(hp, 16, 58 + i*20); }
 }
-function m3Frame(dt) { m3Step(dt); ctx.setTransform(devicePixelRatio || 1, 0, 0, devicePixelRatio || 1, 0, 0); m3Draw(); }
-addEventListener('mousedown', e => { if (!M3.on) return; try { if (!document.fullscreenElement && document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {}); if (!document.pointerLockElement) { const r = cv.requestPointerLock(); if (r && r.catch) r.catch(() => { M3.lockFail = true; }); } } catch (x) { M3.lockFail = true; } if (e.button === 0) m3Grab(0); if (e.button === 2) m3Grab(1); e.preventDefault(); });
+M3.sens = 1;
+function pzSub(w) { $('pz-main').style.display = w === 'main' ? 'flex' : 'none'; $('pz-sp').style.display = w === 'set' ? 'flex' : 'none'; $('pz-mp').style.display = w === 'map' ? 'flex' : 'none'; if (w === 'set') $('pz-cam').textContent = M3.view === 'third' ? 'Third person' : 'First person'; }
+function pzShow() { M3.paused = true; M3.dx = M3.dy = 0; M3.sp = false; try { if (document.pointerLockElement) document.exitPointerLock(); } catch (e) {} $('pz').style.display = 'flex'; pzSub('main'); }
+function pzHide() { M3.paused = false; $('pz').style.display = 'none'; }
+$('pz-res').onclick = pzHide; $('pz-set').onclick = () => pzSub('set'); $('pz-map').onclick = () => pzSub('map');
+$('pz-menu').onclick = () => { m3Exit(); };
+$('pz-sens').oninput = e => { M3.sens = +e.target.value; };
+$('pz-cam').onclick = () => { M3.view = M3.view === 'third' ? 'first' : 'third'; pzSub('set'); };
+document.querySelectorAll('[data-pz]').forEach(b => b.onclick = () => pzSub('main'));
+document.addEventListener('pointerlockchange', () => { if (document.pointerLockElement) M3.hadLock = true; else if (M3.on && M3.hadLock && !M3.paused) { M3.hadLock = false; pzShow(); } });
+function m3Frame(dt) { if (!M3.paused) m3Step(dt); ctx.setTransform(devicePixelRatio || 1, 0, 0, devicePixelRatio || 1, 0, 0); m3Draw(); }
+addEventListener('mousedown', e => { if (!M3.on || M3.paused) return; try { if (!document.fullscreenElement && document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {}); if (!document.pointerLockElement) { const r = cv.requestPointerLock(); if (r && r.catch) r.catch(() => { M3.lockFail = true; }); } } catch (x) { M3.lockFail = true; } if (e.button === 0) m3Grab(0); if (e.button === 2) m3Grab(1); e.preventDefault(); });
 addEventListener('mouseup', e => { if (!M3.on) return; if (e.button === 0) m3Release(0); if (e.button === 2) m3Release(1); });
-addEventListener('mousemove', e => { if (!M3.on) return; M3.dx += e.movementX || 0; M3.dy += e.movementY || 0; });
+addEventListener('mousemove', e => { if (!M3.on || M3.paused) return; M3.dx += e.movementX || 0; M3.dy += e.movementY || 0; });
 addEventListener('contextmenu', e => { if (M3.on) e.preventDefault(); });
 document.addEventListener('pointerlockerror', () => { M3.lockFail = true; }); document.addEventListener('pointerlockchange', () => { if (document.pointerLockElement) M3.lockFail = false; });
 addEventListener('keyup', e => { if (e.key === ' ') M3.sp = false; });
-addEventListener('keydown', e => { if (M3.on && e.key === ' ') M3.sp = true; if (!M3.on) return; if (e.key === 'Escape') m3Exit(); if ((e.key === 'c' || e.key === 'C') && !e.repeat) M3.view = M3.view === 'third' ? 'first' : 'third'; });
+addEventListener('keydown', e => { if (M3.on && e.key === ' ') M3.sp = true; if (!M3.on) return; if (e.key === 'Escape') { if (M3.paused) pzHide(); else pzShow(); return; } if (M3.paused) return; if ((e.key === 'c' || e.key === 'C') && !e.repeat) M3.view = M3.view === 'third' ? 'first' : 'third'; });
 function blinkTo3D() { // a couple of blinks, then you open your eyes in 3D
   const o = document.createElement('div'); o.style.cssText = 'position:fixed;inset:0;z-index:9998;pointer-events:none';
   o.innerHTML = '<div style="position:absolute;left:0;right:0;top:0;height:0;background:#000;transition:height .22s ease-in-out"></div><div style="position:absolute;left:0;right:0;bottom:0;height:0;background:#000;transition:height .22s ease-in-out"></div>'; document.body.appendChild(o);
