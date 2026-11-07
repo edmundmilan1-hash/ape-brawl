@@ -75,7 +75,7 @@ canvas { display:block; width:100%; height:100%; cursor:crosshair; touch-action:
 <body>
 <canvas id="c"></canvas>
 <canvas id="ov"></canvas>
-<div id="ver" style="position:fixed;right:10px;top:6px;z-index:60;font:700 13px 'Comic Sans MS',cursive;color:#1b2a3a;opacity:.7;background:rgba(255,255,255,.55);padding:2px 8px;border-radius:8px;pointer-events:none">v1:211</div>
+<div id="ver" style="position:fixed;right:10px;top:6px;z-index:60;font:700 13px 'Comic Sans MS',cursive;color:#1b2a3a;opacity:.7;background:rgba(255,255,255,.55);padding:2px 8px;border-radius:8px;pointer-events:none">v1:212</div>
 <div id="pz"><h2>Paused</h2><div class="pb" id="pz-main"><button class="big" id="pz-res">Resume</button><button class="big" id="pz-set">Game Settings</button><button class="big" id="pz-map">Map</button><button class="big" id="pz-menu">Main Menu</button></div><div class="pp" id="pz-sp"><b>Game Settings</b><label>Mouse sensitivity <input type="range" id="pz-sens" min="0.3" max="3" step="0.1" value="1"></label><label><span>FOV <b id="pz-fovv">60</b></span> <input type="range" id="pz-fov" min="50" max="110" step="1" value="60"></label><label>Camera <button class="big" id="pz-cam" style="font-size:16px;padding:6px 14px">Third person</button></label><button class="big" data-pz="main">Back</button></div><div class="pp" id="pz-mp"><b>Map</b><div>Current map: Forest Hills</div><small>More maps are coming soon.</small><button class="big" data-pz="main">Back</button></div></div>
 <div id="menu">
 <div id="s-title" class="screen"><h1 class="logo">APE<br>BRAWL</h1><canvas id="hero" width="300" height="300"></canvas><div class="btns"><button class="big" id="b-play">Singleplayer</button><button class="big" data-go="s-char">Character</button><button class="big" id="b-upc">Upgrade Center</button><button class="big" data-go="s-set">Settings</button><button class="big" id="b-endless">Endless Mode</button><button class="big" id="b-mp">Multiplayer</button><button class="big" id="b-3d" hidden>Campaign</button></div></div>
@@ -3116,6 +3116,8 @@ function m3Grab(k) { // grab onto whatever is under your mouse (if it is within 
 }
 function m3Reach(k, h) { const P = M3.p, sx = P.x, sy = P.y + 0.4, sz = P.z, dx = h.x - sx, dy = h.y - sy, dz = h.z - sz, l = Math.hypot(dx, dy, dz) || 1; M3.reach[k] = [sx + dx/l*2.6, sy + dy/l*2.6, sz + dz/l*2.6]; }
 function m3Release(k) { M3.held[k] = false; M3.anc[k] = null; M3.reach[k] = null; }
+function m3BotFields(b) { b.hp = 3; b.hit = 0; b.kx = 0; b.kz = 0; b.yo = 0; b.vy = 0; b.tilt = 0; b.fall = false; b.dead = false; b.rt = 0; }
+function m3BotRespawn(b) { let x, z, n = 0; do { const a = Math.random()*6.2832, r = 16 + Math.random()*38; x = Math.cos(a)*r; z = Math.sin(a)*r; n++; } while (n < 30 && M3.trees.some(t => Math.hypot(t.x - x, t.z - z) < t.r + 1.5)); b.x = x; b.z = z; b.tx = x; b.tz = z; b.wait = 1; b.sp = 0; m3BotFields(b); }
 function m3Step(dt) {
   const P = M3.p, V = M3.v, s = Math.min(dt, 50)/1000, sy = Math.sin(M3.yaw), cy = Math.cos(M3.yaw); M3.t += s;
   const arms = !!(M3.anc[0] || M3.anc[1]), G0 = m3H(P.x, P.z), grounded = P.y <= G0 + 1.06; let wall = null;
@@ -3136,15 +3138,21 @@ function m3Step(dt) {
   if (swing) { if (!M3.rope) M3.rope = 2.0; const vl = Math.hypot(V.x, V.y, V.z); if (vl > 2) { V.x += V.x/vl*17*s; V.y += V.y/vl*17*s; V.z += V.z/vl*17*s; } else { V.x += cm.sY*17*s; V.z += cm.cY*17*s; } } else M3.rope = 0; // pumping adds speed (there is a speed cap below)
   M3.dx = M3.dy = 0;
   if (keys['arrowleft']) M3.yaw -= 1.9*s; if (keys['arrowright']) M3.yaw += 1.9*s; if (keys['arrowup']) M3.pitch = Math.min(1.4, M3.pitch + 1.5*s); if (keys['arrowdown']) M3.pitch = Math.max(-1.4, M3.pitch - 1.5*s);
-  if (!M3.bots) { M3.bots = []; for (let i = 0; i < 5; i++) { let x, z, n = 0; do { const a = Math.random()*6.2832, r = 14 + Math.random()*38; x = Math.cos(a)*r; z = Math.sin(a)*r; n++; } while (n < 30 && M3.trees.some(t => Math.hypot(t.x - x, t.z - z) < t.r + 1.5)); M3.bots.push({ x, z, yaw: Math.random()*6.28, tx: x, tz: z, wait: Math.random()*2, ph: Math.random()*6.28, sp: 0 }); } }
+  if (!M3.bots) { M3.bots = []; for (let i = 0; i < 5; i++) { let x, z, n = 0; do { const a = Math.random()*6.2832, r = 14 + Math.random()*38; x = Math.cos(a)*r; z = Math.sin(a)*r; n++; } while (n < 30 && M3.trees.some(t => Math.hypot(t.x - x, t.z - z) < t.r + 1.5)); M3.bots.push({ x, z, yaw: Math.random()*6.28, tx: x, tz: z, wait: Math.random()*2, ph: Math.random()*6.28, sp: 0 }); } M3.bots.forEach(m3BotFields); M3.fx = []; M3.kills = 0; }
   for (const b of M3.bots) { // each robot picks a spot, walks there, stops for a moment, and picks another one
+    if (b.dead) { b.rt -= s; if (b.rt <= 0) m3BotRespawn(b); continue; }
+    if (b.hit > 0) b.hit = Math.max(0, b.hit - s);
+    if (b.fall) { b.vy -= 22*s; b.yo += b.vy*s; b.x += b.kx*s; b.z += b.kz*s; const df = Math.pow(0.6, s); b.kx *= df; b.kz *= df; b.tilt = Math.min(1.55, b.tilt + 4.4*s); b.ph += s*9; b.y = m3H(b.x, b.z);
+      if (b.yo <= 0 && b.vy < 0) { b.yo = 0; b.dead = true; b.rt = 7; M3.kills++; M3.fx.push({ x: b.x, y: b.y + 0.5, z: b.z, t: 0 }); toast('ROBOT DOWN!  (' + M3.kills + ')'); } continue; } // knocked flat: it blows up when it hits the ground
     if (b.wait > 0) { b.wait -= s; b.sp += (0 - b.sp)*Math.min(1, 6*s); }
     else { const dx = b.tx - b.x, dz = b.tz - b.z, d = Math.hypot(dx, dz);
       if (d < 0.8) { b.wait = 0.8 + Math.random()*2.2; const a = Math.random()*6.2832, r = 6 + Math.random()*16; b.tx = Math.max(-54, Math.min(54, b.x + Math.cos(a)*r)); b.tz = Math.max(-54, Math.min(54, b.z + Math.sin(a)*r)); }
       else { let da = Math.atan2(dx, dz) - b.yaw; da = Math.atan2(Math.sin(da), Math.cos(da)); b.yaw += da*Math.min(1, 5*s); b.sp += (2.3*(Math.abs(da) < 0.9 ? 1 : 0.2) - b.sp)*Math.min(1, 5*s); b.x += Math.sin(b.yaw)*b.sp*s; b.z += Math.cos(b.yaw)*b.sp*s; } }
     for (const t of M3.trees) { const dx = b.x - t.x, dz = b.z - t.z, d = Math.hypot(dx, dz); if (d < t.r + 0.7) { const k = (t.r + 0.7)/Math.max(d, 0.01); b.x = t.x + dx*k; b.z = t.z + dz*k; b.wait = 0; b.tx = b.x + dz*3; b.tz = b.z - dx*3; } }
     { const dx = P.x - b.x, dz = P.z - b.z, d = Math.hypot(dx, dz); if (d < 1.0 && Math.abs(P.y - (m3H(b.x, b.z) + 1)) < 1.8) { const k = 1.0/Math.max(d, 0.01); P.x = b.x + dx*k; P.z = b.z + dz*k; } } // you can't walk through them
+    b.x += b.kx*s; b.z += b.kz*s; { const df = Math.pow(0.02, s); b.kx *= df; b.kz *= df; } b.tilt = 0.32*Math.min(1, b.hit/0.25); // staggers back when it is hit
     b.ph += b.sp*s*2.6; b.y = m3H(b.x, b.z); }
+  for (const e of M3.fx) e.t += s; M3.fx = M3.fx.filter(e => e.t < 1.0);
   for (let k = 0; k < 2; k++) { if (M3.pcg[k]) { M3.pc[k] = Math.min(1, M3.pc[k] + s/1.0); if (M3.anc[k] || M3.fling) { M3.pcg[k] = false; } } if (M3.pt[k] >= 0) { M3.pt[k] += s/(M3.pk[k] ? 0.32 : 0.18); if (M3.pt[k] >= 1) M3.pt[k] = -1; } }
   let walking = false;
   if (M3.touch) { const ax = ((keys['d'] ? 1 : 0) - (keys['a'] ? 1 : 0)), az = ((keys['w'] ? 1 : 0) - (keys['s'] ? 1 : 0));
@@ -3189,11 +3197,13 @@ function m3Draw() {
     else { poly([[x, h00, z], [x + 4, h10, z], [x + 4, h11, z + 4], [x, h01, z + 4]], gc, false, obj); if (obj.length > n0) obj[obj.length - 1].d += 3; } } // the hills (pushed back a little so things standing on them draw on top)
   const cone = (cx, cz, yb, yt, rad, col) => { for (let i = 0; i < 8; i++) { const a0 = i/8*6.2832, a1 = (i + 1)/8*6.2832; poly([[cx + Math.cos(a0)*rad, yb, cz + Math.sin(a0)*rad], [cx + Math.cos(a1)*rad, yb, cz + Math.sin(a1)*rad], [cx, yt, cz]], col, false, obj); } };
   for (const t of M3.trees) { const dx = t.x - P.x, dz = t.z - P.z; if (dx*dx + dz*dz > 80*80) continue;
+    const tn0 = obj.length;
     for (let i = 0; i < 6; i++) { const a0 = i/6*6.2832, a1 = (i + 1)/6*6.2832, x0 = t.x + Math.cos(a0)*t.r, z0 = t.z + Math.sin(a0)*t.r, x1 = t.x + Math.cos(a1)*t.r, z1 = t.z + Math.sin(a1)*t.r; poly([[x0, t.y0, z0], [x1, t.y0, z1], [x1, t.y0 + t.h, z1], [x0, t.y0 + t.h, z0]], [112*t.sh, 74*t.sh, 42*t.sh], false, obj); }
+    { const ad = tr(t.x, t.y0 + t.h*0.5, t.z)[2]; if (ad > 0.3) for (let i = tn0; i < obj.length; i++) obj[i].d = ad; } // a trunk is sorted as one piece too
     cone(t.x, t.z, t.y0 + t.h*0.45, t.y0 + t.h*0.45 + t.cr*2.2, t.cr, [38*t.sh, 128*t.sh, 58*t.sh]); cone(t.x, t.z, t.y0 + t.h*0.45 + t.cr*1.2, t.y0 + t.h*0.45 + t.cr*3.3, t.cr*0.72, [52*t.sh, 150*t.sh, 66*t.sh]); }
   for (const b of M3.bans) { const q = tr(b.x, b.y + Math.sin(M3.t*2 + b.ph)*0.25, b.z); if (q[2] > 0.4 && q[2] < 70) obj.push({ ban: true, d: q[2], sx: W/2 + q[0]/q[2]*F, sy: H/2 - q[1]/q[2]*F, sc: 1.3*F/q[2]/44, rot: M3.t*2 + b.ph }); }
   // ----- the gorilla: built from real 3D shapes, so it is lit, turns, and hides behind trees like everything else -----
-  PF = Math.min(W, H)*0.5/Math.tan(Math.PI/6); // the ape is always drawn at the same size, whatever the FOV
+  const gn0 = obj.length; PF = Math.min(W, H)*0.5/Math.tan(Math.PI/6); // the ape is always drawn at the same size, whatever the FOV
   const handGlow = [], lw0 = (lx, ly, lz) => [P.x + cY*lx + sY*lz, ly, P.z - sY*lx + cY*lz], lw = (lx, ly, lz) => { const tp = M3.tp || 0, tq = M3.tr || 0; if (!M3.pivo) return lw0(lx, ly, lz); const pv = P.y + M3.pivo, y = ly - pv, cp = Math.cos(tp), sp_ = Math.sin(tp), z = lz*cp + y*sp_, y1 = y*cp - lz*sp_, cr = Math.cos(tq), sr = Math.sin(tq), x = lx*cr + y1*sr, y2 = y1*cr - lx*sr; return [P.x + cY*x + sY*z, pv + y2, P.z - sY*x + cY*z]; };
   const ell = (c, r, col, ns, nr, ang) => { ns = ns || 8; nr = nr || 5; const an = ang === undefined ? M3.yaw : ang, cr = Math.cos(an), sr = Math.sin(an), ring = [];
     for (let i = 0; i <= nr; i++) { const th = i/nr*Math.PI, y = Math.cos(th), rr = Math.sin(th), row = []; for (let j = 0; j < ns; j++) { const ph = j/ns*6.2832, ax = r[0]*rr*Math.cos(ph), az = r[2]*rr*Math.sin(ph); row.push([c[0] + cr*ax + sr*az, c[1] + r[1]*y, c[2] - sr*ax + cr*az]); } ring.push(row); }
@@ -3222,9 +3232,14 @@ function m3Draw() {
     ell(lw(-0.1, hy + 0.74, 0.54), [0.04, 0.04, 0.04], [235, 235, 235], 6, 4); ell(lw(0.1, hy + 0.74, 0.54), [0.04, 0.04, 0.04], [235, 235, 235], 6, 4);
     ell(lw(-0.28, hy + 0.72, 0.22), [0.07, 0.09, 0.05], FACE, 6, 4); ell(lw(0.28, hy + 0.72, 0.22), [0.07, 0.09, 0.05], FACE, 6, 4); }
   PF = F;
-  for (const b of M3.bots || []) { const dxb = b.x - P.x, dzb = b.z - P.z, dd = dxb*dxb + dzb*dzb; if (dd > 75*75) continue; const qb = tr(b.x, b.y + 1, b.z); if (qb[2] < -2.5 || Math.abs(qb[0]) > qb[2]*(W/H*0.9 + 0.8) + 3) continue;
+  if (third) { const dcg = tr(P.x, P.y, P.z)[2]; if (dcg > 0.3) for (let i = gn0; i < obj.length; i++) if (!obj[i].al) obj[i].d = dcg - 0.25 + (obj[i].d - dcg)*0.05; }
+  for (const e of M3.fx || []) { const q = tr(e.x, e.y, e.z); if (q[2] < 0.5 || q[2] > 80) continue; obj.push({ fx: true, d: q[2] - 0.5, run: () => { const u = e.t/0.7, R = (0.6 + 2.6*Math.min(1, u))*F/q[2], X = W/2 + q[0]/q[2]*F, Y = H/2 - q[1]/q[2]*F;
+      if (u < 1) { const g = ctx.createRadialGradient(X, Y, 0, X, Y, R); g.addColorStop(0, 'rgba(255,255,230,' + (1 - u)*0.95 + ')'); g.addColorStop(0.35, 'rgba(255,200,60,' + (1 - u)*0.85 + ')'); g.addColorStop(0.7, 'rgba(255,90,20,' + (1 - u)*0.55 + ')'); g.addColorStop(1, 'rgba(120,30,0,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(X, Y, R, 0, 7); ctx.fill(); }
+      const sm = Math.max(0, Math.min(1, (e.t - 0.15)/0.85)); if (sm > 0 && sm < 1) { ctx.fillStyle = 'rgba(60,60,64,' + 0.45*(1 - sm) + ')'; ctx.beginPath(); ctx.arc(X, Y - sm*1.1*F/q[2], (0.5 + 1.1*sm)*F/q[2], 0, 7); ctx.fill(); }
+      for (let i = 0; i < 18; i++) { const an = i*2.399, el = ((i*37) % 10)/10, sp2 = 2.2 + 3.4*el, t2 = e.t, wx = e.x + Math.cos(an)*sp2*t2, wy = e.y + (3 + 4*el)*t2 - 11*t2*t2, wz = e.z + Math.sin(an)*sp2*t2, w = tr(wx, wy, wz); if (w[2] < 0.3 || t2 > 0.95) continue; const sz = Math.max(1.5, 0.07*F/w[2]); ctx.fillStyle = i % 3 ? 'rgba(255,190,50,' + (1 - t2)*1 + ')' : 'rgba(255,255,220,' + (1 - t2) + ')'; ctx.fillRect(W/2 + w[0]/w[2]*F - sz/2, H/2 - w[1]/w[2]*F - sz/2, sz, sz); } } }); }
+  for (const b of M3.bots || []) { const dxb = b.x - P.x, dzb = b.z - P.z, dd = dxb*dxb + dzb*dzb; if (dd > 75*75) continue; if (b.dead) continue; const qb = tr(b.x, b.y + 1, b.z); if (qb[2] < -2.5 || Math.abs(qb[0]) > qb[2]*(W/H*0.9 + 0.8) + 3) continue;
     const near = dd < 28*28, n0 = obj.length, cb = Math.cos(b.yaw), sb = Math.sin(b.yaw), amp2 = Math.min(1, b.sp/2.2), bob2 = Math.abs(Math.sin(b.ph))*0.05*amp2;
-    const bw = (lx, ly, lz) => [b.x + cb*lx + sb*lz, b.y + ly + bob2, b.z - sb*lx + cb*lz];
+    const ct = Math.cos(b.tilt || 0), st = Math.sin(b.tilt || 0), bw = (lx, ly, lz) => { const y2 = ly*ct + lz*st, z2 = lz*ct - ly*st; return [b.x + cb*lx + sb*z2, b.y + (b.yo || 0) + y2 + bob2 + st*0.25, b.z - sb*lx + cb*z2]; };
     const MET = [168, 176, 188], MET2 = [118, 126, 142], JNT = [48, 54, 66], RED = [206, 64, 58], EYE = [90, 235, 255], VIS = [18, 22, 30];
     const bx = (c, hx, hy, hz, col) => { const v = []; for (const sx of [-1, 1]) for (const sy of [-1, 1]) for (const sz of [-1, 1]) v.push(bw(c[0] + sx*hx, c[1] + sy*hy, c[2] + sz*hz));
       for (const f of [[0, 1, 3, 2], [4, 5, 7, 6], [0, 1, 5, 4], [2, 3, 7, 6], [0, 2, 6, 4], [1, 3, 7, 5]]) poly(f.map(i => v[i]), col, false, obj); };
@@ -3251,7 +3266,7 @@ function m3Draw() {
   ctx.lineJoin = 'round';
   for (const f of gnd) { ctx.fillStyle = f.c; ctx.strokeStyle = f.c; ctx.lineWidth = 1; ctx.beginPath(); f.s.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.closePath(); ctx.fill(); ctx.stroke(); }
   for (const f of shd) { ctx.fillStyle = f.c; ctx.globalAlpha = 0.5; ctx.beginPath(); f.s.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.closePath(); ctx.fill(); ctx.globalAlpha = 1; }
-  for (const f of obj) { ctx.globalAlpha = f.al || 1; if (f.ban) { if (f.sc > 0.04) drawGoldBanana(f.sx, f.sy, f.sc, f.rot, f.d < 22); continue; } ctx.fillStyle = f.c; ctx.strokeStyle = f.c; ctx.lineWidth = 1; ctx.beginPath(); f.s.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.closePath(); ctx.fill(); ctx.stroke(); }
+  for (const f of obj) { ctx.globalAlpha = f.al || 1; if (f.fx) { ctx.globalAlpha = 1; f.run(); continue; } if (f.ban) { if (f.sc > 0.04) drawGoldBanana(f.sx, f.sy, f.sc, f.rot, f.d < 22); continue; } ctx.fillStyle = f.c; ctx.strokeStyle = f.c; ctx.lineWidth = 1; ctx.beginPath(); f.s.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.closePath(); ctx.fill(); ctx.stroke(); }
   ctx.globalAlpha = 1;
   for (const h of handGlow) { const q = tr(h[0], h[1], h[2]); if (q[2] < 0.3) continue; const x = W/2 + q[0]/q[2]*F, y = H/2 - q[1]/q[2]*F, R = 0.42*F/q[2], g2 = ctx.createRadialGradient(x, y, 2, x, y, R); g2.addColorStop(0, 'rgba(255,210,31,0.55)'); g2.addColorStop(1, 'rgba(255,210,31,0)'); ctx.fillStyle = g2; ctx.beginPath(); ctx.arc(x, y, R, 0, 7); ctx.fill(); }
   { const h = M3.hov, P2 = M3.p, ok = h && h.hit && Math.hypot(h.x - P2.x, h.y - (P2.y + 0.4), h.z - P2.z) <= 3.5; // your cursor: gold ring = you can grab here, white = too far
@@ -3279,7 +3294,9 @@ function m3PunchKey(e, down) { if (!M3.on || M3.paused) return; const kk = e.key
   else if (M3.pcg[k]) { M3.pcg[k] = false; const ch = M3.pc[k], hook = ch >= 0.22 ? 1 : 0, P = M3.p, V = M3.v, cP = Math.cos(M3.pitch), fx = Math.sin(M3.yaw)*cP, fy = Math.sin(M3.pitch), fz = Math.cos(M3.yaw)*cP;
     M3.pk[k] = hook; M3.pw[k] = hook ? 1 + ch*2 : 1; M3.pt[k] = 0; const hz = Math.hypot(fx, fz) || 1, lg = hook ? 3 + 4*ch : 2; V.x += fx/hz*lg; V.z += fz/hz*lg; // a punch also lunges you forward a little
     const rng = hook ? 2.5 + ch*1.2 : 2.6; let hit = 0; for (let i = M3.bans.length - 1; i >= 0; i--) { const b = M3.bans[i], dx = b.x - P.x, dy = b.y - (P.y + 0.5), dz = b.z - P.z, d = Math.hypot(dx, dy, dz); if (d < rng && (dx*fx + dy*fy + dz*fz)/Math.max(d, 0.01) > 0.45) { M3.bans.splice(i, 1); M3.got++; M3.best = Math.max(M3.best, M3.got); hit++; } }
-    toast((hook ? (k ? 'RIGHT HOOK ' : 'LEFT HOOK ') + Math.round(M3.pw[k]*100) + '%' : (k ? 'RIGHT JAB' : 'LEFT JAB')) + (hit ? '  +' + hit + ' banana' + (hit > 1 ? 's' : '') : '')); } }
+    let rh = 0; for (const b of M3.bots || []) { if (b.dead || b.fall) continue; const dx = b.x - P.x, dy = b.y + 1 - (P.y + 0.5), dz = b.z - P.z, d = Math.hypot(dx, dy, dz); if (d < rng + 0.5 && (dx*fx + dy*fy + dz*fz)/Math.max(d, 0.01) > 0.4) { const hz2 = Math.hypot(dx, dz) || 1, ux = dx/hz2, uz = dz/hz2, dmg = hook ? (ch >= 0.9 ? 99 : 1 + ch*2) : 1, kv = hook ? 6 + ch*9 : 3.5; // a couple of jabs, or ONE full-power hook, knocks a robot down
+        b.hp -= dmg; b.hit = 0.3; b.wait = 0.7; b.kx = ux*kv; b.kz = uz*kv; b.yaw = Math.atan2(-ux, -uz); rh++; if (b.hp <= 0.01) { b.fall = true; b.vy = hook ? 5 + ch*3 : 3.5; b.kx *= 1.4; b.kz *= 1.4; b.yo = 0.02; b.tilt = 0.2; } } }
+    toast((hook ? (k ? 'RIGHT HOOK ' : 'LEFT HOOK ') + Math.round(M3.pw[k]*100) + '%' : (k ? 'RIGHT JAB' : 'LEFT JAB')) + (hit ? '  +' + hit + ' banana' + (hit > 1 ? 's' : '') : '') + (rh ? '  ROBOT HIT' : '')); } }
 addEventListener('keydown', e => m3PunchKey(e, true)); addEventListener('keyup', e => m3PunchKey(e, false));
 function m3Frame(dt) { if (!M3.paused) m3Step(dt); ctx.setTransform(devicePixelRatio || 1, 0, 0, devicePixelRatio || 1, 0, 0); m3Draw(); }
 addEventListener('mousedown', e => { if (!M3.on || M3.paused) return; try { if (!document.fullscreenElement && document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {}); if (!document.pointerLockElement) { const r = cv.requestPointerLock(); if (r && r.catch) r.catch(() => { M3.lockFail = true; }); } } catch (x) { M3.lockFail = true; } if (e.button === 0) m3Grab(0); if (e.button === 2) m3Grab(1); e.preventDefault(); });
