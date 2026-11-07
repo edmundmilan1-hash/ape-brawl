@@ -3738,7 +3738,7 @@ function m3Draw() {
   { const path = f => { ctx.beginPath(); f.s.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.closePath(); }, nO = obj.length; let oi = 0;
     while (oi < nO) { const f = obj[oi];
       if (f.g !== undefined && f.s) { let oj = oi + 1; while (oj < nO && obj[oj].g === f.g && obj[oj].s) oj++; // one object: a dark outline under all its faces, then the flat colours on top (a thick cartoon outline)
-        ctx.strokeStyle = '#2b1748'; ctx.lineWidth = 2*Math.max(1.5, Math.min(5, 60/Math.max(2, f.d))); for (let k = oi; k < oj; k++) { ctx.globalAlpha = obj[k].al || 1; path(obj[k]); ctx.stroke(); }
+        ctx.strokeStyle = '#2b1748'; ctx.lineWidth = 2*Math.max(1.5, Math.min(5, 60/Math.max(2, f.d))); if (f.d < 48) for (let k = oi; k < oj; k++) { ctx.globalAlpha = obj[k].al || 1; path(obj[k]); ctx.stroke(); }
         ctx.lineWidth = 1; for (let k = oi; k < oj; k++) { const q = obj[k]; ctx.globalAlpha = q.al || 1; ctx.fillStyle = q.c; ctx.strokeStyle = q.c; path(q); ctx.fill(); ctx.stroke(); } oi = oj; continue; }
       oi++; ctx.globalAlpha = f.al || 1; if (f.fx) { ctx.globalAlpha = 1; f.run(); continue; } if (f.ban) { if (f.sc > 0.04) drawGoldBanana(f.sx, f.sy, f.sc, f.rot, f.d < 22); continue; } ctx.fillStyle = f.c; ctx.strokeStyle = f.c; ctx.lineWidth = 1; path(f); ctx.fill(); ctx.stroke(); } }
   ctx.globalAlpha = 1;
