@@ -3132,7 +3132,7 @@ function m3Step(dt) {
   } else { // nothing in your hands: the mouse turns the camera (the mouse stays centred)
     M3.yaw += M3.dx*0.0032*M3.sens; M3.pitch = Math.max(-1.4, Math.min(1.4, M3.pitch - M3.dy*0.0032*M3.sens)); }
   { const hs0 = Math.hypot(V.x, V.z); if (!held && M3.swT > 0) { if (hs0 > 5 && !M3.fling) { V.x *= 1.3; V.z *= 1.3; V.y += 3.5; M3.fling = true; M3.flingT = 0; M3.wp = (6 + Math.random()*2.5)*(Math.random() < 0.3 ? -1 : 1); M3.viewB = M3.view; M3.view = 'third'; } M3.swT = 0; } else M3.swT = swing ? 0.35 : Math.max(0, M3.swT - s); }
-  if (swing) { if (!M3.rope) M3.rope = Math.max(1.6, Math.hypot(P.x - held[0], P.y + 0.5 - held[1], P.z - held[2])); const hs = Math.hypot(V.x, V.z), px = hs > 2 ? V.x/hs : cm.sY, pz = hs > 2 ? V.z/hs : cm.cY; V.x += px*17*s; V.z += pz*17*s; } else M3.rope = 0; // pumping adds speed (there is a speed cap below)
+  if (swing) { if (!M3.rope) M3.rope = 2.0; const vl = Math.hypot(V.x, V.y, V.z); if (vl > 2) { V.x += V.x/vl*17*s; V.y += V.y/vl*17*s; V.z += V.z/vl*17*s; } else { V.x += cm.sY*17*s; V.z += cm.cY*17*s; } } else M3.rope = 0; // pumping adds speed (there is a speed cap below)
   M3.dx = M3.dy = 0;
   if (keys['arrowleft']) M3.yaw -= 1.9*s; if (keys['arrowright']) M3.yaw += 1.9*s; if (keys['arrowup']) M3.pitch = Math.min(1.4, M3.pitch + 1.5*s); if (keys['arrowdown']) M3.pitch = Math.max(-1.4, M3.pitch - 1.5*s);
   let walking = false;
@@ -3142,16 +3142,16 @@ function m3Step(dt) {
     if (keys[' ']) { if (!held) V.y = 9; keys[' '] = false; } }
   if ((!arms || swing) && !grounded) V.y -= 22*s; else if (!arms) V.y = Math.max(V.y, 0);
   if (grounded && !arms && !walking) { const f = Math.pow(0.0008, s); V.x *= f; V.z *= f; } else { const f = Math.pow((M3.fling || swing) ? 0.93 : 0.6, s); V.x *= f; V.z *= f; }
-  const sp = Math.hypot(V.x, V.z), capH = M3.fling ? 36 : (swing ? 26 : 20); if (sp > capH) { V.x *= capH/sp; V.z *= capH/sp; } V.y = Math.max(-30, Math.min(16, V.y));
+  const sp = Math.hypot(V.x, V.z), capH = M3.fling ? 36 : (swing ? 26 : 20); if (sp > capH) { V.x *= capH/sp; V.z *= capH/sp; } V.y = Math.max(-30, Math.min(swing ? 24 : 16, V.y));
   P.x += V.x*s; P.y += V.y*s; P.z += V.z*s;
-  if (swing && M3.rope) { const hx = P.x - held[0], hy = P.y + 0.5 - held[1], hz = P.z - held[2], dist = Math.hypot(hx, hy, hz); if (dist > M3.rope) { const k = M3.rope/dist; P.x = held[0] + hx*k; P.y = held[1] + hy*k - 0.5; P.z = held[2] + hz*k; const nx = hx/dist, ny = hy/dist, nz = hz/dist, vr = V.x*nx + V.y*ny + V.z*nz; if (vr > 0) { V.x -= nx*vr; V.y -= ny*vr; V.z -= nz*vr; } } }
+  if (swing && M3.rope) { const hx = P.x - held[0], hy = P.y + 0.5 - held[1], hz = P.z - held[2], dist = Math.hypot(hx, hy, hz); if (dist > 0.05) { const nx = hx/dist, ny = hy/dist, nz = hz/dist, e = (dist - M3.rope)*Math.min(1, 14*s); P.x -= nx*e; P.y -= ny*e; P.z -= nz*e; const vr = V.x*nx + V.y*ny + V.z*nz; V.x -= nx*vr; V.y -= ny*vr; V.z -= nz*vr; M3.up = [-nx, -ny, -nz]; } } // a rigid circle around the branch: your arm length is the radius
   if (P.y <= m3H(P.x, P.z) + 1.06) M3.walk += Math.hypot(V.x, V.z)*s*1.9;
   { const G2 = m3H(P.x, P.z); if (P.y < G2 + 1) { P.y = G2 + 1; if (V.y < 0) V.y = 0; } else if (grounded && !arms && V.y <= 0.5 && P.y - (G2 + 1) < 0.45) { P.y = G2 + 1; if (V.y < 0) V.y = 0; } }
   const rr = Math.hypot(P.x, P.z); if (rr > 58) { P.x *= 58/rr; P.z *= 58/rr; V.x *= 0.5; V.z *= 0.5; }
   { const fv = V.x*sy + V.z*cy, sv = V.x*cy - V.z*sy, cl = x => Math.max(-1, Math.min(1, x)), kk = Math.min(1, 8*s);
     if (M3.fling) { M3.flingT += s; M3.tp += M3.wp*s; M3.tr = Math.sin(M3.t*5)*0.5; if (M3.flingT > 0.3 && (M3.touch || arms)) { M3.fling = false; M3.view = M3.viewB || M3.view; } }
-    else { M3.tp = ((M3.tp + Math.PI)%(2*Math.PI) + 2*Math.PI)%(2*Math.PI) - Math.PI; const tpT = swing ? cl(fv/22)*0.75 : 0, trT = swing ? cl(sv/22)*0.75 : 0; M3.tp += (tpT - M3.tp)*kk; M3.tr += (trT - M3.tr)*kk; }
-    M3.pivo = (Math.abs(M3.tp) + Math.abs(M3.tr) > 0.02) ? (M3.fling ? 0.1 : 0.9) : 0; }
+    else { M3.tp = ((M3.tp + Math.PI)%(2*Math.PI) + 2*Math.PI)%(2*Math.PI) - Math.PI; if (swing && M3.up) { const u = M3.up, ul = u[0]*cy - u[2]*sy, uf = u[0]*sy + u[2]*cy; M3.tp = Math.atan2(uf, u[1]); M3.tr = Math.atan2(ul, Math.hypot(uf, u[1])); } else { M3.tp += (0 - M3.tp)*kk; M3.tr += (0 - M3.tr)*kk; } }
+    M3.pivo = (Math.abs(M3.tp) + Math.abs(M3.tr) > 0.02) ? 0.1 : 0; }
   for (let i = M3.bans.length - 1; i >= 0; i--) { const b = M3.bans[i]; if (Math.hypot(b.x - P.x, b.y - (P.y + 0.3), b.z - P.z) < 1.8) { M3.bans.splice(i, 1); M3.got++; M3.best = Math.max(M3.best, M3.got); toast(M3.got + ' / ' + M3.total); } }
   if (!M3.bans.length) { M3.round++; m3Bananas(); toast('All bananas! Round ' + M3.round); }
 }
@@ -3161,13 +3161,13 @@ function m3Draw() {
   M3.F = F; const third = M3.view === 'third'; let Cx = P.x, Cy = ey, Cz = P.z; if (third) { const D = 4.3; Cx = P.x - sY*cP*D; Cz = P.z - cY*cP*D; Cy = Math.max(m3H(Cx, Cz) + 0.6, P.y + 1.0 - sP*D); }
   const tr = (x, y, z) => { const dx = x - Cx, dy = y - Cy, dz = z - Cz, xc = dx*cY - dz*sY, z1 = dx*sY + dz*cY; return [xc, dy*cP - z1*sP, dy*sP + z1*cP]; };
   const L = [0.42, 0.8, 0.3];
-  const poly = (pts, col, ground, out) => { // project one face (with near-plane clipping) and shade it
+  let PF = F; const poly = (pts, col, ground, out) => { // project one face (with near-plane clipping) and shade it
     const c = pts.map(q => tr(q[0], q[1], q[2])), cl = []; for (let i = 0; i < c.length; i++) { const a = c[i], b = c[(i + 1) % c.length]; if (a[2] >= 0.2) cl.push(a); if ((a[2] >= 0.2) !== (b[2] >= 0.2)) { const k = (0.2 - a[2])/(b[2] - a[2]); cl.push([a[0] + (b[0] - a[0])*k, a[1] + (b[1] - a[1])*k, 0.2]); } }
     if (cl.length < 3) return; let d = 0; for (const q of cl) d += q[2]; d /= cl.length;
     const u = [pts[1][0] - pts[0][0], pts[1][1] - pts[0][1], pts[1][2] - pts[0][2]], w = [pts[2][0] - pts[0][0], pts[2][1] - pts[0][1], pts[2][2] - pts[0][2]], nx = u[1]*w[2] - u[2]*w[1], ny = u[2]*w[0] - u[0]*w[2], nz = u[0]*w[1] - u[1]*w[0], nl = Math.hypot(nx, ny, nz) || 1;
     const sh = ground ? 1 : 0.5 + 0.5*Math.abs((nx*L[0] + ny*L[1] + nz*L[2])/nl), f = Math.max(0, Math.min(1, (d - 16)/50));
     const r = Math.round((col[0]*sh)*(1 - f) + HZ[0]*f), gg = Math.round((col[1]*sh)*(1 - f) + HZ[1]*f), bb = Math.round((col[2]*sh)*(1 - f) + HZ[2]*f);
-    out.push({ s: cl.map(q => [W/2 + q[0]/q[2]*F, H/2 - q[1]/q[2]*F]), d, c: 'rgb(' + r + ',' + gg + ',' + bb + ')' });
+    out.push({ s: cl.map(q => [W/2 + q[0]/q[2]*PF, H/2 - q[1]/q[2]*PF]), d, c: 'rgb(' + r + ',' + gg + ',' + bb + ')' });
   };
   const gnd = [], obj = [], shd = [], cx0 = Math.floor(P.x/4), cz0 = Math.floor(P.z/4);
   const HS = {}, hg = (i, j) => { const k = i*64 + j; return HS[k] !== undefined ? HS[k] : (HS[k] = m3H((cx0 + i)*4, (cz0 + j)*4)); };
@@ -3179,6 +3179,7 @@ function m3Draw() {
     cone(t.x, t.z, t.y0 + t.h*0.45, t.y0 + t.h*0.45 + t.cr*2.2, t.cr, [38*t.sh, 128*t.sh, 58*t.sh]); cone(t.x, t.z, t.y0 + t.h*0.45 + t.cr*1.2, t.y0 + t.h*0.45 + t.cr*3.3, t.cr*0.72, [52*t.sh, 150*t.sh, 66*t.sh]); }
   for (const b of M3.bans) { const q = tr(b.x, b.y + Math.sin(M3.t*2 + b.ph)*0.25, b.z); if (q[2] > 0.4 && q[2] < 70) obj.push({ ban: true, d: q[2], sx: W/2 + q[0]/q[2]*F, sy: H/2 - q[1]/q[2]*F, sc: 1.3*F/q[2]/44, rot: M3.t*2 + b.ph }); }
   // ----- the gorilla: built from real 3D shapes, so it is lit, turns, and hides behind trees like everything else -----
+  PF = Math.min(W, H)*0.5/Math.tan(Math.PI/6); // the ape is always drawn at the same size, whatever the FOV
   const handGlow = [], lw0 = (lx, ly, lz) => [P.x + cY*lx + sY*lz, ly, P.z - sY*lx + cY*lz], lw = (lx, ly, lz) => { const tp = M3.tp || 0, tq = M3.tr || 0; if (!M3.pivo) return lw0(lx, ly, lz); const pv = P.y + M3.pivo, y = ly - pv, cp = Math.cos(tp), sp_ = Math.sin(tp), z = lz*cp + y*sp_, y1 = y*cp - lz*sp_, cr = Math.cos(tq), sr = Math.sin(tq), x = lx*cr + y1*sr, y2 = y1*cr - lx*sr; return [P.x + cY*x + sY*z, pv + y2, P.z - sY*x + cY*z]; };
   const ell = (c, r, col, ns, nr, ang) => { ns = ns || 8; nr = nr || 5; const an = ang === undefined ? M3.yaw : ang, cr = Math.cos(an), sr = Math.sin(an), ring = [];
     for (let i = 0; i <= nr; i++) { const th = i/nr*Math.PI, y = Math.cos(th), rr = Math.sin(th), row = []; for (let j = 0; j < ns; j++) { const ph = j/ns*6.2832, ax = r[0]*rr*Math.cos(ph), az = r[2]*rr*Math.sin(ph); row.push([c[0] + cr*ax + sr*az, c[1] + r[1]*y, c[2] - sr*ax + cr*az]); } ring.push(row); }
@@ -3203,6 +3204,7 @@ function m3Draw() {
     ell(lw(0, hy + 0.72, 0.25), [0.27, 0.25, 0.29], FUR, 9, 6); ell(lw(0, hy + 0.64, 0.5), [0.17, 0.12, 0.14], FACE, 8, 5); ell(lw(0, hy + 0.82, 0.42), [0.23, 0.06, 0.12], DARK, 8, 4);
     ell(lw(-0.1, hy + 0.74, 0.54), [0.04, 0.04, 0.04], [235, 235, 235], 6, 4); ell(lw(0.1, hy + 0.74, 0.54), [0.04, 0.04, 0.04], [235, 235, 235], 6, 4);
     ell(lw(-0.28, hy + 0.72, 0.22), [0.07, 0.09, 0.05], FACE, 6, 4); ell(lw(0.28, hy + 0.72, 0.22), [0.07, 0.09, 0.05], FACE, 6, 4); }
+  PF = F;
   for (const t of M3.trees) { const dx = t.x - P.x, dz = t.z - P.z; if (dx*dx + dz*dz > 42*42) continue; for (const b of t.br) { limb(b.a, b.b, 0.2, 0.12, [104*t.sh, 70*t.sh, 42*t.sh], 5); ell([b.b[0], b.b[1] + 0.15, b.b[2]], [0.7, 0.45, 0.7], [48*t.sh, 140*t.sh, 62*t.sh], 6, 3, 0); } } // grabbable branches
   for (const r of M3.rocks) { const dx = r.x - P.x, dz = r.z - P.z; if (dx*dx + dz*dz > 60*60) continue; ell([r.x, r.y0 + r.r*0.35, r.z], [r.r, r.r*0.7, r.r*0.85], [112, 112, 108], 7, 4, r.a); }
   obj.sort((a, b) => b.d - a.d);
