@@ -75,7 +75,7 @@ canvas { display:block; width:100%; height:100%; cursor:crosshair; touch-action:
 <body>
 <canvas id="c"></canvas>
 <canvas id="ov"></canvas>
-<div id="ver" style="position:fixed;right:10px;top:6px;z-index:60;font:700 13px 'Comic Sans MS',cursive;color:#1b2a3a;opacity:.7;background:rgba(255,255,255,.55);padding:2px 8px;border-radius:8px;pointer-events:none">v3:253</div>
+<div id="ver" style="position:fixed;right:10px;top:6px;z-index:60;font:700 13px 'Comic Sans MS',cursive;color:#1b2a3a;opacity:.7;background:rgba(255,255,255,.55);padding:2px 8px;border-radius:8px;pointer-events:none">v3:256</div>
 <div id="pz"><h2>Paused</h2><div class="pb" id="pz-main"><button class="big" id="pz-res">Resume</button><button class="big" id="pz-set">Game Settings</button><button class="big" id="pz-map">Map</button><button class="big" id="pz-menu">Main Menu</button></div><div class="pp" id="pz-sp"><b>Game Settings</b><label>Mouse sensitivity <input type="range" id="pz-sens" min="0.3" max="3" step="0.1" value="1"></label><label><span>FOV <b id="pz-fovv">60</b></span> <input type="range" id="pz-fov" min="50" max="110" step="1" value="60"></label><label>Camera <button class="big" id="pz-cam" style="font-size:16px;padding:6px 14px">Third person</button></label><button class="big" data-pz="main">Back</button></div><div class="pp" id="pz-mp"><b>Map</b><div>Current map: Forest Hills</div><small>More maps are coming soon.</small><button class="big" data-pz="main">Back</button></div></div>
 <div id="menu">
 <div id="s-title" class="screen"><h1 class="logo">APE<br>BRAWL</h1><canvas id="hero" width="300" height="300"></canvas><div class="btns"><button class="big" id="b-play">Singleplayer</button><button class="big" data-go="s-char">Character</button><button class="big" id="b-upc">Upgrade Center</button><button class="big" data-go="s-set">Settings</button><button class="big" id="b-endless">Endless Mode</button><button class="big" id="b-mp">Multiplayer</button><button class="big" id="b-3d" hidden>Campaign</button></div></div>
@@ -129,7 +129,7 @@ const THROW = 3.4;     // throw strength multiplier
 // ==================================================
 let MODE = 'solo', SPAWN_X = 150; // game mode: 'solo' | 'endless' | 'mp'
 const BR = 18, HR = 9;
-const cv = document.getElementById('c'); let ctx = cv.getContext('2d');
+const cv = document.getElementById('c'); let ctx = cv.getContext('2d', { alpha: false });
 const ov = document.getElementById('ov'), octx = ov.getContext('2d'); // overlay for the knockout fruit (stays sharp while the game blurs)
 let W, H;
 function resize() { const d = devicePixelRatio || 1; W = innerWidth; H = innerHeight; cv.width = W*d; cv.height = H*d; ctx.setTransform(d,0,0,d,0,0); ov.width = W*d; ov.height = H*d; octx.setTransform(d,0,0,d,0,0); }
@@ -3723,7 +3723,7 @@ function m3Draw() {
   { const hz = H/2 + Math.tan(M3.pitch)*F, ang = x => M3.yaw + Math.atan((x - W/2)/F); // ----- the backdrop that is always there: sun, far hills with lollipop trees, and ground out to the horizon -----
     if (hz > 2) {
       { let rel = 0.9 - M3.yaw; rel = Math.atan2(Math.sin(rel), Math.cos(rel)); if (Math.abs(rel) < 1.1) { const sx = W/2 + Math.tan(rel)*F, sy = hz - F*0.5, sr = F*0.085; ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.beginPath(); ctx.arc(sx, sy, sr*1.7, 0, 7); ctx.fill(); ctx.fillStyle = '#ffe14a'; ctx.strokeStyle = '#2b1748'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(sx, sy, sr, 0, 7); ctx.fill(); ctx.stroke(); for (let i = 0; i < 10; i++) { const a = i/10*6.283 + M3.t*0.1; ctx.beginPath(); ctx.moveTo(sx + Math.cos(a)*sr*1.2, sy + Math.sin(a)*sr*1.2); ctx.lineTo(sx + Math.cos(a)*sr*1.5, sy + Math.sin(a)*sr*1.5); ctx.stroke(); } } }
-      const bgy = Math.min(H, Math.max(0, hz)); { const g = ctx.createLinearGradient(0, hz, 0, hz + F*0.5); g.addColorStop(0, 'rgb(170,226,170)'); g.addColorStop(1, 'rgb(140,214,110)'); ctx.fillStyle = g; ctx.fillRect(0, bgy, W, H - bgy); }
+      const bgy = Math.min(H, Math.max(0, hz)); { const g = ctx.createLinearGradient(0, hz, 0, hz + F*0.5); g.addColorStop(0, 'rgb(170,226,170)'); const gc = m3GCol(P.x, P.z, 0, 0); g.addColorStop(1, 'rgb(' + Math.round(gc[0]*0.66) + ',' + Math.round(gc[1]*0.66) + ',' + Math.round(gc[2]*0.66) + ')'); ctx.fillStyle = g; ctx.fillRect(0, bgy, W, H - bgy); }
       const LY = [{ k: [1.7, 3.1, 7.3], hh: 0.2, col: '#b4cdff', a: 1.4, tr: 0 }, { k: [2.3, 4.9, 9.1], hh: 0.13, col: '#a3dcc4', a: 2.2, tr: 0 }, { k: [3.1, 6.7, 11.3], hh: 0.07, col: '#92d79a', a: 3.3, tr: 1 }];
       for (const Ly of LY) { const base = hz + F*0.012, ridge = x => { const an = ang(x); return base - F*Ly.hh*(0.55 + 0.25*Math.sin(an*Ly.k[0] + Ly.a) + 0.15*Math.sin(an*Ly.k[1] + 2*Ly.a) + 0.05*Math.sin(an*Ly.k[2])); };
         ctx.beginPath(); ctx.moveTo(0, base + 2); for (let x = 0; x <= W + 12; x += 12) ctx.lineTo(x, ridge(x)); ctx.lineTo(W + 12, base + 2); ctx.closePath(); ctx.fillStyle = Ly.col; ctx.fill(); ctx.strokeStyle = 'rgba(43,23,72,.55)'; ctx.lineWidth = 2.5; ctx.beginPath(); for (let x = 0; x <= W + 12; x += 12) x ? ctx.lineTo(x, ridge(x)) : ctx.moveTo(x, ridge(x)); ctx.stroke();
@@ -3786,7 +3786,7 @@ function m3Draw() {
   const GLK = !!m3GLInit();
   for (const b of M3.bans) { if (GLK) break; const q = tr(b.x, b.y + Math.sin(M3.t*2 + b.ph)*0.25, b.z); if (q[2] > 0.4 && q[2] < 70) obj.push({ ban: true, d: q[2], sx: W/2 + q[0]/q[2]*F, sy: H/2 - q[1]/q[2]*F, sc: 1.3*F/q[2]/44, rot: M3.t*2 + b.ph }); }
   // ----- the gorilla: built from real 3D shapes, so it is lit, turns, and hides behind trees like everything else -----
-  const gn0 = obj.length, PFA = Math.min(W, H)*0.5/Math.tan(Math.PI/6); PF = F; // the ape is always drawn at the same size, whatever the FOV
+  const bko0 = BK ? M3.bk.o.length : 0, bkd0 = BK ? M3.bk.d.length : 0, gn0 = obj.length, PFA = Math.min(W, H)*0.5/Math.tan(Math.PI/6); PF = F; // the ape is always drawn at the same size, whatever the FOV
   const handGlow = [], lw0 = (lx, ly, lz) => [P.x + cY*lx + sY*lz, ly, P.z - sY*lx + cY*lz], lw = (lx, ly, lz) => { const tp = M3.tp || 0, tq = M3.tr || 0; if (!M3.pivo) return lw0(lx, ly, lz); const pv = P.y + M3.pivo, y = ly - pv, cp = Math.cos(tp), sp_ = Math.sin(tp), z = lz*cp + y*sp_, y1 = y*cp - lz*sp_, cr = Math.cos(tq), sr = Math.sin(tq), x = lx*cr + y1*sr, y2 = y1*cr - lx*sr; return [P.x + cY*x + sY*z, pv + y2, P.z - sY*x + cY*z]; };
   const ell = (c, r, col, ns, nr, ang) => { M3.bctr = c; ns = ns || 8; nr = nr || 5; const an = ang === undefined ? M3.yaw : ang, cr = Math.cos(an), sr = Math.sin(an), ring = [];
     for (let i = 0; i <= nr; i++) { const th = i/nr*Math.PI, y = Math.cos(th), rr = Math.sin(th), row = []; for (let j = 0; j < ns; j++) { const ph = j/ns*6.2832, ax = r[0]*rr*Math.cos(ph), az = r[2]*rr*Math.sin(ph); row.push([c[0] + cr*ax + sr*az, c[1] + r[1]*y, c[2] - sr*ax + cr*az]); } ring.push(row); }
@@ -3836,6 +3836,7 @@ function m3Draw() {
   PF = F;
   if (third) { const dcg = tr(P.x, P.y, P.z)[2]; if (dcg > 0.3) for (let i = gn0; i < obj.length; i++) if (!obj[i].al) obj[i].d = dcg - 0.25 + (obj[i].d - dcg)*0.05; }
   for (let i = gn0; i < obj.length; i++) if (!obj[i].al && !obj[i].fx) obj[i].g = 'ape';
+  if (BK) { M3.bk.o.length = bko0; M3.bk.d.length = bkd0; } // the player's ape must not be baked into the map as a frozen ghost
   for (const e of M3.fx || []) { const q = tr(e.x, e.y, e.z); if (q[2] < 0.5 || q[2] > 90) continue;
     if (!e.sc) { const gp = []; for (let i = 0; i < 12; i++) { const a2 = i/12*6.2832, x = e.x + Math.cos(a2)*(0.9 + 0.5*Math.min(1, e.t*3)), z = e.z + Math.sin(a2)*(0.9 + 0.5*Math.min(1, e.t*3)); gp.push([x, m3H(x, z) + 0.07, z]); } const m0 = obj.length; poly(gp, [14, 12, 12], true, obj); if (obj.length > m0) { const f = obj[obj.length - 1]; f.al = 0.6*Math.max(0, 1 - e.t/3.6); f.d += 2.9; } } // a scorch mark stays on the ground
     if (e.t < Math.min(1.7, e.life || 1.7)) obj.push({ fx: true, d: q[2] - 0.5, run: () => { ctx.globalAlpha = Math.max(0.12, Math.min(1, (q[2] - 0.8)/3.5)); const t = e.t, SC = e.sc || 1, K = F/q[2]*SC, X = W/2 + q[0]/q[2]*F, Y = H/2 - q[1]/q[2]*F, rnd = i => { const v = Math.sin(i*127.1 + 311.7)*43758.5453; return v - Math.floor(v); };
@@ -3996,10 +3997,10 @@ function m3GLDraw(obj, third, W, H) { const G = m3GLInit(); if (!G) return false
   for (const f of obj) { if (!f.s || f.fx || f.ban) continue; const ape = f.g === 'ape' && !third, al = f.al === undefined ? 1 : Math.min(1, f.al), rgb = col(f.c), mode = f.dec ? 1 : f.bk ? 3 : 0; const tpa = f.g === 'ape' && third && !f.dec && !f.bk;
     if (al >= 0.995) { const A = ape ? mainA : main; if (f.g !== undefined) put(A, f, HC, 1, tpa ? 5 : 2, Math.max(2.2, Math.min(5.5, 90/Math.max(2, f.k)))); put(A, f, rgb, 1, tpa ? 4 : mode, 0); } else (ape ? alpA : alp).push([f, rgb, al, mode]); }
   alp.sort((a, b) => b[0].d - a[0].d); alpA.sort((a, b) => b[0].d - a[0].d);
-  const pass = (A, B, clr) => { if (clr) gl.clear(gl.DEPTH_BUFFER_BIT); gl.useProgram(G.pr); gl.uniform2f(G.uv, W, H); gl.bindBuffer(gl.ARRAY_BUFFER, G.buf); gl.enableVertexAttribArray(G.lp); gl.enableVertexAttribArray(G.lc); gl.enableVertexAttribArray(G.lm);
+  const pass = (A, B, clr) => { if (clr) { gl.depthMask(true); gl.clear(gl.DEPTH_BUFFER_BIT); } gl.useProgram(G.pr); gl.uniform2f(G.uv, W, H); gl.bindBuffer(gl.ARRAY_BUFFER, G.buf); gl.enableVertexAttribArray(G.lp); gl.enableVertexAttribArray(G.lc); gl.enableVertexAttribArray(G.lm);
     const go = (arr, wr) => { if (!arr.length) return; gl.depthMask(wr); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(arr), gl.STREAM_DRAW); gl.vertexAttribPointer(G.lp, 3, gl.FLOAT, false, 32, 0); gl.vertexAttribPointer(G.lc, 4, gl.FLOAT, false, 32, 12); gl.vertexAttribPointer(G.lm, 1, gl.FLOAT, false, 32, 28); gl.drawArrays(gl.TRIANGLES, 0, arr.length/8); };
     go(A, true); const T = []; for (const [f, rgb, al, mode] of B) put(T, f, rgb, al, mode, 0); go(T, false); };
-  gl.viewport(0, 0, cw, chh); gl.clearColor(0, 0, 0, 0); gl.clearDepth(1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); gl.enable(gl.DEPTH_TEST); gl.depthFunc(gl.LEQUAL); gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+  gl.viewport(0, 0, cw, chh); gl.depthMask(true); gl.clearColor(0, 0, 0, 0); gl.clearDepth(1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); gl.enable(gl.DEPTH_TEST); gl.depthFunc(gl.LEQUAL); gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
   const SB = M3.sb && !M3.rm && M3.cam ? M3.sb : null, sdraw = (buf, n, ps, wr) => { const S = G.su, cm = M3.cam; gl.useProgram(G.sp); gl.uniform3f(S.cam, cm[0], cm[1], cm[2]); gl.uniform4f(S.rot, cm[3], cm[4], cm[5], cm[6]); gl.uniform3f(S.prm, cm[7], W, H); gl.uniform1f(S.pass, ps); gl.bindBuffer(gl.ARRAY_BUFFER, buf); for (let i = 0; i < 4; i++) gl.enableVertexAttribArray(i); gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 44, 0); gl.vertexAttribPointer(1, 4, gl.FLOAT, false, 44, 12); gl.vertexAttribPointer(2, 3, gl.FLOAT, false, 44, 28); gl.vertexAttribPointer(3, 1, gl.FLOAT, false, 44, 40); gl.depthMask(wr); gl.drawArrays(gl.TRIANGLES, 0, n); gl.disableVertexAttribArray(3); };
   if (SB) { sdraw(SB.o, SB.on, 1, true); sdraw(SB.o, SB.on, 0, true); }
   pass(main, [], false); if (SB && SB.dn) sdraw(SB.d, SB.dn, 2, false); if (alp.length) pass([], alp, false); if (mainA.length || alpA.length) pass(mainA, alpA, true);
