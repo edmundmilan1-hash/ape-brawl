@@ -75,7 +75,7 @@ canvas { display:block; width:100%; height:100%; cursor:crosshair; touch-action:
 <body>
 <canvas id="c"></canvas>
 <canvas id="ov"></canvas>
-<div id="ver" style="position:fixed;right:10px;top:6px;z-index:60;font:700 13px 'Comic Sans MS',cursive;color:#1b2a3a;opacity:.7;background:rgba(255,255,255,.55);padding:2px 8px;border-radius:8px;pointer-events:none">v5:0</div>
+<div id="ver" style="position:fixed;right:10px;top:6px;z-index:60;font:700 13px 'Comic Sans MS',cursive;color:#1b2a3a;opacity:.7;background:rgba(255,255,255,.55);padding:2px 8px;border-radius:8px;pointer-events:none">v5:1</div>
 <div id="pz"><h2>Paused</h2><div class="pb" id="pz-main"><button class="big" id="pz-res">Resume</button><button class="big" id="pz-set">Game Settings</button><button class="big" id="pz-map">Map</button><button class="big" id="pz-menu">Main Menu</button></div><div class="pp" id="pz-sp"><b>Game Settings</b><label>Mouse sensitivity <input type="range" id="pz-sens" min="0.3" max="3" step="0.1" value="1"></label><label><span>FOV <b id="pz-fovv">60</b></span> <input type="range" id="pz-fov" min="50" max="110" step="1" value="60"></label><label>Camera <button class="big" id="pz-cam" style="font-size:16px;padding:6px 14px">Third person</button></label><button class="big" data-pz="main">Back</button></div><div class="pp" id="pz-mp"><b>Map</b><div>Current map: Forest Hills</div><small>More maps are coming soon.</small><button class="big" data-pz="main">Back</button></div></div>
 <div id="menu">
 <div id="s-title" class="screen"><h1 class="logo">APE<br>BRAWL</h1><canvas id="hero" width="300" height="300"></canvas><div class="btns"><button class="big" id="b-play">Singleplayer</button><button class="big" data-go="s-char">Character</button><button class="big" id="b-upc">Upgrade Center</button><button class="big" data-go="s-set">Settings</button><button class="big" id="b-endless">Endless Mode</button><button class="big" id="b-mp">Multiplayer</button><button class="big" id="b-3d" hidden>Campaign</button></div></div>
@@ -3198,7 +3198,7 @@ function m3Calc() { const L = id => Math.min(M3.sl[id] || 0, M3SM[id] || 99), I 
 M3.sl = {}; M3.it = {}; M3.lv = 1; M3.xp = 0; M3.pend = 0; M3.bn = 0; M3.kills = 0; M3.nm = 0; m3Calc();
 function m3Phase() { const t = m3Min(); return t < 3 ? 0 : t < 7 ? 1 : 2; }
 const M3PH = [{ n: 'DUELS', c: '#7fe0ff' }, { n: 'WARBAND', c: '#ffd21f' }, { n: 'HORDE', c: '#ff5a3c' }];
-function m3XpNeed(l) { return Math.max(1, Math.round((2 + 1.4*l + 0.12*l*l + 0.02*l*l*l)*0.65)); }
+function m3XpNeed(l) { return Math.max(1, Math.round((2 + 1.4*l + 0.12*l*l + 0.02*l*l*l)*0.4)); }
 function m3Xp(v) { M3.xp += v*M3.m.xp; while (M3.xp >= m3XpNeed(M3.lv)) { M3.xp -= m3XpNeed(M3.lv); M3.lv++; M3.pend++; m3Calc(); m3ClsToast(); M3.hp = Math.min(M3.mhp, M3.hp + 0.25*M3.mhp); M3.lvT = performance.now(); } if (M3.pend > 0 && !M3.gHint) { M3.gHint = 1; toast('LEVEL UP!  Press G to pick an upgrade'); } }
 function m3Ok(q) { const x = M3XL.find(z => z.id === q.id); if (!x) return true; if (['arrN', 'arrDmg', 'slow', 'pierce', 'multi', 'bounce'].includes(x.s)) return M3.cls === 'swing'; if (['bombDmg', 'bombR', 'bombN', 'bombCd'].includes(x.s)) return M3.cls === 'bomb'; return true; } // arrow upgrades only for Swingers, bomb upgrades only for Bombers
 function m3Offer() { if (M3.pend <= 0 || M3.ovl) return; M3.pend--; const own = M3.cls, pool = M3S.filter(q => (M3.sl[q.id] || 0) < M3SM[q.id] && m3Ok(q)), pick = [];
