@@ -75,7 +75,7 @@ canvas { display:block; width:100%; height:100%; cursor:crosshair; touch-action:
 <body>
 <canvas id="c"></canvas>
 <canvas id="ov"></canvas>
-<div id="ver" style="position:fixed;right:10px;top:6px;z-index:60;font:700 13px 'Comic Sans MS',cursive;color:#1b2a3a;opacity:.7;background:rgba(255,255,255,.55);padding:2px 8px;border-radius:8px;pointer-events:none">v4:2</div>
+<div id="ver" style="position:fixed;right:10px;top:6px;z-index:60;font:700 13px 'Comic Sans MS',cursive;color:#1b2a3a;opacity:.7;background:rgba(255,255,255,.55);padding:2px 8px;border-radius:8px;pointer-events:none">v4:3</div>
 <div id="pz"><h2>Paused</h2><div class="pb" id="pz-main"><button class="big" id="pz-res">Resume</button><button class="big" id="pz-set">Game Settings</button><button class="big" id="pz-map">Map</button><button class="big" id="pz-menu">Main Menu</button></div><div class="pp" id="pz-sp"><b>Game Settings</b><label>Mouse sensitivity <input type="range" id="pz-sens" min="0.3" max="3" step="0.1" value="1"></label><label><span>FOV <b id="pz-fovv">60</b></span> <input type="range" id="pz-fov" min="50" max="110" step="1" value="60"></label><label>Camera <button class="big" id="pz-cam" style="font-size:16px;padding:6px 14px">Third person</button></label><button class="big" data-pz="main">Back</button></div><div class="pp" id="pz-mp"><b>Map</b><div>Current map: Forest Hills</div><small>More maps are coming soon.</small><button class="big" data-pz="main">Back</button></div></div>
 <div id="menu">
 <div id="s-title" class="screen"><h1 class="logo">APE<br>BRAWL</h1><canvas id="hero" width="300" height="300"></canvas><div class="btns"><button class="big" id="b-play">Singleplayer</button><button class="big" data-go="s-char">Character</button><button class="big" id="b-upc">Upgrade Center</button><button class="big" data-go="s-set">Settings</button><button class="big" id="b-endless">Endless Mode</button><button class="big" id="b-mp">Multiplayer</button><button class="big" id="b-3d" hidden>Campaign</button></div></div>
@@ -3434,7 +3434,7 @@ function m3Kill(b) { if (b.kc) return; b.kc = 1; if (M3.obj) m3ObjKill(b); const
   const xp = T.xp*el*1.6*(1 + 0.1*Math.min(m3Min(), 30)), n = Math.min(6, 1 + Math.floor(xp/5)); for (let i = 0; i < n; i++) m3Orb(b.x + (Math.random() - 0.5)*1.2, b.y + 0.9*SC, b.z + (Math.random() - 0.5)*1.2, xp/n);
   const bn = T.bn*el*(1 + 0.3*(M3.it.clover || 0)), nb = Math.floor(bn) + (Math.random() < bn % 1 ? 1 : 0); if (nb > 0) { M3.bn += nb; m3Float(b.x, b.y + 2.3*SC, b.z, '+' + nb + ' 🍌', '#ffd21f'); }
   if (M3.m.chain > 0 && Math.random() < M3.m.chain) { M3.fx.push({ x: b.x, y: b.y + 0.8, z: b.z, gy: b.y, t: 0 }); m3Blast(b.x, b.y + 0.8, b.z, 0.75); }
-  if (T.boss) { M3.chests.push({ x: b.x, z: b.z, t: 0, tier: 2 }, { x: b.x + 3, z: b.z + 1, t: 0, tier: 1 }); toast('TITAN DESTROYED!'); } else if (Math.random() < Math.max(0.3, 1 - (M3.t || 0)/400) && (b.el || (b.ty === 'brute' && Math.random() < 0.5))) M3.chests.push({ x: b.x + 1.5, z: b.z, t: 0, tier: 1 }); }
+  if (T.boss) { M3.chests.push({ x: b.x, z: b.z, t: 0, tier: 2 }, { x: b.x + 3, z: b.z + 1, t: 0, tier: 1 }); toast(T.n + ' DESTROYED!'); } else if (Math.random() < Math.max(0.3, 1 - (M3.t || 0)/400) && (b.el || (b.ty === 'brute' && Math.random() < 0.5))) M3.chests.push({ x: b.x + 1.5, z: b.z, t: 0, tier: 1 }); }
 function m3Destroy(b) { b.dead = true; b.rt = 5; b.down = false; M3.fx.push({ x: b.x, y: b.y + 0.4*(b.sc || 1), z: b.z, gy: b.y, t: 0.05, sc: 0.3*(b.sc || 1), life: 0.6 }); m3Kill(b); }
 function m3Hit(b, dmg, crit) { if (dmg <= 0) return; M3.shk = Math.min(1, Math.max(M3.shk || 0, crit ? 0.8 : 0.4)); if (M3.m.steal > 0) M3.hp = Math.min(M3.mhp, M3.hp + Math.min(dmg, 8)*M3.m.steal); m3Float(b.x, b.y + 2.2*(b.sc || 1), b.z, (crit ? '' : '') + (dmg >= 10 ? Math.round(dmg) : (Math.round(dmg*10)/10)) + (crit ? '!' : ''), crit ? '#ff9a2a' : '#fff'); }
 function m3PDmg(x, b) { let d = x*M3.m.pw*(1 + 0.8*(M3.it.rage || 0)*(1 - M3.hp/M3.mhp)); M3.crit = false; if (M3.m.crit > 0 && Math.random() < M3.m.crit) { d *= 2.2; M3.crit = true; } if (b.T && b.T.boss && d > 20) d = 20 + (d - 20)*0.12; return d; }
@@ -3505,7 +3505,7 @@ function m3DrawRL(G) { const { obj, tr, poly, F, P } = G;
       if (!o) {} else if (o.k === 'flame') for (const mk of o.marks) { const gy = m3H(mk.x, mk.z), lit = mk.lit, k = lit ? 1 : 0.4, c = mk.c.map(v => Math.round(v*k)); if (Math.hypot(mk.x - P.x, mk.z - P.z) < 170) { box([mk.x, gy + 0.4, mk.z], 0.5, 0.4, 0.5, [100, 96, 112]); box([mk.x, gy + 1.15, mk.z], 0.22, 0.5, 0.22, [120, 116, 134]); box([mk.x, gy + 1.85 + (lit ? 0.3 : 0), mk.z], lit ? 0.5 : 0.34, lit ? 0.5 : 0.34, lit ? 0.5 : 0.34, c); } if (lit) mark(mk.x, mk.z, mk.c, mk.n); }
       else if (o.k === 'cross') { for (const h of o.holes) { if (Math.hypot(h.x - P.x, h.z - P.z) < 150) { disc(h.x, h.z, 1.7); ring(h.x, h.z, 2.2, 10, 0.18, i => [255, 214, 70]); if (h.done) cross(h.x, h.z, 1.6, [255, 226, 120]); } if (h.done) mark(h.x, h.z, [255, 226, 120], 'DIVINE CROSS'); else mark(h.x, h.z, [255, 255, 255], o.carry ? 'PLACE HERE' : 'HOLE'); }
         if (!o.carry && o.n < 4 && Math.hypot(o.stand.x - P.x, o.stand.z - P.z) < 70) { const g2 = m3H(o.stand.x, o.stand.z); box([o.stand.x, g2 + 0.5, o.stand.z], 0.55, 0.5, 0.55, [235, 230, 245]); cross(o.stand.x, o.stand.z, 2.0, [255, 214, 70]); } }
-      else if (o.k === 'seal') { const b = o.b[o.i]; if (b) { const pr = o.ch/10; if (Math.hypot(b.x - P.x, b.z - P.z) < 150) { ring(b.x, b.z, 4, 20, 0.2, i => i < pr*20 ? [255, 236, 130] : [100, 104, 150]); box([b.x, m3H(b.x, b.z) + 0.7, b.z], 0.3, 0.7, 0.3, [255, 226, 110]); } mark(b.x, b.z, [255, 226, 110], 'BEACON ' + (o.i + 1)); } } } }
+      else if (o.k === 'seal') { const b = o.b[o.i]; if (b) { const pr = o.ch/10; if (Math.hypot(b.x - P.x, b.z - P.z) < 150) { ring(b.x, b.z, 4, 20, 0.2, i => i < pr*20 ? [255, 236, 130] : [100, 104, 150]); box([b.x, m3H(b.x, b.z) + 0.7, b.z], 0.3, 0.7, 0.3, [255, 226, 110]); } mark(b.x, b.z, [255, 226, 110], 'BEACON ' + (o.i + 1)); } } } m3QDraw({ obj, tr, poly, box, mark, F, P }); }
   for (const d of M3.dn) { const q = tr(d.x, d.y + d.t*1.4, d.z); if (q[2] < 0.5 || q[2] > 45) continue; obj.push({ fx: true, d: q[2] - 1, run: () => { const X = W/2 + q[0]/q[2]*F, Y = H/2 - q[1]/q[2]*F; ctx.globalAlpha = Math.max(0, 1 - d.t); ctx.font = "bold " + Math.round(Math.max(13, Math.min(30, 0.45*F/q[2]))) + "px 'Comic Sans MS',cursive"; ctx.textAlign = 'center'; ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(0,0,0,.8)'; ctx.fillStyle = d.c; ctx.strokeText(d.txt, X, Y); ctx.fillText(d.txt, X, Y); ctx.textAlign = 'left'; ctx.globalAlpha = 1; } }); }
   if (M3.ring) { const r = M3.ring, u = r.t/0.5, pts = []; for (let i = 0; i < 28; i++) { const a = i/28*6.2832; pts.push(tr(r.x + Math.cos(a)*r.R*u, m3H(r.x + Math.cos(a)*r.R*u, r.z + Math.sin(a)*r.R*u) + 0.3, r.z + Math.sin(a)*r.R*u)); } obj.push({ fx: true, d: 1, run: () => { ctx.strokeStyle = 'rgba(255,230,140,' + (1 - u) + ')'; ctx.lineWidth = 5; ctx.beginPath(); let st = false; for (const q of pts) { if (q[2] < 0.3) { st = false; continue; } const X = W/2 + q[0]/q[2]*F, Y = H/2 - q[1]/q[2]*F; if (!st) { ctx.moveTo(X, Y); st = true; } else ctx.lineTo(X, Y); } ctx.stroke(); } }); }
   for (const mk of M3.monkeys) m3DrawMonkey(G, mk); }
@@ -3526,8 +3526,8 @@ function m3MkMake(kind, x, z) { const mk = { k: kind, x, z, y: m3H(x, z), yaw: M
 function m3MonkeyDirector(s) { const P = M3.p; for (const k of M3.monkeys) k.age += s;
   for (const h of M3.holes) { h.t += s; if (!h.open && Math.hypot(h.x - P.x, h.z - P.z) < 11) { h.open = true; h.t = 0; const a = Math.atan2(P.x - h.x, P.z - h.z); h.mk = m3MkMake(h.kind, 9000 + M3.holes.indexOf(h)*60, 8996.5); M3.monkeys.push(h.mk); for (let i = 0; i < 10; i++) M3.fx.push({ x: h.x + (Math.random() - 0.5)*2, y: h.y + 0.3, z: h.z + (Math.random() - 0.5)*2, gy: h.y, t: 0.1, sc: 0.1, life: 0.5 }); toast('A HOLE OPENED!  ' + M3K[h.kind].ic + ' ' + M3K[h.kind].n + ' (' + M3K[h.kind].role + ') is hiding inside.  Walk into the hole to go down!'); } }
   for (const h of M3.holes) if (h.open && h.t > 0.8 && Math.hypot(h.x - P.x, h.z - P.z) < 1.25 && P.y < h.y + 2.4) { m3RoomEnter(h); return; }
-  { const r = Math.hypot(P.x, P.z), lim = M3WR - 2.5; if (r > lim) { const k = lim/r; P.x *= k; P.z *= k; const nx = P.x/lim, nz = P.z/lim, vo = M3.v.x*nx + M3.v.z*nz; if (vo > 0) { M3.v.x -= nx*vo; M3.v.z -= nz*vo; } } } // the cliff wall: you cannot leave the map
-  for (const b of M3.bots || []) { const r = Math.hypot(b.x, b.z), lim = M3WR - 3.5; if (r > lim) { const k = lim/r; b.x *= k; b.z *= k; } } }
+  { const r = Math.hypot(P.x, P.z), lim = M3WR - 2.5; if (r > lim && !(M3.arena && M3.arena.id === 'warden')) { const k = lim/r; P.x *= k; P.z *= k; const nx = P.x/lim, nz = P.z/lim, vo = M3.v.x*nx + M3.v.z*nz; if (vo > 0) { M3.v.x -= nx*vo; M3.v.z -= nz*vo; } } } // the cliff wall: you cannot leave the map
+  for (const b of M3.bots || []) { if (b.boss) continue; const r = Math.hypot(b.x, b.z), lim = M3WR - 3.5; if (r > lim) { const k = lim/r; b.x *= k; b.z *= k; } } }
 function m3RoomEnter(h) { const i = M3.holes.indexOf(h), rx = 9000 + i*60, rz = 9000; M3.rm = { h, x: rx, z: rz, fy: 0, t0: M3.t, bots: M3.bots, back: { x: P0(h).x, z: P0(h).z } }; M3.bots = []; M3.p = { x: rx, y: 1, z: rz + 3 }; M3.v = { x: 0, y: 0, z: 0 }; M3.yaw = Math.PI; M3.pitch = 0.05; M3.anc = [null, null]; M3.held = [false, false]; M3.cx = null; toast(M3K[h.kind].ic + ' You climbed down into the hole...  Press G to talk, walk to the ladder to climb out'); }
 function P0(h) { const a = Math.atan2(M3.p.x - h.x, M3.p.z - h.z); return { x: h.x + Math.sin(a)*3.4, z: h.z + Math.cos(a)*3.4 }; }
 function m3RoomLeave() { const R = M3.rm, h = R.h; M3.rm = null; M3.bots = R.bots; const a = Math.atan2(R.back.x - h.x, R.back.z - h.z); M3.p = { x: R.back.x, y: 1 + m3H(R.back.x, R.back.z), z: R.back.z }; M3.v = { x: 0, y: 0, z: 0 }; M3.yaw = a; M3.cx = null; M3.anc = [null, null]; M3.held = [false, false]; m3Chunks(M3.p.x, M3.p.z); }
@@ -3553,11 +3553,7 @@ function m3OpenStored() { if (M3.ovl || M3.paused || M3.ko > 0) return; if (M3.p
 
 // ===== altar objectives: tasks, quests and a puzzle (rewards come in a later update) =====
 const M3OC = { Red: [255, 80, 80], Blue: [80, 160, 255], Gold: [255, 214, 70], Green: [90, 230, 120] };
-function m3ObjRoll() { return [
-  { k: 'cross', tag: 'QUEST', ic: '✝️', name: 'Divine Crosses', d: 'Carry 4 divine crosses from the altar to the 4 holes in the corners of the map, one at a time  (about 2-3 min)', goal: 4, c: '#ffd24a' },
-  { k: 'seal', tag: 'QUEST', ic: '☀️', name: 'The Four Seals', d: 'Travel to 4 far beacons in order and hold each one for 10 seconds without leaving its ring  (about 2-3 min)', goal: 4, c: '#6fc3ff' },
-  { k: 'flame', tag: 'PUZZLE', ic: '🔮', name: 'Memory of Flames', d: 'Watch the four flames, then step on the pillars in the same order. 6 rounds, one mistake reshuffles it  (about 2-3 min)', goal: 6, c: '#c15bff' }]; }
-function m3Altar() { if (M3.ovl || M3.paused || M3.ko > 0 || !M3.altar) return; const P0 = M3.p, A0 = M3.altar; if (Math.hypot(A0.x - P0.x, A0.z - P0.z) > 12) { toast('Walk up to the beam in the middle of the map  (O)'); return; }
+function m3Altar() { if (M3.ovl || M3.paused || M3.ko > 0 || !M3.altar) return; if (M3.arena) { toast('You cannot leave a boss fight!'); return; } const P0 = M3.p, A0 = M3.altar; if (Math.hypot(A0.x - P0.x, A0.z - P0.z) > 12) { toast('Walk up to the beam in the middle of the map  (O)'); return; }
   M3.paused = true; M3.dx = M3.dy = 0; M3.sp = false; for (const k of ['w', 'a', 's', 'd', 'shift', ' ']) keys[k] = false; try { if (document.pointerLockElement) document.exitPointerLock(); } catch (x) {}
   const iv = document.createElement('div'); iv.style.cssText = 'position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;background:#fff;opacity:0;transition:opacity .55s;pointer-events:none';
   iv.innerHTML = '<div style="font:900 clamp(30px,6vw,72px) Georgia,serif;letter-spacing:.18em;color:#fff;text-shadow:0 0 18px #ffd96a,0 0 46px #ffcf4a,0 0 90px #fff;-webkit-text-stroke:1.5px #d9a93a;text-align:center;opacity:0;transition:opacity .9s .5s">WISDOM OF THE BEAM</div>';
@@ -3571,47 +3567,386 @@ function m3AltarMenu() { if (M3.ovl || M3.paused || M3.ko > 0 || !M3.altar) retu
   let h = '<div style="position:absolute;left:50%;top:-60%;width:260vmax;height:260vmax;margin-left:-130vmax;background:repeating-conic-gradient(from 0deg,rgba(255,244,190,.5) 0deg 6deg,rgba(255,255,255,0) 6deg 18deg);animation:alspin 90s linear infinite;-webkit-mask-image:radial-gradient(circle,#000 0%,transparent 48%);mask-image:radial-gradient(circle,#000 0%,transparent 48%)"></div>';
   for (let i = 0; i < 4; i++) h += '<div style="position:absolute;left:' + (i*28 - 10) + '%;bottom:' + (-4 + (i % 2)*5) + '%;width:46vw;height:24vh;border-radius:50%;background:rgba(255,255,255,.8);filter:blur(40px);animation:aldrift ' + (16 + i*5) + 's ease-in-out infinite alternate"></div>';
   for (let i = 0; i < 26; i++) h += '<div style="position:absolute;left:' + Math.round(Math.random()*100) + '%;bottom:-20px;width:' + (3 + Math.round(Math.random()*5)) + 'px;height:' + (3 + Math.round(Math.random()*5)) + 'px;border-radius:50%;background:#fff6c0;box-shadow:0 0 12px 4px rgba(255,226,120,.9);animation:alrise ' + (7 + Math.random()*9).toFixed(1) + 's linear ' + (-Math.random()*14).toFixed(1) + 's infinite"></div>';
-  const KC = { kill: ['⚔', '#c4891b', 'TRIAL OF MIGHT'], killT: ['◎', '#c4891b', 'TRIAL OF MIGHT'], rush: ['⧖', '#c4891b', 'TRIAL OF MIGHT'], survive: ['⛨', '#3f86c9', 'TRIAL OF SPIRIT'], nohit: ['☯', '#3f86c9', 'TRIAL OF SPIRIT'], reach: ['➶', '#3f86c9', 'TRIAL OF SPIRIT'], pillars: ['✦', '#8a5bd6', 'TRIAL OF WISDOM'], cross: ['✝', '#c4891b', 'TRIAL OF DEVOTION'], seal: ['☀', '#3f86c9', 'TRIAL OF PATIENCE'], flame: ['✦', '#8a5bd6', 'TRIAL OF WISDOM'] };
+  const KC = { kill: ['⚔', '#c4891b', 'TRIAL OF MIGHT'], killT: ['◎', '#c4891b', 'TRIAL OF MIGHT'], rush: ['⧖', '#c4891b', 'TRIAL OF MIGHT'], survive: ['⛨', '#3f86c9', 'TRIAL OF SPIRIT'], nohit: ['☯', '#3f86c9', 'TRIAL OF SPIRIT'], reach: ['➶', '#3f86c9', 'TRIAL OF SPIRIT'], pillars: ['✦', '#8a5bd6', 'TRIAL OF WISDOM'], cross: ['✝', '#c4891b', 'TRIAL OF DEVOTION'], seal: ['☀', '#3f86c9', 'TRIAL OF PATIENCE'], flame: ['✦', '#8a5bd6', 'TRIAL OF WISDOM'], laby: ['⌘', '#8a5bd6', 'TRIAL OF COURAGE'], idol: ['☠', '#3f86c9', 'TRIAL OF DIGGING'], stars: ['★', '#c4891b', 'TRIAL OF STARS'], mosaic: ['▦', '#8a5bd6', 'TRIAL OF STONE'], sigils: ['◈', '#8a5bd6', 'TRIAL OF LIGHT'] };
   h += '<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><div style="font:italic 18px Georgia,serif;letter-spacing:6px;color:#9a7a2c">✦ &nbsp; THE HEAVENS ARE LISTENING &nbsp; ✦</div><div style="margin:6px 0 4px;font:900 54px Georgia,serif;letter-spacing:6px;color:#fff;-webkit-text-stroke:1.5px #d9a93a;animation:alglow 3.4s ease-in-out infinite;text-align:center">ALTAR OF ASCENSION</div><div style="font:italic 20px Georgia,serif;color:#7a6330;margin-bottom:' + (cur ? 8 : 52) + 'px">Choose a trial, brave one</div>';
   if (cur) h += '<div style="margin-bottom:44px;padding:6px 18px;border-radius:20px;background:rgba(255,255,255,.7);border:2px solid #e2b64c;font:italic 16px Georgia,serif;color:#6a5320">Your current trial: <b>' + cur.name + '</b> – ' + m3ObjTxt(cur) + ' &nbsp; <u id="alrel" style="cursor:pointer;color:#a33">release it</u></div>';
   h += '<div style="display:flex;align-items:flex-start;justify-content:center">';
   offs.forEach((x, i) => { const K = KC[x.k] || ['✦', '#c4891b', 'TRIAL']; h += '<div class="alcard" data-i="' + i + '" style="animation:aldrop .9s cubic-bezier(.2,.9,.3,1) ' + (0.15 + i*0.18).toFixed(2) + 's both"><div style="animation:alfloat ' + (4 + i*0.7).toFixed(1) + 's ease-in-out infinite"><div class="alsig" style="color:' + K[1] + '">' + K[0] + '</div><div style="font:700 12px Georgia,serif;letter-spacing:3px;color:' + K[1] + ';margin-bottom:8px">' + K[2] + '</div><div style="font:900 25px Georgia,serif;color:#5a4620;margin-bottom:12px;line-height:1.1">' + x.name + '</div><div style="height:2px;margin:0 30px 14px;background:linear-gradient(90deg,transparent,#e2b64c,transparent)"></div><div style="font:italic 17px Georgia,serif;line-height:1.35;color:#6a5628;min-height:70px">' + x.d + '</div><div style="margin-top:14px;display:inline-block;padding:7px 22px;border-radius:20px;background:linear-gradient(180deg,#ffe58a,#e8b53c);border:2px solid #c4891b;font:900 15px Georgia,serif;letter-spacing:2px;color:#5a3d08;box-shadow:0 0 16px rgba(255,214,90,.9)">ACCEPT  [' + (i + 1) + ']</div></div></div>'; });
   h += '</div><div id="aldep" style="margin-top:46px;padding:8px 26px;border-radius:22px;background:rgba(255,255,255,.65);border:2px solid #e2b64c;font:italic 18px Georgia,serif;color:#7a6330;cursor:pointer">Depart  (Esc)</div></div>';
   d.innerHTML = h; document.body.appendChild(d); o.el = d;
-  d.querySelectorAll('.alcard').forEach(c => { c.onclick = () => m3AltarPick(+c.dataset.i); }); d.querySelector('#aldep').onclick = () => m3AltarClose(); const rl = d.querySelector('#alrel'); if (rl) rl.onclick = ev => { ev.stopPropagation(); M3.obj = null; toast('Trial released'); m3AltarClose(); }; }
+  d.querySelectorAll('.alcard').forEach(c => { c.onclick = () => m3AltarPick(+c.dataset.i); }); d.querySelector('#aldep').onclick = () => m3AltarClose(); const rl = d.querySelector('#alrel'); if (rl) rl.onclick = ev => { ev.stopPropagation(); m3ObjClear(); toast('Trial released'); m3AltarClose(); }; }
 function m3AltarClose(after) { const o = M3.ovl; if (!o || !o.altar || o.closing) return; o.closing = true; const d = o.el; d.style.animation = 'none'; d.style.transition = 'opacity .45s'; d.style.opacity = '0'; setTimeout(() => { d.remove(); if (M3.ovl === o) m3OvClose(); if (after) after(); }, 460); }
 function m3AltarPick(i) { const o = M3.ovl; if (!o || !o.altar || o.closing || o.picked) return; o.picked = true; const x = o.opts[i], fl = document.createElement('div'); fl.style.cssText = 'position:absolute;inset:0;background:radial-gradient(circle,#fff 0%,#fff6c0 50%,rgba(255,240,160,0) 100%);pointer-events:none;animation:alflash .9s forwards'; o.el.appendChild(fl); o.closing = false; setTimeout(() => m3AltarClose(() => { m3ObjStart(x); }), 380); }
-function m3ObjStart(o) { const A = M3.altar, TAU = 6.2832; o.n = 0; o.t = 0;
-  if (o.k === 'cross') { o.holes = [[1, 1], [1, -1], [-1, -1], [-1, 1]].map(q => ({ x: A.x + q[0]*70, z: A.z + q[1]*70, done: false })); o.carry = false; o.stand = { x: A.x + 7.2, z: A.z }; }
-  else if (o.k === 'seal') { const a0 = Math.random()*TAU; o.b = [0, 1, 2, 3].map(k => ({ x: A.x + Math.cos(a0 + k*1.5708)*85, z: A.z + Math.sin(a0 + k*1.5708)*85 })); o.i = 0; o.ch = 0; }
-  else if (o.k === 'flame') { const a0 = Math.random()*TAU, cx = A.x + Math.cos(a0)*50, cz = A.z + Math.sin(a0)*50, cols = [[255, 80, 80], [80, 160, 255], [255, 214, 70], [90, 230, 120]]; o.marks = cols.map((c, i) => ({ x: cx + Math.cos(i*1.5708 + 0.785)*13, z: cz + Math.sin(i*1.5708 + 0.785)*13, c, n: ['RED', 'BLUE', 'GOLD', 'GREEN'][i], lit: false })); o.round = 1; o.cool = 0; o.at = -1; m3FlameNew(o); }
-  M3.obj = o; toast('QUEST: ' + o.name); }
-function m3FlameNew(o) { o.seq = []; for (let i = 0; i < 6; i++) o.seq.push(Math.floor(Math.random()*4)); o.ph = 'show'; o.si = 0; o.tm = 3; o.pos = 0; o.lit = -1; o.litT = 0; }
-function m3ObjTxt(o) { if (o.k === 'cross') return o.n + '/4 crosses placed  -  ' + (o.carry ? 'carry it to an empty hole in a corner of the map' : 'take a cross from the altar'); if (o.k === 'seal') return 'Seal ' + (o.i + 1) + '/4  -  ' + (o.ch > 0.2 ? 'HOLD!  ' + o.ch.toFixed(1) + '/10 s' : 'run to the golden beacon and stand in its ring'); if (o.k === 'flame') return 'Round ' + o.round + '/6  -  ' + (o.ph === 'show' ? 'WATCH THE FLAMES...' : 'repeat them  ' + o.pos + '/' + o.round); return o.d; }
-function m3ObjReward(o) { M3.objDone = (M3.objDone || 0) + 1; toast('OBJECTIVE COMPLETE: ' + o.name + '   (reward coming in the next update)'); m3Float(M3.p.x, M3.p.y + 2.4, M3.p.z, '✔ OBJECTIVE!', '#7dff9a'); }
-function m3ObjDone() { const o = M3.obj; M3.obj = null; m3ObjReward(o); }
-function m3ObjKill(b) { }
-function m3ObjStep(s) { const A = M3.altar, P = M3.p; if (!A || !P) return; { const dx = P.x - A.x, dz = P.z - A.z, d = Math.hypot(dx, dz) || 0.01, gy = m3H(A.x, A.z); if (d < 4.9 && P.y < gy + 1.5) { P.x = A.x + dx/d*4.9; P.z = A.z + dz/d*4.9; } M3.altNear = d < 12;
-    if (P.y < gy + 9) for (let i = 0; i < 8; i++) { const an = i/8*6.2832 + 0.3927, cx = A.x + Math.cos(an)*8.7, cz = A.z + Math.sin(an)*8.7, ex = P.x - cx, ez = P.z - cz, ed = Math.hypot(ex, ez) || 0.01; if (ed < 1.45) { P.x = cx + ex/ed*1.45; P.z = cz + ez/ed*1.45; } } } // the eight columns are solid
-  const o = M3.obj; if (!o) return;
-  if (o.k === 'cross') { if (!o.carry && o.n < 4 && Math.hypot(o.stand.x - P.x, o.stand.z - P.z) < 2.6) { o.carry = true; toast('You lift a divine cross.  Carry it to a hole in the corner of the map!'); }
-    else if (o.carry) for (const h of o.holes) if (!h.done && Math.hypot(h.x - P.x, h.z - P.z) < 2.7) { h.done = true; o.carry = false; o.n++; m3Float(h.x, m3H(h.x, h.z) + 3, h.z, '✝', '#ffe27a'); toast('The cross is placed!  ' + o.n + '/4'); if (o.n >= 4) m3ObjDone(); break; } }
-  else if (o.k === 'seal') { const b = o.b[o.i]; if (Math.hypot(b.x - P.x, b.z - P.z) < 4) o.ch += s; else o.ch = Math.max(0, o.ch - 2.5*s); if (o.ch >= 10) { o.i++; o.ch = 0; o.n = o.i; m3Float(b.x, m3H(b.x, b.z) + 3, b.z, '☀ SEALED', '#ffe27a'); if (o.i >= 4) m3ObjDone(); else toast('Seal ' + o.i + '/4 complete!  Find the next beacon'); } }
-  else if (o.k === 'flame') { o.cool = Math.max(0, o.cool - s); if (o.litT > 0) { o.litT -= s; if (o.litT <= 0) o.lit = -1; } o.marks.forEach((q, i) => { q.lit = o.lit === i; });
-    let at = -1; o.marks.forEach((q, i) => { if (Math.hypot(q.x - P.x, q.z - P.z) < 2.8) at = i; }); const entered = at >= 0 && at !== o.at; o.at = at;
-    if (o.ph === 'show') { o.tm -= s; if (o.tm <= 0) { if (o.si < o.round) { o.lit = o.seq[o.si]; o.litT = 0.9; o.si++; o.tm = 1.5; } else { o.ph = 'in'; o.pos = 0; toast('Your turn!  Step on the pillars in the same order'); } } }
-    else if (entered && o.cool <= 0) { o.cool = 0.6; o.lit = at; o.litT = 0.5; if (at === o.seq[o.pos]) { o.pos++; if (o.pos >= o.round) { o.round++; o.n = o.round - 1; if (o.round > 6) { m3ObjDone(); return; } o.ph = 'show'; o.si = 0; o.tm = 2.4; toast('Correct!  Round ' + o.round + '/6 - watch again'); } } else { toast('Wrong!  The flames reshuffle...'); o.round = 1; m3FlameNew(o); o.tm = 2.5; } } } }
+
 
 // ===== the altar always sits in the middle of the map: flatten the ground and clear trees and rocks around it =====
 { const oh = m3H; let sd0 = null, H0 = 0, sd1 = null; const HP = [0, 0, 0, 0]; m3H = function(x, z) { let h = oh(x, z); const r2 = x*x + z*z; if (r2 < 1600 && !M3.rm) { if (sd0 !== M3.sd) { sd0 = M3.sd; H0 = oh(0, 0); } const r = Math.sqrt(r2), t = r < 20 ? 1 : (r - 20)/20, k = 1 - t*t*(3 - 2*t); h = h*(1 - k) + H0*k; }
     if (!M3.rm) for (let q = 0; q < 4; q++) { const px = q & 1 ? 70 : -70, pz = q & 2 ? 70 : -70, dx = x - px, dz = z - pz; if (dx > 16 || dx < -16 || dz > 16 || dz < -16) continue; if (sd1 !== M3.sd) { sd1 = M3.sd; for (let w = 0; w < 4; w++) HP[w] = oh(w & 1 ? 70 : -70, w & 2 ? 70 : -70); } const r = Math.sqrt(dx*dx + dz*dz); if (r >= 16) continue; const t = r < 7 ? 1 : (16 - r)/9, k = t*t*(3 - 2*t); h = h*(1 - k) + HP[q]*k; }
     return h; };
   const oc = m3Chunk; m3Chunk = function(cx, cz) { const ch = oc(cx, cz); if (Math.abs(cx*32 + 16) < 80 && Math.abs(cz*32 + 16) < 80) { ch.trees = ch.trees.filter(t => Math.hypot(t.x, t.z) > 27); ch.rocks = ch.rocks.filter(q => Math.hypot(q.x, q.z) > 24); } const pd = (x, z) => { for (let q = 0; q < 4; q++) if (Math.hypot(x - (q & 1 ? 70 : -70), z - (q & 2 ? 70 : -70)) < 11) return true; return false; }; if (Math.abs(Math.abs(cx*32 + 16) - 70) < 40 && Math.abs(Math.abs(cz*32 + 16) - 70) < 40) { ch.trees = ch.trees.filter(t => !pd(t.x, t.z)); ch.rocks = ch.rocks.filter(q => !pd(q.x, q.z)); } return ch; }; }
-function m3Minimap(c, W, H) { const o = M3.obj, A = M3.altar, P = M3.p; if (!o || !A || !P) return; const big = !!M3.bigMap, pts = [[A.x, A.z], [P.x, P.z]], T = [];
+// ===================== SITES: caves, labyrinth, sky arena and ancient rings (always in the same place around the altar) =====================
+const M3SI = { flame: { x: 0, z: -80, k: 'crater', nm: 'FLAME CAVE' }, mosaic: { x: -80, z: 0, k: 'crater', nm: 'STONE CAVE' }, sigils: { x: 80, z: 0, k: 'crater', nm: 'PRISM CAVE' }, laby: { x: 0, z: 80, k: 'laby', nm: 'LABYRINTH' }, sky: { x: 0, z: 700, k: 'mesa', nm: 'SKY ARENA' } }; // the map is a closed circle (radius 130), so the sky arena floats far outside it
+const M3PAD = [45, 135, 225, 315].map((a, i) => ({ x: Math.round(Math.cos(a*Math.PI/180)*52), z: Math.round(Math.sin(a*Math.PI/180)*52), k: 'pad', nm: 'ANCIENT RING ' + (i + 1) }));
+const M3SITES = Object.values(M3SI).concat(M3PAD);
+for (const s of M3SITES) { s.R = s.k === 'crater' ? 40 : s.k === 'pad' ? 26 : s.k === 'laby' ? 44 : 54; s.clr = s.k === 'crater' ? 38 : s.k === 'pad' ? 24 : s.k === 'laby' ? 42 : 50; s.zr = s.k === 'crater' ? 30 : s.k === 'laby' ? 32 : s.k === 'mesa' ? 50 : 0; s.R2 = s.R*s.R; s.B = 0; }
+{ const oh = m3H; let sdS = null; const sm = t => t <= 0 ? 0 : t >= 1 ? 1 : t*t*(3 - 2*t);
+  m3H = function(x, z) { let h = oh(x, z); if (M3.rm) return h;
+    for (let i = 0; i < M3SITES.length; i++) { const s = M3SITES[i], dx = x - s.x, dz = z - s.z, d2 = dx*dx + dz*dz; if (d2 > s.R2) continue; if (sdS !== M3.sd) { sdS = M3.sd; for (const q of M3SITES) q.B = oh(q.x, q.z); } const d = Math.sqrt(d2), B = s.B;
+      if (s.k === 'crater') { const ag = Math.atan2(-s.z, -s.x); let da = Math.abs(Math.atan2(dz, dx) - ag); if (da > Math.PI) da = 6.2832 - da; const gate = 1 - sm((da - 0.1)/0.12), rim = 18*sm((d - 20)/8)*(1 - gate), val = B + rim, u = sm((d - 28)/12); h = val*(1 - u) + h*u; } // a crater in the mountain: flat floor, tall rim, one gate facing the altar
+      else if (s.k === 'mesa') { const u = sm((d - 30)/22); h = (B + 60)*(1 - u) + h*u; }
+      else { const f = s.k === 'laby' ? 30 : 16, u = sm((d - f)/(s.k === 'laby' ? 14 : 10)); h = B*(1 - u) + h*u; } }
+    return h; };
+  const oc2 = m3Chunk; m3Chunk = function(cx, cz) { const ch = oc2(cx, cz), mx = cx*32 + 16, mz = cz*32 + 16; let nr = null; for (const s of M3SITES) if (Math.abs(mx - s.x) < s.clr + 40 && Math.abs(mz - s.z) < s.clr + 40) (nr = nr || []).push(s);
+    if (nr) { const bad = (x, z) => { for (const s of nr) if (Math.hypot(x - s.x, z - s.z) < s.clr) return true; return false; }; ch.trees = ch.trees.filter(t => !bad(t.x, t.z)); ch.rocks = ch.rocks.filter(q => !bad(q.x, q.z)); } return ch; }; }
+function m3InZone(x, z) { for (const s of M3SITES) if (s.zr && Math.hypot(x - s.x, z - s.z) < s.zr) return true; const A = M3.arena; return !!(A && Math.hypot(x - A.x, z - A.z) < A.R + 1.5); }
+{ const sa = m3SpawnAt; m3SpawnAt = function(pt, x, z) { if (!M3.zOK && m3InZone(x, z)) return null; return sa(pt, x, z); }; }
+
+// ===================== BOSS ENGINE =====================
+const M3BO = {
+  seraph: { n: 'SERAPH OF WRATH', sc: 2.5, met: [255, 250, 228], met2: [255, 214, 120], red: [255, 255, 255], eye: [255, 215, 90], hp: 220, turn: 2.2, hint: 'Its halo shield blocks almost everything. Touch the glowing shards to break it!' },
+  warden: { n: 'WARDEN OF THE SKIES', sc: 2.4, met: [140, 200, 255], met2: [90, 140, 240], red: [255, 244, 130], eye: [255, 255, 160], hp: 210, turn: 3, hint: 'Too high to reach. After a few attacks he lands exhausted. Hit him then!' },
+  colossus: { n: 'FLAME COLOSSUS', sc: 3.0, met: [255, 120, 50], met2: [170, 50, 30], red: [255, 220, 60], eye: [255, 240, 140], hp: 260, turn: 0.95, hint: 'Its front is armored. Circle round and hit the glowing BACK!' },
+  minotaur: { n: 'THE MINOTAUR', sc: 2.6, met: [150, 100, 60], met2: [90, 58, 36], red: [220, 60, 50], eye: [255, 70, 60], hp: 240, turn: 2.6, hint: 'Dodge its charge so it rams a pillar or wall. Then punish it!' },
+  grave: { n: 'GRAVE WARDEN', sc: 2.3, met: [190, 200, 180], met2: [90, 110, 100], red: [120, 255, 170], eye: [120, 255, 170], hp: 240, turn: 2, hint: 'It is only hurt inside the glowing LIGHT circles. Lure it in!' },
+  stareater: { n: 'STAR EATER', sc: 2.7, met: [60, 40, 120], met2: [30, 20, 70], red: [255, 230, 120], eye: [255, 255, 255], hp: 260, turn: 1.8, hint: 'Attack while it is DARK. When it glows white it reflects damage!' },
+  golem: { n: 'QUARTZ GOLEM', sc: 2.8, met: [170, 230, 255], met2: [110, 180, 230], red: [255, 150, 230], eye: [255, 255, 255], hp: 260, turn: 1.5, hint: 'Crystal armor! Chain 5 or more hits in a row to crack it.' },
+  wraith: { n: 'PRISM WRAITH', sc: 1.9, met: [210, 120, 255], met2: [140, 70, 220], red: [255, 80, 80], eye: [255, 60, 60], hp: 170, turn: 5, hint: 'Which one is real? The real Wraith has RED eyes. Decoys have BLUE eyes.' },
+  wraithF: { n: 'DECOY', sc: 1.9, met: [210, 120, 255], met2: [140, 70, 220], red: [90, 150, 255], eye: [90, 150, 255], hp: 1, turn: 5, hint: '' }
+};
+for (const id in M3BO) { const q = M3BO[id]; M3T[id] = { n: q.n, sc: q.sc, hp: 30, dm: 2, sp: 0.6, xp: 150, bn: 40, met: q.met, met2: q.met2, red: q.red, eye: q.eye, slam: 1, boss: 1, bid: id }; }
+const M3BR = {};
+const m3Rnd = (a, c) => a + Math.random()*(c - a);
+function m3BHP(id) { return Math.round(M3BO[id].hp*(1 + 0.1*Math.min(15, m3Min()))); }
+function m3AC(x, z, m) { const A = M3.arena; if (!A) return [x, z]; const dx = x - A.x, dz = z - A.z, d = Math.hypot(dx, dz), r = A.R - m; return d > r ? [A.x + dx/d*r, A.z + dz/d*r] : [x, z]; }
+function m3ZB(x, z, r, tm, fr, why, kind, life) { M3.zn.push({ x, z, r, t: 0, tm, dm: Math.round(M3.mhp*fr), kind: kind || 'boom', life: life || 0, why: why || 'BOSS', tk: 0 }); }
+function m3ZRing(x, z, v, rmax, fr, why) { M3.zn.push({ x, z, r: 0.5, v, rmax, dm: Math.round(M3.mhp*fr), kind: 'ring', t: 0, why: why || 'SHOCKWAVE', done: false }); }
+function m3Wind(b, wt) { b.st = 'wind'; b.stT = 0; b.wt = wt; b.sdA = Math.random() < 0.5 ? 1 : 0; b.hd = true; }
+function m3Fan(b, P, n, spread, speed, fr, low) { const base = Math.atan2(P.x - b.x, P.z - b.z), h = low ? 0.5 : 1.5 + (b.yo || 0); for (let i = 0; i < n; i++) { const a = low ? i/n*6.2832 + (b.ms || 0)*0.3 : base + (i - (n - 1)/2)*spread; M3.proj.push({ x: b.x + Math.sin(a)*1.6, y: b.y + h, z: b.z + Math.cos(a)*1.6, vx: Math.sin(a)*speed, vy: 0, vz: Math.cos(a)*speed, t: 0, dm: Math.round(M3.mhp*fr) }); } }
+function m3BossHit(b, fr, why, kb) { const P = M3.p, V = M3.v, dx = P.x - b.x, dz = P.z - b.z, d = Math.hypot(dx, dz) || 1; if (M3.ko > 0 || M3.inv > 0) return; let f = fr; if (M3.guard) { f *= 0.3*M3.m.gdm; M3.stam = Math.max(0, M3.stam - 18); toast('BLOCKED!'); } else { M3.flash = 0.5; V.x += dx/d*(kb || 9); V.z += dz/d*(kb || 9); V.y = Math.max(V.y, 5); } m3Dmg(Math.round(M3.mhp*f), why); }
+function m3Shards(b) { M3.shards = []; const A = M3.arena; for (let i = 0; i < 4; i++) { const a = i*1.5708 + Math.random()*0.9, r = A.R*(0.4 + Math.random()*0.42); M3.shards.push({ x: A.x + Math.cos(a)*r, z: A.z + Math.sin(a)*r, got: false }); } }
+function m3Lights() { const A = M3.arena; M3.lc = []; const a0 = Math.random()*6.28; for (let i = 0; i < 3; i++) { const a = a0 + i*2.0944 + Math.random()*0.5, r = A.R*(0.3 + Math.random()*0.35); M3.lc.push({ x: A.x + Math.cos(a)*r, z: A.z + Math.sin(a)*r, r: 6.4, t: 0 }); } }
+function m3InLight(x, z) { for (const q of M3.lc) if (Math.hypot(x - q.x, z - q.z) < q.r) return true; return false; }
+function m3Puff(x, z, y, sc) { M3.fx.push({ x, y: (y == null ? m3H(x, z) + 1.2 : y), z, gy: m3H(x, z), t: 0.05, sc: sc || 0.5, life: 0.6 }); }
+
+// ---- 1. Seraph of Wrath ----
+M3BR.seraph = { cd: [2.0, 3.2], spd: 2.4,
+  pick() { const r = Math.random(); return r < 0.3 ? 'nova' : r < 0.7 ? 'spears' : 'orbs'; },
+  mult(b) { return b.sh ? 0.05 : 1.8; },
+  tick(b, s) { b.yo += ((0.8 + 0.3*Math.sin(M3.t*2.2)) - b.yo)*Math.min(1, 4*s); if (b.sh === undefined) { b.sh = true; m3Shards(b); }
+    if (b.sh) { let left = 0; for (const q of M3.shards) { if (!q.got && Math.hypot(q.x - M3.p.x, q.z - M3.p.z) < 1.9) { q.got = true; m3Float(q.x, m3H(q.x, q.z) + 2, q.z, '✦ SHATTERED', '#ffe27a'); m3Puff(q.x, q.z, m3H(q.x, q.z) + 1, 0.5); } if (!q.got) left++; }
+      b.hintT = 'SHIELDED!  Touch the glowing shards to break it  (' + left + ' left)'; if (!left) { b.sh = false; b.ex = 9; M3.shards = []; toast('THE SHIELD SHATTERS!  ATTACK NOW!'); M3.shk = 0.8; } }
+    else { b.ex -= s; b.hintT = 'SHIELD DOWN!  HIT IT!  ' + Math.ceil(b.ex) + 's'; if (b.ex <= 0) { b.sh = true; m3Shards(b); toast('The halo reforms...  find the shards again!'); } } },
+  mv: {
+    nova(b, s) { if (b.ms === 0) { b.ms = 1; m3Wind(b, 1.2); toast('JUMP OVER THE SHOCKWAVE!'); m3ZB(b.x, b.z, 4, 1.2, 0, '', 'tele'); } b.sp *= Math.pow(0.05, s); if (b.ms === 1 && b.mt >= 1.2) { b.ms = 2; b.st = 'swing'; b.stT = 0; m3ZRing(b.x, b.z, 9, 26, 0.3, 'SHOCKWAVE'); } return b.mt > 1.9; },
+    spears(b, s, P) { b.sp *= Math.pow(0.05, s); if (b.ms === 0) { b.ms = 1; m3Wind(b, 0.9); } while (b.ms - 1 < 6 && b.mt >= 0.5 + (b.ms - 1)*0.35) { const k = b.ms - 1, a = Math.random()*6.28, rr = k === 0 ? 0 : 3, c = m3AC(P.x + M3.v.x*0.3 + Math.cos(a)*rr, P.z + M3.v.z*0.3 + Math.sin(a)*rr, 1.5); m3ZB(c[0], c[1], 2.7, 1.4, 0.3, 'LIGHT SPEAR'); b.ms++; if (k === 0) { b.st = 'swing'; b.stT = 0; } } return b.mt > 3.9; },
+    orbs(b, s, P) { b.sp *= Math.pow(0.05, s); if (b.ms === 0) { b.ms = 1; m3Wind(b, 0.8); } if (b.ms === 1 && b.mt >= 0.8) { b.ms = 2; b.st = 'swing'; b.stT = 0; m3Fan(b, P, 5, 0.28, 11, 0.14); } if (b.ms === 2 && b.mt >= 1.6) { b.ms = 3; m3Fan(b, P, 5, 0.28, 11, 0.14); } return b.mt > 2.3; } } };
+
+// ---- 2. Warden of the Skies ----
+M3BR.warden = { cd: [1.3, 2.2], spd: 2.8,
+  pick(b) { if ((b.cnt || 0) >= 3) return 'exhaust'; b.cnt = (b.cnt || 0) + 1; return Math.random() < 0.55 ? 'strike' : 'dash'; },
+  mult(b) { return b.exh > 0 ? 3 : 0.1; },
+  tick(b, s) { b.exh = Math.max(0, (b.exh || 0) - s); b.yo += (((b.exh > 0 || b.mv === 'exhaust') ? 0 : 2.3 + 0.2*Math.sin(M3.t*2)) - b.yo)*Math.min(1, 3*s); b.hintT = b.exh > 0 ? 'EXHAUSTED!  HIT HIM NOW!  ' + Math.ceil(b.exh) + 's' : 'Too high to hurt.  He lands to rest after 3 attacks  (' + (3 - (b.cnt || 0)) + ' left)'; },
+  mv: {
+    strike(b, s, P) { b.sp *= Math.pow(0.05, s); if (b.ms === 0) { b.ms = 1; m3Wind(b, 0.7); toast('LIGHTNING!  Keep moving!'); } while (b.ms >= 1 && b.ms <= 8 && b.mt >= 0.5 + (b.ms - 1)*0.22) { const a = Math.random()*6.28, rr = b.ms === 1 ? 0 : 2 + Math.random()*5, c = m3AC(P.x + M3.v.x*0.35 + Math.cos(a)*rr, P.z + M3.v.z*0.35 + Math.sin(a)*rr, 1.5); m3ZB(c[0], c[1], 2.4, 1.0, 0.22, 'LIGHTNING'); b.ms++; if (b.ms === 2) { b.st = 'swing'; b.stT = 0; } } return b.mt > 3.0; },
+    dash(b, s, P, d, da) { b.free = true; if (b.ms === 0) { b.ms = 1; m3Wind(b, 0.8); toast('HE IS GOING TO DASH!'); M3.zn.push({ x: b.x, z: b.z, t: 0, tm: 0.85, kind: 'line', follow: b, ang: b.yaw, len: 30, w: 2.2, col: [120, 190, 255] }); }
+      if (b.ms === 1) { b.sp *= 0.1; b.yaw += da*Math.min(1, 7*s); for (const z of M3.zn) if (z.follow === b) z.ang = b.yaw; if (b.mt > 0.8) { b.ms = 2; b.da = b.yaw; b.st = 'swing'; b.stT = 0; b.dh = false; } }
+      else if (b.ms === 2) { b.x += Math.sin(b.da)*17*s; b.z += Math.cos(b.da)*17*s; b.sp = 6; if (!b.dh && Math.hypot(P.x - b.x, P.z - b.z) < 3.2 && P.y - m3H(P.x, P.z) < 3.5) { b.dh = true; m3BossHit(b, 0.26, 'LIGHTNING DASH', 12); } if (b.mt > 1.4) b.ms = 3; } else b.sp *= 0.3; return b.mt > 1.8; },
+    exhaust(b, s) { b.sp *= 0.1; if (b.ms === 0) { b.ms = 1; b.exh = 7; b.cnt = 0; toast('THE WARDEN IS EXHAUSTED!  Hit him!'); } b.st = 'idle'; return b.exh <= 0; } } };
+
+// ---- 3. Flame Colossus ----
+M3BR.colossus = { cd: [1.6, 2.6], spd: 1.7,
+  pick(b, P, d) { const r = Math.random(); if (d < 9 && r < 0.45) return 'spin'; return r < 0.3 ? 'fireball' : r < 0.6 ? 'pools' : r < 0.8 ? 'stomp' : 'spin'; },
+  mult(b) { const P = M3.p, dx = P.x - b.x, dz = P.z - b.z, d = Math.hypot(dx, dz) || 1, dot = (dx*Math.sin(b.yaw) + dz*Math.cos(b.yaw))/d; return dot < -0.2 ? 4 : 0.2; },
+  tick(b) { b.hintT = 'ARMORED FRONT!  Circle round and hit its glowing BACK  (x4)'; },
+  mv: {
+    fireball(b, s, P) { b.sp *= Math.pow(0.05, s); if (b.ms === 0) { b.ms = 1; m3Wind(b, 0.7); } if (b.ms === 1 && b.mt >= 0.7) { b.ms = 2; b.st = 'swing'; b.stT = 0; m3Fan(b, P, 3, 0.3, 12, 0.14); } if (b.ms === 2 && b.mt >= 1.4) { b.ms = 3; m3Fan(b, P, 3, 0.3, 12, 0.14); } return b.mt > 2.1; },
+    pools(b, s, P) { b.sp *= Math.pow(0.05, s); if (b.ms === 0) { b.ms = 1; m3Wind(b, 0.8); } if (b.ms === 1 && b.mt >= 0.8) { b.ms = 2; b.st = 'swing'; b.stT = 0; for (let k = 0; k < 4; k++) { const a = Math.random()*6.28, rr = k === 0 ? 0 : 4 + Math.random()*3, c = m3AC(P.x + Math.cos(a)*rr, P.z + Math.sin(a)*rr, 2); m3ZB(c[0], c[1], 3.6, 1.1, 0.1, 'FIRE POOL', 'burn', 6); } toast('GET OUT OF THE FIRE!'); } return b.mt > 1.8; },
+    stomp(b, s) { b.sp *= Math.pow(0.05, s); if (b.ms === 0) { b.ms = 1; m3Wind(b, 1.0); toast('JUMP!'); } if (b.ms === 1 && b.mt >= 1.0) { b.ms = 2; b.st = 'swing'; b.stT = 0; m3ZRing(b.x, b.z, 10, 17, 0.28, 'STOMP'); } return b.mt > 1.8; },
+    spin(b, s, P, d) { b.free = true; if (b.ms === 0) { b.ms = 1; m3Wind(b, 1.0); toast('IT IS SPINNING!  GET AWAY!'); M3.zn.push({ x: b.x, z: b.z, r: 7.5, t: 0, tm: 1.0, kind: 'tele', follow: b, dm: 0 }); } b.sp *= 0.3;
+      if (b.ms === 1 && b.mt >= 1.0) { b.ms = 2; b.hk = 0; } if (b.ms === 2) { b.yaw += 8*s; const da = Math.atan2(P.x - b.x, P.z - b.z); b.x += Math.sin(da)*2.2*s; b.z += Math.cos(da)*2.2*s; b.sp = 3; b.hk -= s; if (b.hk <= 0 && Math.hypot(P.x - b.x, P.z - b.z) < 7.4 && P.y - m3H(P.x, P.z) < 2.2) { b.hk = 0.5; m3BossHit(b, 0.2, 'FLAME SPIN', 8); } if (b.mt > 3.4) b.ms = 3; } return b.mt > 3.9; } } };
+
+// ---- 4. Minotaur ----
+M3BR.minotaur = { cd: [1.2, 2.2], spd: 3.0,
+  pick(b, P, d) { return d > 6 || Math.random() < 0.55 ? 'charge' : 'stomp'; },
+  mult(b) { return b.stunB > 0 ? 3 : 0.2; },
+  tick(b) { b.hintT = b.stunB > 0 ? 'STUNNED!  HIT IT!  ' + Math.ceil(b.stunB) + 's' : 'Dodge its CHARGE so it rams a pillar or the wall, then punish it!'; },
+  mv: {
+    charge(b, s, P, d, da) { b.free = true; if (b.ms === 0) { b.ms = 1; b.ch = false; m3Wind(b, 1.3); toast('IT IS GOING TO CHARGE!'); M3.zn.push({ x: b.x, z: b.z, t: 0, tm: 1.35, kind: 'line', follow: b, ang: b.yaw, len: 34, w: 2.6, col: [255, 70, 50] }); }
+      if (b.ms === 1) { b.sp *= 0.2; if (b.mt < 1.0) { let dy = Math.atan2(P.x - b.x, P.z - b.z) - b.yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); b.yaw += dy*Math.min(1, 9*s); } for (const z of M3.zn) if (z.follow === b) z.ang = b.yaw; if (b.mt >= 1.35) { b.ms = 2; b.cy = b.yaw; b.st = 'idle'; b.stT = 0; b.ct = 0; } }
+      else if (b.ms === 2) { b.ct += s; b.x += Math.sin(b.cy)*21*s; b.z += Math.cos(b.cy)*21*s; b.yaw = b.cy; b.sp = 7; const A = M3.arena; if (!b.ch && Math.hypot(P.x - b.x, P.z - b.z) < 3.0 && P.y - m3H(P.x, P.z) < 3) { b.ch = true; m3BossHit(b, 0.4, 'GORED BY THE MINOTAUR', 14); }
+        let hit = Math.hypot(b.x - A.x, b.z - A.z) > A.R - 2.4; for (const q of A.pil || []) if (Math.hypot(b.x - q.x, b.z - q.z) < q.r + 1.8) hit = true;
+        if (hit) { b.ms = 3; b.stunB = 4.8; b.sp = 0; M3.shk = 1; toast('IT RAMMED THE WALL!  STUNNED!'); m3Puff(b.x + Math.sin(b.cy)*2, b.z + Math.cos(b.cy)*2, null, 0.9); } else if (b.ct > 1.7) { b.ms = 4; b.mt = 0; b.sp = 0; } }
+      else if (b.ms === 3) return b.stunB <= 0; else return b.mt > 1.2; return false; },
+    stomp(b, s) { b.sp *= Math.pow(0.05, s); if (b.ms === 0) { b.ms = 1; m3Wind(b, 0.9); toast('JUMP!'); } if (b.ms === 1 && b.mt >= 0.9) { b.ms = 2; b.st = 'swing'; b.stT = 0; m3ZRing(b.x, b.z, 8, 13, 0.24, 'STOMP'); } return b.mt > 1.7; } } };
+
+// ---- 5. Grave Warden ----
+M3BR.grave = { cd: [1.5, 2.4], spd: 2.2,
+  pick() { const adds = (M3.bots || []).filter(q => q.add && !q.dead && !q.gone).length, r = Math.random(); if (adds < 2 && r < 0.4) return 'summon'; return r < 0.7 ? 'hands' : 'wail'; },
+  mult(b) { return m3InLight(b.x, b.z) ? 4 : 0.08; },
+  tick(b, s) { b.lcT = (b.lcT || 0) - s; if (!M3.lc.length || b.lcT <= 0) { b.lcT = 14; m3Lights(); } b.hintT = m3InLight(b.x, b.z) ? 'IT STANDS IN THE LIGHT!  HIT IT!' : 'It is only hurt inside the LIGHT circles. Lure it in!'; },
+  mv: {
+    hands(b, s, P) { b.sp *= Math.pow(0.05, s); if (b.ms === 0) { b.ms = 1; m3Wind(b, 0.8); toast('GRASPING HANDS!  Keep moving!'); } while (b.ms - 1 < 5 && b.mt >= 0.7 + (b.ms - 1)*0.45) { const c = m3AC(P.x + M3.v.x*0.35, P.z + M3.v.z*0.35, 1.5); m3ZB(c[0], c[1], 2.2, 0.9, 0.26, 'GRASPING HANDS'); b.ms++; if (b.ms === 2) { b.st = 'swing'; b.stT = 0; } } return b.mt > 3.4; },
+    summon(b, s) { b.sp *= Math.pow(0.05, s); if (b.ms === 0) { b.ms = 1; m3Wind(b, 1.0); toast('IT RAISES THE DEAD!'); } if (b.ms === 1 && b.mt >= 1.0) { b.ms = 2; b.st = 'swing'; b.stT = 0; for (let k = 0; k < 3; k++) { const a = Math.random()*6.28, c = m3AC(b.x + Math.cos(a)*5, b.z + Math.sin(a)*5, 2); M3.zOK = true; const q = m3SpawnAt('scrap', c[0], c[1]); M3.zOK = false; if (q) { q.add = true; q.agg = true; m3Puff(c[0], c[1], null, 0.4); } } } return b.mt > 1.6; },
+    wail(b, s) { b.sp *= Math.pow(0.05, s); if (b.ms === 0) { b.ms = 1; m3Wind(b, 1.0); toast('JUMP!'); } if (b.ms === 1 && b.mt >= 1.0) { b.ms = 2; b.st = 'swing'; b.stT = 0; m3ZRing(b.x, b.z, 8, 23, 0.26, 'WAIL'); } return b.mt > 1.8; } } };
+
+// ---- 6. Star Eater ----
+M3BR.stareater = { cd: [1.4, 2.3], spd: 2.0,
+  pick() { const r = Math.random(); return r < 0.34 ? 'gravity' : r < 0.7 ? 'meteors' : 'comets'; },
+  mult(b) { if (b.bright) { if ((b.rfT || 0) <= 0) { b.rfT = 0.45; M3.flash = 0.4; m3Dmg(Math.round(M3.mhp*0.07), 'REFLECTED!'); m3Float(b.x, b.y + 3*(b.sc || 1), b.z, 'REFLECT!', '#fff'); } return 0; } return 2.5; },
+  tick(b, s) { b.rfT = (b.rfT || 0) - s; const c = b.bt % 12, br = c >= 7; if (br !== !!b.bright) { b.bright = br; M3T.stareater.met = br ? [255, 255, 255] : [60, 40, 120]; M3T.stareater.met2 = br ? [255, 240, 180] : [30, 20, 70]; toast(br ? 'IT GLOWS WHITE: IT REFLECTS DAMAGE!  Back off!' : 'It dims...  ATTACK NOW!'); } b.hintT = br ? 'BRIGHT!  It REFLECTS damage.  Do NOT hit it!' : 'DARK!  Hit it now!  ' + Math.ceil(7 - c) + 's'; },
+  mv: {
+    gravity(b, s, P, d) { b.sp *= Math.pow(0.05, s); if (b.ms === 0) { b.ms = 1; m3Wind(b, 0.9); toast('GRAVITY WELL!  Run away from it!'); M3.zn.push({ x: b.x, z: b.z, r: 7, t: 0, tm: 3.4, kind: 'tele', follow: b, dm: 0 }); }
+      if (b.mt > 0.9 && b.mt < 3.4 && d > 2) { const k = 17*s/d; M3.v.x += (b.x - P.x)*k; M3.v.z += (b.z - P.z)*k; b.st = 'swing'; b.stT = 0; } if (b.ms === 1 && b.mt >= 3.4) { b.ms = 2; if (d < 7 && P.y - m3H(P.x, P.z) < 2.2) m3BossHit(b, 0.25, 'GRAVITY CRUSH', 10); m3Puff(b.x, b.z, null, 0.8); } return b.mt > 3.9; },
+    meteors(b, s, P) { b.sp *= Math.pow(0.05, s); if (b.ms === 0) { b.ms = 1; m3Wind(b, 0.8); toast('METEORS!'); } while (b.ms - 1 < 9 && b.mt >= 0.7 + (b.ms - 1)*0.25) { const k = b.ms - 1, A = M3.arena, a = Math.random()*6.28, r = Math.random()*(A.R - 3), c = k % 3 === 0 ? m3AC(P.x + M3.v.x*0.4, P.z + M3.v.z*0.4, 2) : [A.x + Math.cos(a)*r, A.z + Math.sin(a)*r]; m3ZB(c[0], c[1], 3.4, 1.4, 0.26, 'METEOR'); b.ms++; if (k === 0) { b.st = 'swing'; b.stT = 0; } } return b.mt > 4.0; },
+    comets(b, s, P) { b.sp *= Math.pow(0.05, s); if (b.ms === 0) { b.ms = 1; m3Wind(b, 0.8); } if (b.ms === 1 && b.mt >= 0.8) { b.ms = 2; b.st = 'swing'; b.stT = 0; m3Fan(b, P, 7, 0.22, 8, 0.12); } if (b.ms === 2 && b.mt >= 1.7) { b.ms = 3; m3Fan(b, P, 7, 0.22, 8, 0.12); } return b.mt > 2.4; } } };
+
+// ---- 7. Quartz Golem ----
+M3BR.golem = { cd: [1.3, 2.2], spd: 1.9,
+  pick() { const r = Math.random(); return r < 0.35 ? 'shards' : r < 0.7 ? 'spikes' : 'quake'; },
+  mult(b) { const t = M3.t; b.cmb2 = (t - (b.lastH || -9) < 1.1) ? (b.cmb2 || 0) + 1 : 1; b.lastH = t; if (b.cmb2 >= 5) return Math.min(3.6, 1.2 + 0.4*(b.cmb2 - 5)); return 0.1; },
+  tick(b) { if (M3.t - (b.lastH || -9) > 1.1) b.cmb2 = 0; b.hintT = (b.cmb2 || 0) >= 5 ? 'ARMOR CRACKED!  COMBO x' + b.cmb2 + '  KEEP HITTING!' : 'Crystal armor!  Chain 5+ hits within a second  (combo ' + (b.cmb2 || 0) + ')'; },
+  mv: {
+    shards(b, s, P) { b.sp *= Math.pow(0.05, s); if (b.ms === 0) { b.ms = 1; m3Wind(b, 0.8); toast('SHARDS!  Jump over them!'); } if (b.ms === 1 && b.mt >= 0.8) { b.ms = 2; b.st = 'swing'; b.stT = 0; m3Fan(b, P, 10, 0, 9, 0.14, true); } if (b.ms === 2 && b.mt >= 1.6) { b.ms = 3; m3Fan(b, P, 10, 0, 9, 0.14, true); } return b.mt > 2.3; },
+    spikes(b, s, P) { b.sp *= Math.pow(0.05, s); if (b.ms === 0) { b.ms = 1; m3Wind(b, 0.7); b.sa = Math.atan2(P.x - b.x, P.z - b.z); toast('CRYSTAL SPIKES!'); } while (b.ms - 1 < 7 && b.mt >= 0.7 + (b.ms - 1)*0.14) { const k = b.ms - 1, c = m3AC(b.x + Math.sin(b.sa)*(3 + 2.4*k), b.z + Math.cos(b.sa)*(3 + 2.4*k), 1.5); m3ZB(c[0], c[1], 1.9, 0.8, 0.24, 'CRYSTAL SPIKE'); b.ms++; if (k === 0) { b.st = 'swing'; b.stT = 0; } } return b.mt > 2.8; },
+    quake(b, s) { b.sp *= Math.pow(0.05, s); if (b.ms === 0) { b.ms = 1; m3Wind(b, 1.0); toast('JUMP!'); } if (b.ms === 1 && b.mt >= 1.0) { b.ms = 2; b.st = 'swing'; b.stT = 0; m3ZRing(b.x, b.z, 10, 18, 0.26, 'QUAKE'); } if (b.ms === 2 && b.mt >= 1.6) { b.ms = 3; m3ZRing(b.x, b.z, 10, 18, 0.2, 'QUAKE'); } return b.mt > 2.4; } } };
+
+// ---- 8. Prism Wraith ----
+function m3WraithSwap(b) { const A = M3.arena; let L = [b].concat((M3.bots || []).filter(q => q.boss === 'wraithF' && !q.gone)); while (L.length < 3) { const q = m3BossSpawn('wraithF', A.x, A.z, { dec: true }); if (!q) break; L.push(q); }
+  const a0 = Math.random()*6.28; L.sort(() => Math.random() - 0.5); L.forEach((q, i) => { m3Puff(q.x, q.z, null, 0.5); const a = a0 + i*2.0944, r = A.R*0.5; q.x = A.x + Math.cos(a)*r; q.z = A.z + Math.sin(a)*r; q.y = m3H(q.x, q.z); m3Puff(q.x, q.z, null, 0.5); }); }
+M3BR.wraith = { cd: [1.2, 2.0], spd: 3.2,
+  pick() { return Math.random() < 0.5 ? 'blink' : 'fan'; },
+  mult() { return 1.15; },
+  tick(b, s) { b.swT = (b.swT == null ? 5 : b.swT) - s; if (b.swT <= 0) { b.swT = 8; m3WraithSwap(b); toast('THE WRAITH SPLITS...  find the one with RED eyes!'); } b.hintT = 'Hit the one with RED eyes.  Decoys have BLUE eyes and pop when hit.'; },
+  mv: {
+    blink(b, s, P) { b.free = true; b.sp *= 0.2; if (b.ms === 0) { b.ms = 1; m3Puff(b.x, b.z, null, 0.7); toast('IT VANISHES...'); } if (b.ms === 1 && b.mt > 0.55) { b.ms = 2; const fw = [Math.sin(M3.yaw), Math.cos(M3.yaw)], c = m3AC(P.x - fw[0]*3.4, P.z - fw[1]*3.4, 2); b.x = c[0]; b.z = c[1]; b.yaw = Math.atan2(P.x - b.x, P.z - b.z); m3Puff(b.x, b.z, null, 0.7); m3Wind(b, 0.55); }
+      if (b.ms === 2 && b.mt > 1.1) { b.ms = 3; b.st = 'swing'; b.stT = 0; if (Math.hypot(P.x - b.x, P.z - b.z) < 4.6) m3BossHit(b, 0.28, 'PHANTOM SLASH', 8); } return b.mt > 1.7; },
+    fan(b, s, P) { b.sp *= Math.pow(0.05, s); if (b.ms === 0) { b.ms = 1; m3Wind(b, 0.6); } if (b.ms === 1 && b.mt >= 0.6) { b.ms = 2; b.st = 'swing'; b.stT = 0; m3Fan(b, P, 5, 0.22, 12, 0.13); } if (b.ms === 2 && b.mt >= 1.2) { b.ms = 3; m3Fan(b, P, 5, 0.22, 12, 0.13); } return b.mt > 1.8; } } };
+
+// ---- shared boss machinery ----
+function m3BossSpawn(id, x, z, extra) { M3.zOK = true; const b = m3SpawnAt(id, x, z); M3.zOK = false; if (!b) return null; b.boss = id; b.bmax = b.bhp = id === 'wraithF' ? 1 : m3BHP(id); b.hp = b.mhp = 1e6; b.born = M3.t - 9; b.agg = true; b.bt = 0; b.mv = null; b.mcd = 2.2; b.turn = M3BO[id].turn; b.yawP = b.yaw; b.free = false; b.stunB = 0; b.hintT = ''; Object.assign(b, extra || {}); m3Puff(x, z, null, 0.9); return b; }
+function m3BossMelee(b, s, P, d, da, spd) { const sc = b.sc || 1; spd = spd || 2.6;
+  if (b.st === 'idle') { b.yaw += da*Math.min(1, 6*s); const want = d > 1.9*sc ? spd : 0; b.sp += (want - b.sp)*Math.min(1, 5*s); b.x += Math.sin(b.yaw)*b.sp*s; b.z += Math.cos(b.yaw)*b.sp*s; if (d < 2.3*sc && b.cd <= 0 && Math.abs(da) < 0.5) { b.st = 'wind'; b.stT = 0; b.wt = 0.75; b.hd = false; b.sdA = Math.random() < 0.5 ? 1 : 0; } }
+  else { b.sp *= Math.pow(0.05, s); b.yaw += da*Math.min(1, (b.st === 'wind' ? 3 : 0.5)*s); b.stT += s; if (b.st === 'wind' && b.stT >= b.wt) { b.st = 'swing'; b.stT = 0; } else if (b.st === 'swing') { if (!b.hd && b.stT >= 0.09) { b.hd = true; m3HurtPlayer(b); } if (b.stT >= 0.2) { b.st = 'recover'; b.stT = 0; } } else if (b.st === 'recover' && b.stT >= 0.6) { b.st = 'idle'; b.stT = 0; b.cd = 0.8 + Math.random()*0.9; } }
+  return true; }
+function m3BossCombat(b, s, P, d, da) { if (b.dec) { b.yaw += da*Math.min(1, 4*s); const w = d > 5 ? 2.2 : 0; b.sp += (w - b.sp)*Math.min(1, 4*s); b.x += Math.sin(b.yaw)*b.sp*s; b.z += Math.cos(b.yaw)*b.sp*s; return true; }
+  const R = M3BR[b.boss]; if (!R) return false; if (b.stunB > 0) { b.sp *= 0.8; b.st = 'idle'; return true; }
+  if (b.mv) { b.mt += s; b.stT += s; const done = R.mv[b.mv](b, s, P, d, da); if (b.st === 'swing' && b.stT > 0.22) { b.st = 'recover'; b.stT = 0; } else if (b.st === 'recover' && b.stT > 0.55) { b.st = 'idle'; b.stT = 0; }
+    if (done) { b.mv = null; b.free = false; b.mcd = m3Rnd(R.cd[0], R.cd[1]); b.st = 'idle'; b.stT = 0; b.cd = Math.max(b.cd, 0.6); } return true; }
+  b.mcd -= s; if (b.mcd <= 0 && b.st !== 'wind' && b.st !== 'swing') { const mv = R.pick(b, P, d); if (mv) { b.mv = mv; b.mt = 0; b.ms = 0; b.free = false; } }
+  return m3BossMelee(b, s, P, d, da, R.spd); }
+function m3PopDecoy(b) { m3Puff(b.x, b.z, null, 0.8); b.dyingB = true; b.gone = true; b.dead = true; toast('A decoy pops!  Look for the RED eyes'); }
+function m3BossDie(b) { b.dyingB = true; b.bhp = 0; if (b.dec) { m3PopDecoy(b); return; } for (let i = 0; i < 4; i++) M3.fx.push({ x: b.x + (Math.random() - 0.5)*3, y: b.y + 1 + i*0.6, z: b.z + (Math.random() - 0.5)*3, gy: b.y, t: 0.05 - i*0.08, sc: 0.8, life: 0.9 }); M3.shk = 1; m3Destroy(b); b.gone = true; }
+function m3BossTick(b, s) { const B = b.boss, R = M3BR[B], A = M3.arena; b.bt += s; b.rsT = (b.rsT || 0) - s; const dmg = 1e6 - b.hp; b.hp = b.mhp = 1e6;
+  b.armB = [false, false]; b.legB = [false, false]; b.armX = [false, false]; b.legX = [false, false]; b.armD = [0, 0]; b.legD = [0, 0]; b.headOff = false; b.dmgH = 0; b.held = false; b.fall = false; b.down = false; b.hover = false; b.revs = 0; b.kx *= 0.25; b.kz *= 0.25; b.stun = 0; b.stunB = Math.max(0, (b.stunB || 0) - s);
+  if (M3.grab && M3.grab.b === b) M3.grab = null;
+  if (b.dec) { if (dmg > 0.01 && !b.dyingB) m3PopDecoy(b); } else {
+    if (dmg > 0.01 && !b.dyingB) { const m = R.mult ? R.mult(b, dmg) : 1; b.bhp -= dmg*m; if (b.rsT <= 0) { if (m < 0.2 && m > 0) { b.rsT = 0.6; m3Float(b.x, b.y + 3.4*(b.sc || 1), b.z, 'BLOCKED', '#9ac4ff'); } else if (m >= 2.5) { b.rsT = 0.6; m3Float(b.x, b.y + 3.4*(b.sc || 1), b.z, 'WEAK SPOT!', '#ffd24a'); } } }
+    if (R.tick) R.tick(b, s); if (b.bhp <= 0 && !b.dyingB) m3BossDie(b); }
+  if (b.free) b.yawP = b.yaw; else { let dy = b.yaw - b.yawP; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); const lim = (b.turn || 3)*s; if (Math.abs(dy) > lim) b.yaw = b.yawP + Math.sign(dy)*lim; b.yawP = b.yaw; }
+  if (A) { const dx = b.x - A.x, dz = b.z - A.z, d = Math.hypot(dx, dz), r = A.R - 1.8; if (d > r && !(b.mv === 'charge' && b.ms === 2)) { b.x = A.x + dx/d*r; b.z = A.z + dz/d*r; } if (A.pil) for (const q of A.pil) { const ex = b.x - q.x, ez = b.z - q.z, ed = Math.hypot(ex, ez) || 0.01, rr = q.r + 1.1*(b.sc || 1); if (ed < rr && !(b.mv === 'charge' && b.ms === 2)) { b.x = q.x + ex/ed*rr; b.z = q.z + ez/ed*rr; } } } }
+function m3ZnStep(s) { const P = M3.p, Z = M3.zn; for (let i = Z.length - 1; i >= 0; i--) { const z = Z[i]; z.t += s; if (z.follow) { z.x = z.follow.x; z.z = z.follow.z; if (z.follow.gone) { Z.splice(i, 1); continue; } } const d = Math.hypot(P.x - z.x, P.z - z.z), air = P.y - m3H(P.x, P.z);
+    if (z.kind === 'boom') { if (z.t >= z.tm) { if (z.dm > 0 && d < z.r && air < 2.2 && M3.ko <= 0) { M3.flash = 0.4; M3.v.x += (P.x - z.x)/(d || 1)*6; M3.v.z += (P.z - z.z)/(d || 1)*6; M3.v.y = Math.max(M3.v.y, 5); m3Dmg(z.dm, z.why); } M3.fx.push({ x: z.x, y: m3H(z.x, z.z) + 0.3, z: z.z, gy: m3H(z.x, z.z), t: 0.05, sc: Math.min(0.9, z.r*0.18), life: 0.55 }); M3.shk = Math.max(M3.shk || 0, 0.3); Z.splice(i, 1); } }
+    else if (z.kind === 'tele' || z.kind === 'line') { if (z.t >= z.tm) Z.splice(i, 1); }
+    else if (z.kind === 'burn') { if (z.t >= z.tm) { z.tk -= s; if (z.tk <= 0) { z.tk = 0.5; if (d < z.r && air < 2 && M3.ko <= 0) { M3.flash = 0.3; m3Dmg(z.dm, z.why); } } } if (z.t >= z.tm + z.life) Z.splice(i, 1); }
+    else if (z.kind === 'ring') { z.r += z.v*s; if (!z.done && Math.abs(d - z.r) < 1.4 && air < 1.5 && M3.ko <= 0) { z.done = true; M3.flash = 0.4; M3.v.x += (P.x - z.x)/(d || 1)*8; M3.v.z += (P.z - z.z)/(d || 1)*8; m3Dmg(z.dm, z.why); } if (z.r > z.rmax) Z.splice(i, 1); } } }
+function m3BossBanner(name, sub) { if (!document.getElementById('bbcss')) { const st = document.createElement('style'); st.id = 'bbcss'; st.textContent = '@keyframes bbin{0%{opacity:0;transform:scale(1.5)}100%{opacity:1;transform:scale(1)}}'; document.head.appendChild(st); }
+  const d = document.createElement('div'); d.style.cssText = 'position:fixed;left:0;right:0;top:16%;z-index:78;pointer-events:none;text-align:center;font-family:"Comic Sans MS",cursive;animation:bbin .5s both'; d.innerHTML = '<div style="font-size:18px;letter-spacing:8px;color:#ffd9a0;text-shadow:0 2px 0 #000">⚔ BOSS FIGHT ⚔</div><div style="font-size:clamp(30px,6vw,68px);font-weight:900;color:#fff;-webkit-text-stroke:2px #8a1f1f;paint-order:stroke fill;text-shadow:0 6px 0 #5a0f0f,0 0 30px #ff5a3a;letter-spacing:3px">' + name + '</div><div style="margin:8px auto 0;max-width:80vw;font-size:20px;color:#ffe9b0;text-shadow:0 2px 0 #000">' + sub + '</div>'; document.body.appendChild(d); setTimeout(() => { d.style.transition = 'opacity 1s'; d.style.opacity = 0; setTimeout(() => d.remove(), 1100); }, 4500); }
+function m3Heaven(title, sub, mid, done) { if (!document.getElementById('hvcss')) { const st = document.createElement('style'); st.id = 'hvcss'; st.textContent = '@keyframes hvglow{0%{transform:translate(-50%,-50%) scale(.05);opacity:0}30%{opacity:1}100%{transform:translate(-50%,-50%) scale(3.4);opacity:1}}@keyframes hvcol{0%{transform:translateX(-50%) scaleX(.05);opacity:0}25%{opacity:1}100%{transform:translateX(-50%) scaleX(1);opacity:1}}@keyframes hvup{0%{transform:translateY(0) scale(1);opacity:0}15%{opacity:1}100%{transform:translateY(-130vh) scale(.4);opacity:0}}@keyframes hvtxt{0%,100%{letter-spacing:10px}50%{letter-spacing:20px}}'; document.head.appendChild(st); }
+  M3.paused = true; try { if (document.pointerLockElement) document.exitPointerLock(); } catch (x) {}
+  const d = document.createElement('div'); d.style.cssText = 'position:fixed;inset:0;z-index:90;pointer-events:none;overflow:hidden;font-family:Georgia,serif;background:rgba(255,246,200,0);transition:background .5s';
+  let h = '<div style="position:absolute;left:50%;bottom:0;width:34vmin;height:100%;background:linear-gradient(to top,rgba(255,250,215,.95),rgba(255,240,170,.55) 55%,rgba(255,255,255,0));filter:blur(6px);transform-origin:50% 100%;animation:hvcol 1.7s forwards"></div><div style="position:absolute;left:50%;top:60%;width:70vmax;height:70vmax;border-radius:50%;background:radial-gradient(circle,#fff 0%,#fff6c0 35%,rgba(255,226,120,0) 70%);animation:hvglow 2.1s ease-in forwards"></div>';
+  for (let i = 0; i < 40; i++) h += '<div style="position:absolute;left:' + (30 + Math.random()*40).toFixed(1) + '%;bottom:-20px;width:' + (4 + Math.random()*8).toFixed(1) + 'px;height:' + (4 + Math.random()*8).toFixed(1) + 'px;border-radius:50%;background:#fff6c0;box-shadow:0 0 14px 5px rgba(255,226,120,.95);opacity:0;animation:hvup ' + (1.6 + Math.random()*1.4).toFixed(2) + 's ease-in ' + (Math.random()*1.1).toFixed(2) + 's forwards"></div>';
+  h += '<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center"><div style="font:900 clamp(26px,5vw,62px) Georgia,serif;color:#fff;-webkit-text-stroke:2px #b8892a;text-shadow:0 0 20px #ffd96a,0 3px 0 #8a6414;animation:hvtxt 2s infinite">' + title + '</div><div style="margin-top:10px;font:italic 22px Georgia,serif;color:#6a4a0c;text-shadow:0 0 10px #fff">' + sub + '</div></div>';
+  d.innerHTML = h; document.body.appendChild(d);
+  setTimeout(() => { d.style.background = '#fff'; }, 1800); setTimeout(() => { if (mid) mid(); }, 2200); setTimeout(() => { d.innerHTML = ''; d.style.transition = 'background 1.5s'; d.style.background = 'rgba(255,255,255,0)'; }, 2500); setTimeout(() => { d.remove(); M3.paused = false; if (done) done(); }, 4100); }
+function m3TeleTo(x, z) { const P = M3.p, V = M3.v; P.x = x; P.z = z; P.y = m3H(x, z) + 1; V.x = V.y = V.z = 0; }
+function m3ArenaOpen(x, z, R, id, opt) { const P = M3.p; M3.arena = { x, z, R, id, pil: (opt && opt.pil) || null, t: 0 }; M3.zn = []; M3.shards = []; M3.lc = []; const a = (Math.hypot(P.x - x, P.z - z) > 1 ? Math.atan2(-(P.z - z), -(P.x - x)) : Math.random()*6.28), r = Math.min(8, R*0.55); const b = m3BossSpawn(id, x + Math.cos(a)*r, z + Math.sin(a)*r, (opt && opt.extra) || {}); if (b) { b.yaw = Math.atan2(P.x - b.x, P.z - b.z); b.yawP = b.yaw; }
+  const o = M3.obj; if (o) { o.stage = 'boss'; o.boss = id; o.bossRef = b; } m3BossBanner(M3BO[id].n, M3BO[id].hint); toast('The way out is sealed!  Defeat the ' + M3BO[id].n + '!'); M3.shk = 1; }
+function m3BossBar(c, W, H) { const b = (M3.bots || []).find(q => q.boss && !q.dec && !q.gone && !q.dead); if (!b) return; const bw = Math.min(560, W*0.55), x = W/2 - bw/2, y = 148, f = Math.max(0, b.bhp/b.bmax);
+  c.save(); c.textAlign = 'center'; c.fillStyle = 'rgba(0,0,0,.7)'; c.fillRect(x - 4, y - 4, bw + 8, 24); c.fillStyle = f > 0.3 ? '#e0453a' : '#ff9a2a'; c.fillRect(x, y, bw*f, 16); c.strokeStyle = '#ffd9a0'; c.lineWidth = 2; c.strokeRect(x - 4, y - 4, bw + 8, 24);
+  c.font = "bold 14px 'Comic Sans MS',cursive"; c.fillStyle = '#fff'; c.lineWidth = 3; c.strokeStyle = 'rgba(0,0,0,.8)'; c.strokeText(M3BO[b.boss].n + '   ' + Math.ceil(f*100) + '%', W/2, y + 13); c.fillText(M3BO[b.boss].n + '   ' + Math.ceil(f*100) + '%', W/2, y + 13);
+  if (b.hintT) { c.font = "bold 16px 'Comic Sans MS',cursive"; c.fillStyle = '#ffe9a8'; c.lineWidth = 4; c.strokeText(b.hintT, W/2, y + 44); c.fillText(b.hintT, W/2, y + 44); } c.restore(); }
+
+// ===================== QUESTS (8 of them, each ends in a boss) =====================
+function m3ObjRoll() { const all = [
+  { k: 'cross', tag: 'QUEST', ic: '✝️', name: 'Divine Crosses', d: 'Carry 4 divine crosses to the 4 holes in the corners of the map. Then the SERAPH OF WRATH descends on the altar', goal: 4, c: '#ffd24a' },
+  { k: 'seal', tag: 'QUEST', ic: '☀️', name: 'The Four Seals', d: 'Hold 4 far beacons. The heavens will lift you up to fight the WARDEN OF THE SKIES', goal: 4, c: '#6fc3ff' },
+  { k: 'flame', tag: 'PUZZLE', ic: '🔮', name: 'Memory of Flames', d: 'Enter the FLAME CAVE and repeat the flames in order. The FLAME COLOSSUS guards it', goal: 6, c: '#c15bff' },
+  { k: 'laby', tag: 'QUEST', ic: '🌀', name: 'The Labyrinth', d: 'Find the way through the maze to its centre, where the MINOTAUR waits', goal: 1, c: '#c9a0ff' },
+  { k: 'idol', tag: 'QUEST', ic: '🗿', name: 'The Buried Idol', d: 'Hot or cold: find which of 4 ancient rings hides the idol and dig it up. The GRAVE WARDEN rises', goal: 1, c: '#7dffb0' },
+  { k: 'stars', tag: 'QUEST', ic: '🌠', name: 'Fallen Stars', d: 'Collect 4 fallen stars from the 4 ancient rings. The last one is guarded by the STAR EATER', goal: 4, c: '#ffe27a' },
+  { k: 'mosaic', tag: 'PUZZLE', ic: '🧩', name: 'Stepping Stones', d: 'Memorize the one safe path over the STONE CAVE floor. Then fight the QUARTZ GOLEM', goal: 1, c: '#8fd8ff' },
+  { k: 'sigils', tag: 'PUZZLE', ic: '💡', name: 'Lights Out', d: 'Light all 9 sigils in the PRISM CAVE. Each one flips its neighbours. The PRISM WRAITH waits', goal: 1, c: '#ff8ae6' }];
+  for (let i = all.length - 1; i > 0; i--) { const j = Math.floor(Math.random()*(i + 1)); const t = all[i]; all[i] = all[j]; all[j] = t; } return all.slice(0, 3); }
+
+function m3MazeWalls(M) { const W = [], C = M.C, T = 0.4; for (let zi = 0; zi <= 11; zi++) for (let xi = 0; xi < 11; xi++) if (M.hw[zi][xi]) W.push({ x0: M.ox + xi*C - T, x1: M.ox + (xi + 1)*C + T, z0: M.oz + zi*C - T, z1: M.oz + zi*C + T });
+  for (let row = 0; row < 11; row++) for (let xi = 0; xi <= 11; xi++) if (M.vw[row][xi]) W.push({ x0: M.ox + xi*C - T, x1: M.ox + xi*C + T, z0: M.oz + row*C - T, z1: M.oz + (row + 1)*C + T }); M.W = W; }
+function m3MazeBuild(S) { const N = 11, hw = [], vw = [], seen = []; for (let i = 0; i <= N; i++) hw.push(new Array(N).fill(true)); for (let i = 0; i < N; i++) vw.push(new Array(N + 1).fill(true));
+  for (let z = 0; z < N; z++) { seen.push([]); for (let x = 0; x < N; x++) seen[z].push(x >= 3 && x <= 7 && z >= 3 && z <= 7); }
+  const st = [[5, 0]]; seen[0][5] = true; while (st.length) { const [x, z] = st[st.length - 1], nb = []; if (z > 0 && !seen[z - 1][x]) nb.push([x, z - 1, 'n']); if (z < N - 1 && !seen[z + 1][x]) nb.push([x, z + 1, 's']); if (x > 0 && !seen[z][x - 1]) nb.push([x - 1, z, 'w']); if (x < N - 1 && !seen[z][x + 1]) nb.push([x + 1, z, 'e']); if (!nb.length) { st.pop(); continue; }
+    const [nx, nz, dir] = nb[Math.floor(Math.random()*nb.length)]; if (dir === 'n') hw[z][x] = false; else if (dir === 's') hw[z + 1][x] = false; else if (dir === 'w') vw[z][x] = false; else vw[z][x + 1] = false; seen[nz][nx] = true; st.push([nx, nz]); }
+  for (let zi = 4; zi <= 7; zi++) for (let xi = 3; xi <= 7; xi++) hw[zi][xi] = false; for (let row = 3; row <= 7; row++) for (let xi = 4; xi <= 7; xi++) vw[row][xi] = false;
+  hw[8][5] = false; hw[0][5] = false; const M = { hw, vw, C: 3.6, ox: S.x - 19.8, oz: S.z - 19.8, B: m3H(S.x, S.z), W: null }; m3MazeWalls(M); return M; }
+function m3MazePush(P, V) { const M = M3.maze; if (!M || P.y > M.B + 7.5) return; const r = 0.6; for (const w of M.W) { if (P.x < w.x0 - r || P.x > w.x1 + r || P.z < w.z0 - r || P.z > w.z1 + r) continue; const cx = Math.max(w.x0, Math.min(P.x, w.x1)), cz = Math.max(w.z0, Math.min(P.z, w.z1)); let dx = P.x - cx, dz = P.z - cz, d = Math.hypot(dx, dz);
+    if (d < 0.001) { const ex = Math.min(P.x - w.x0, w.x1 - P.x), ez = Math.min(P.z - w.z0, w.z1 - P.z); if (ex < ez) { dx = P.x < (w.x0 + w.x1)/2 ? -1 : 1; dz = 0; } else { dz = P.z < (w.z0 + w.z1)/2 ? -1 : 1; dx = 0; } d = 1; P.x += dx*r; P.z += dz*r; }
+    else if (d < r) { P.x = cx + dx/d*r; P.z = cz + dz/d*r; } else continue; const vn = V.x*dx/d + V.z*dz/d; if (vn < 0) { V.x -= dx/d*vn; V.z -= dz/d*vn; } } }
+
+function m3ObjClear() { M3.obj = null; M3.arena = null; M3.zn = []; M3.shards = []; M3.lc = []; M3.maze = null; if (M3.bots) for (const b of M3.bots || []) if (b.boss || b.add) { b.gone = true; b.dead = true; } }
+function m3ObjStart(o) { const A = M3.altar, TAU = 6.2832; m3ObjClear(); o.n = 0; o.t = 0; o.stage = 'puzzle'; M3.zn = [];
+  if (o.k === 'cross') { o.holes = [[1, 1], [1, -1], [-1, -1], [-1, 1]].map(q => ({ x: A.x + q[0]*70, z: A.z + q[1]*70, done: false })); o.carry = false; o.stand = { x: A.x + 7.2, z: A.z }; }
+  else if (o.k === 'seal') { const a0 = 0.785 + (Math.random() - 0.5)*0.35; o.b = [0, 1, 2, 3].map(k => ({ x: A.x + Math.cos(a0 + k*1.5708)*88, z: A.z + Math.sin(a0 + k*1.5708)*88 })); o.i = 0; o.ch = 0; }
+  else if (o.k === 'flame') { const S = o.site = M3SI.flame, cols = [[255, 80, 80], [80, 160, 255], [255, 214, 70], [90, 230, 120]]; o.marks = cols.map((c, i) => ({ x: S.x + Math.cos(i*1.5708 + 0.785)*8, z: S.z + Math.sin(i*1.5708 + 0.785)*8, c, n: ['RED', 'BLUE', 'GOLD', 'GREEN'][i], lit: false })); o.round = 1; o.cool = 0; o.at = -1; m3FlameNew(o); o.stage = 'travel'; }
+  else if (o.k === 'laby') { o.site = M3SI.laby; M3.maze = m3MazeBuild(o.site); o.stage = 'travel'; }
+  else if (o.k === 'idol') { o.pad = Math.floor(Math.random()*4); o.chk = [0, 0, 0, 0]; o.dw = 0; }
+  else if (o.k === 'stars') { const a = [0, 1, 2, 3]; for (let i = 3; i > 0; i--) { const j = Math.floor(Math.random()*(i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; } o.ord = a.slice(0, 4); o.i = 0; }
+  else if (o.k === 'mosaic') { const S = o.site = M3SI.mosaic; let r = Math.floor(Math.random()*5), p = [[4, r]], seen = { ['4,' + r]: 1 }, ix = 4; while (ix > 0) { const opts = [[ix - 1, r]]; if (Math.random() < 0.7) { for (const dr of Math.random() < 0.5 ? [-1, 1] : [1, -1]) if (r + dr >= 0 && r + dr <= 4 && !seen[ix + ',' + (r + dr)]) { opts.unshift([ix, r + dr]); break; } } const n = opts[0]; ix = n[0]; r = n[1]; seen[ix + ',' + r] = 1; p.push([ix, r]); } o.path = p; o.pi = 0; o.ph = 'show'; o.tm = 0; o.cool = 0; o.wrong = 0; o.stage = 'travel'; }
+  else if (o.k === 'sigils') { const S = o.site = M3SI.sigils; let g; do { g = new Array(9).fill(true); for (let k = 0; k < 6; k++) m3SigPress(g, Math.floor(Math.random()*9)); } while (g.every(v => v)); o.g = g; o.on = -1; o.dw = 0; o.armed = false; o.stage = 'travel'; }
+  M3.obj = o; toast('QUEST: ' + o.name); }
+function m3SigPress(g, t) { const x = t % 3, z = (t / 3) | 0; g[t] = !g[t]; if (x > 0) g[t - 1] = !g[t - 1]; if (x < 2) g[t + 1] = !g[t + 1]; if (z > 0) g[t - 3] = !g[t - 3]; if (z < 2) g[t + 3] = !g[t + 3]; }
+function m3FlameNew(o) { o.seq = []; for (let i = 0; i < 6; i++) o.seq.push(Math.floor(Math.random()*4)); o.ph = 'show'; o.si = 0; o.tm = 3; o.pos = 0; o.lit = -1; o.litT = 0; }
+function m3ObjTxt(o) { const st = o.stage; if (st === 'ascend') return 'The heavens lift you up...'; if (st === 'boss' || st === 'victory') return 'BOSS FIGHT  -  defeat the ' + (M3BO[o.boss] ? M3BO[o.boss].n : 'boss') + '!';
+  if (o.k === 'cross') return o.n + '/4 crosses placed  -  ' + (o.carry ? 'carry it to an empty hole in a corner of the map' : 'take a cross from the altar');
+  if (o.k === 'seal') return 'Seal ' + (o.i + 1) + '/4  -  ' + (o.ch > 0.2 ? 'HOLD!  ' + o.ch.toFixed(1) + '/10 s' : 'run to the golden beacon and stand in its ring');
+  if (o.k === 'flame') return st === 'travel' ? 'go to the FLAME CAVE in the mountain (see the map)' : 'Round ' + o.round + '/6  -  ' + (o.ph === 'show' ? 'WATCH THE FLAMES...' : 'repeat them  ' + o.pos + '/' + o.round);
+  if (o.k === 'laby') return st === 'travel' ? 'go to the LABYRINTH (see the map)' : 'find the way to the centre room of the maze  (the door is on its far side)';
+  if (o.k === 'idol') { const p = M3PAD[o.pad], d = Math.hypot(p.x - M3.p.x, p.z - M3.p.z), t = d < 18 ? 'BURNING HOT' : d < 45 ? 'HOT' : d < 80 ? 'WARM' : d < 110 ? 'COLD' : 'FREEZING'; return t + '  -  stand inside a ring for 2 seconds to dig  (' + o.chk.filter(v => v).length + '/3 rings searched)'; }
+  if (o.k === 'stars') return 'Star ' + (o.i + 1) + '/4  -  follow the golden beam to the glowing ring';
+  if (o.k === 'mosaic') return st === 'travel' ? 'go to the STONE CAVE (see the map)' : o.ph === 'show' ? 'MEMORIZE the glowing path...' : 'step along the path from the near edge  ' + o.pi + '/' + o.path.length;
+  if (o.k === 'sigils') return st === 'travel' ? 'go to the PRISM CAVE (see the map)' : 'light all 9 sigils  (' + o.g.filter(v => v).length + '/9)  -  stand on a tile for a moment';
+  return o.d; }
+function m3ObjReward(o) { M3.objDone = (M3.objDone || 0) + 1; toast('OBJECTIVE COMPLETE: ' + o.name + '   (reward coming in the next update)'); m3Float(M3.p.x, M3.p.y + 2.4, M3.p.z, '✔ OBJECTIVE!', '#7dff9a'); }
+function m3ObjDone() { const o = M3.obj; m3ObjClear(); if (o) m3ObjReward(o); }
+function m3ObjKill(b) { }
+function m3QWin(o) { const A = M3.altar, S = o.site; o.stage = 'win';
+  if (o.k === 'cross') { toast('The four crosses blaze!  THE SERAPH DESCENDS!'); m3ArenaOpen(A.x, A.z, 24, 'seraph'); }
+  else if (o.k === 'seal') { o.stage = 'ascend'; const T = M3SI.sky; m3Heaven('ASCENDING', 'the four seals open the way to the heavens', () => { m3TeleTo(T.x, T.z); m3ArenaOpen(T.x, T.z, 27, 'warden'); }, null); }
+  else if (o.k === 'flame') { toast('The pillars blaze... THE COLOSSUS AWAKENS!'); m3ArenaOpen(S.x, S.z, 18, 'colossus'); }
+  else if (o.k === 'mosaic') { toast('The stones crack... THE GOLEM RISES!'); m3ArenaOpen(S.x, S.z, 18, 'golem'); }
+  else if (o.k === 'sigils') { toast('All sigils burn bright... THE WRAITH APPEARS!'); m3ArenaOpen(S.x, S.z, 18, 'wraith'); }
+  else if (o.k === 'idol') { const p = M3PAD[o.pad]; toast('You dig up the idol... THE GRAVE WARDEN RISES!'); m3ArenaOpen(p.x, p.z, 14.5, 'grave'); }
+  else if (o.k === 'stars') { const p = M3PAD[o.ord[3]]; toast('The last star falls... THE STAR EATER COMES!'); m3ArenaOpen(p.x, p.z, 14.5, 'stareater'); }
+  else if (o.k === 'laby') { const c = [[-4.2, -4.2], [4.2, -4.2], [-4.2, 4.2], [4.2, 4.2]].map(q => ({ x: S.x + q[0], z: S.z + q[1], r: 1.1 })); M3.maze.hw[8][5] = true; m3MazeWalls(M3.maze); toast('The door slams shut!  THE MINOTAUR SNORTS...'); m3ArenaOpen(S.x, S.z, 8.4, 'minotaur', { pil: c }); } }
+function m3QVictory(o) { for (const q of M3.bots) if (q.boss === 'wraithF' || q.add) { q.gone = true; q.dead = true; } M3.zn = []; M3.shards = []; M3.lc = []; M3.arena = null;
+  if (o.k === 'seal') { const A = M3.altar; o.stage = 'ascend'; toast('THE WARDEN FALLS!'); m3Heaven('RETURNING', 'the heavens carry you home', () => { m3TeleTo(A.x + 10, A.z); }, () => m3ObjDone()); }
+  else { toast('THE ' + (M3BO[o.boss] ? M3BO[o.boss].n : 'BOSS') + ' IS DEFEATED!'); m3ObjDone(); } }
+function m3MobPush() { const Ar = M3.arena; for (const b of M3.bots || []) { if (b.boss || b.add || b.dead || b.gone || b.held) continue;
+    for (const s of M3SITES) { if (!s.zr) continue; const dx = b.x - s.x, dz = b.z - s.z; if (dx > s.zr || dx < -s.zr || dz > s.zr || dz < -s.zr) continue; const d = Math.hypot(dx, dz); if (d < s.zr) { const k = s.zr/(d || 0.01); b.x = s.x + dx*k; b.z = s.z + dz*k; b.tx = b.x; b.tz = b.z; } }
+    if (Ar) { const dx = b.x - Ar.x, dz = b.z - Ar.z, d = Math.hypot(dx, dz), R = Ar.R + 1.5; if (d < R) { const k = R/(d || 0.01); b.x = Ar.x + dx*k; b.z = Ar.z + dz*k; b.tx = b.x; b.tz = b.z; } } } }
+function m3ObjStep(s) { const A = M3.altar, P = M3.p, V = M3.v; if (!A || !P) return; { const dx = P.x - A.x, dz = P.z - A.z, d = Math.hypot(dx, dz) || 0.01, gy = m3H(A.x, A.z); if (d < 4.9 && P.y < gy + 1.5) { P.x = A.x + dx/d*4.9; P.z = A.z + dz/d*4.9; } M3.altNear = d < 12;
+    if (P.y < gy + 9) for (let i = 0; i < 8; i++) { const an = i/8*6.2832 + 0.3927, cx = A.x + Math.cos(an)*8.7, cz = A.z + Math.sin(an)*8.7, ex = P.x - cx, ez = P.z - cz, ed = Math.hypot(ex, ez) || 0.01; if (ed < 1.45) { P.x = cx + ex/ed*1.45; P.z = cz + ez/ed*1.45; } } } // the eight columns are solid
+  if (!M3.zn) M3.zn = [];
+  for (const b of M3.bots || []) if (b.boss && !b.gone && !b.dead) m3BossTick(b, s);
+  if (M3.zn.length) m3ZnStep(s);
+  m3MobPush();
+  const Ar = M3.arena; if (Ar) { Ar.t += s; const dx = P.x - Ar.x, dz = P.z - Ar.z, d = Math.hypot(dx, dz), r = Ar.R - 1.2; if (d > r) { const nx = dx/d, nz = dz/d; P.x = Ar.x + nx*r; P.z = Ar.z + nz*r; const vn = V.x*nx + V.z*nz; if (vn > 0) { V.x -= nx*vn; V.z -= nz*vn; } }
+    if (Ar.pil) for (const q of Ar.pil) { const ex = P.x - q.x, ez = P.z - q.z, ed = Math.hypot(ex, ez) || 0.01, rr = q.r + 0.6; if (ed < rr && P.y < m3H(q.x, q.z) + 8) { P.x = q.x + ex/ed*rr; P.z = q.z + ez/ed*rr; } } }
+  if (M3.maze) m3MazePush(P, V);
+  const o = M3.obj; if (!o) return;
+  if (o.stage === 'boss') { const br = o.bossRef; if (br && (br.gone || br.dyingB)) { o.stage = 'victory'; m3QVictory(o); } return; }
+  if (o.stage === 'ascend' || o.stage === 'victory' || o.stage === 'win') return;
+  if (o.k === 'cross') { if (!o.carry && o.n < 4 && Math.hypot(o.stand.x - P.x, o.stand.z - P.z) < 2.6) { o.carry = true; toast('You lift a divine cross.  Carry it to a hole in the corner of the map!'); }
+    else if (o.carry) for (const h of o.holes) if (!h.done && Math.hypot(h.x - P.x, h.z - P.z) < 2.7) { h.done = true; o.carry = false; o.n++; m3Float(h.x, m3H(h.x, h.z) + 3, h.z, '✝', '#ffe27a'); toast('The cross is placed!  ' + o.n + '/4'); if (o.n >= 4) m3QWin(o); break; } }
+  else if (o.k === 'seal') { const b = o.b[o.i]; if (Math.hypot(b.x - P.x, b.z - P.z) < 4) o.ch += s; else o.ch = Math.max(0, o.ch - 2.5*s); if (o.ch >= 10) { o.i++; o.ch = 0; o.n = o.i; m3Float(b.x, m3H(b.x, b.z) + 3, b.z, '☀ SEALED', '#ffe27a'); if (o.i >= 4) m3QWin(o); else toast('Seal ' + o.i + '/4 complete!  Find the next beacon'); } }
+  else if (o.k === 'flame') { o.cool = Math.max(0, o.cool - s); if (o.litT > 0) { o.litT -= s; if (o.litT <= 0) o.lit = -1; } o.marks.forEach((q, i) => { q.lit = o.lit === i; });
+    if (o.stage === 'travel') { if (Math.hypot(o.site.x - P.x, o.site.z - P.z) < 22) { o.stage = 'puzzle'; m3FlameNew(o); o.tm = 3; toast('The flames awaken...  watch carefully'); } return; }
+    let at = -1; o.marks.forEach((q, i) => { if (Math.hypot(q.x - P.x, q.z - P.z) < 2.2) at = i; }); const entered = at >= 0 && at !== o.at; o.at = at;
+    if (o.ph === 'show') { o.tm -= s; if (o.tm <= 0) { if (o.si < o.round) { o.lit = o.seq[o.si]; o.litT = 0.9; o.si++; o.tm = 1.5; } else { o.ph = 'in'; o.pos = 0; toast('Your turn!  Step on the pillars in the same order'); } } }
+    else if (entered && o.cool <= 0) { o.cool = 0.6; o.lit = at; o.litT = 0.5; if (at === o.seq[o.pos]) { o.pos++; if (o.pos >= o.round) { o.round++; o.n = o.round - 1; if (o.round > 6) { m3QWin(o); return; } o.ph = 'show'; o.si = 0; o.tm = 2.4; toast('Correct!  Round ' + o.round + '/6 - watch again'); } } else { toast('Wrong!  The flames reshuffle...'); o.round = 1; m3FlameNew(o); o.tm = 2.5; } } }
+  else if (o.k === 'laby') { const S = o.site; if (o.stage === 'travel' && Math.hypot(S.x - P.x, S.z - P.z) < 36) { o.stage = 'puzzle'; toast('The walls of the labyrinth rise around you...'); }
+    if (Math.abs(P.x - S.x) < 8.2 && Math.abs(P.z - S.z) < 8.2 && P.y < M3.maze.B + 4) m3QWin(o); }
+  else if (o.k === 'idol') { let near = -1; M3PAD.forEach((p, i) => { if (Math.hypot(p.x - P.x, p.z - P.z) < 3.4) near = i; });
+    if (near >= 0 && !o.chk[near]) { o.dw += s; if (o.dw >= 2) { o.dw = 0; if (near === o.pad) m3QWin(o); else { o.chk[near] = 1; toast('Nothing here...  only dust.  ' + o.chk.filter(v => v).length + '/3 searched'); } } } else o.dw = Math.max(0, o.dw - 2*s); }
+  else if (o.k === 'stars') { const p = M3PAD[o.ord[o.i]]; if (Math.hypot(p.x - P.x, p.z - P.z) < 3) { o.i++; o.n = o.i; m3Float(p.x, m3H(p.x, p.z) + 3, p.z, '★ STAR ' + o.i + '/4', '#ffe27a'); if (o.i >= 4) m3QWin(o); else toast('Star ' + o.i + '/4 collected!  The next one falls...'); } }
+  else if (o.k === 'mosaic') { const S = o.site; o.cool = Math.max(0, o.cool - s);
+    if (o.stage === 'travel') { if (Math.hypot(S.x - P.x, S.z - P.z) < 22) { o.stage = 'puzzle'; o.ph = 'show'; o.tm = 0; toast('The stones begin to glow...  memorize the path!'); } return; }
+    if (o.ph === 'show') { o.tm += s; if (o.tm > o.path.length*0.55 + 1.6) { o.ph = 'go'; o.pi = 0; toast('Now walk it!  Start at the edge nearest the cave entrance'); } return; }
+    const ix = Math.floor((P.x - (S.x - 7))/2.8), iz = Math.floor((P.z - (S.z - 7))/2.8);
+    if (ix >= 0 && ix <= 4 && iz >= 0 && iz <= 4 && P.y < m3H(S.x, S.z) + 1.9 && o.cool <= 0) { const idx = o.path.findIndex(q => q[0] === ix && q[1] === iz);
+      if (idx === o.pi) { o.pi++; if (o.pi >= o.path.length) { m3QWin(o); return; } } else if (idx >= 0 && idx < o.pi) { } else { o.cool = 1.2; o.pi = 0; o.ph = 'show'; o.tm = 0; o.wrong = 1; V.y = Math.max(V.y, 6); M3.flash = 0.5; m3Dmg(Math.round(M3.mhp*0.1), 'CRUMBLING STONE'); toast('WRONG STONE!  The path flashes again...'); } } }
+  else if (o.k === 'sigils') { const S = o.site;
+    if (o.stage === 'travel') { if (Math.hypot(S.x - P.x, S.z - P.z) < 22) { o.stage = 'puzzle'; toast('Stand on a sigil tile to flip it and its neighbours'); } return; }
+    const ix = Math.floor((P.x - (S.x - 5.7))/3.8), iz = Math.floor((P.z - (S.z - 5.7))/3.8), inside = Math.abs(P.x - S.x) < 5.7 && Math.abs(P.z - S.z) < 5.7 && ix >= 0 && ix <= 2 && iz >= 0 && iz <= 2 && P.y < m3H(S.x, S.z) + 1.9, t = inside ? iz*3 + ix : -1;
+    if (t !== o.on) { o.on = t; o.dw = 0; o.armed = t >= 0; } else if (t >= 0 && o.armed) { o.dw += s; if (o.dw >= 0.8) { o.armed = false; o.dw = 0; m3SigPress(o.g, t); m3Puff(S.x + (ix - 1)*3.8, S.z + (iz - 1)*3.8, null, 0.4); if (o.g.every(v => v)) m3QWin(o); } } } }
+
+// ===================== QUEST DRAWING =====================
+function m3QDraw(G) { const { obj, tr, poly, box, mark, F, P } = G, o = M3.obj, T = M3.t || 0, ar = M3.arena;
+  const gdisc = (x, z, R, col, al, n) => { n = n || 16; for (let i = 0; i < n; i++) { const a0 = i/n*6.2832, a1 = (i + 1)/n*6.2832, x0 = x + Math.cos(a0)*R, z0 = z + Math.sin(a0)*R, x1 = x + Math.cos(a1)*R, z1 = z + Math.sin(a1)*R, n0 = obj.length; poly([[x, m3H(x, z) + 0.07, z], [x0, m3H(x0, z0) + 0.07, z0], [x1, m3H(x1, z1) + 0.07, z1]], col, true, obj); if (obj.length > n0) { const f = obj[obj.length - 1]; f.dec = 1; f.al = al; f.d += 2.9; } } };
+  const gquad = (pts, col, al) => { const n0 = obj.length; poly(pts.map(q => [q[0], m3H(q[0], q[1]) + 0.07, q[1]]), col, true, obj); if (obj.length > n0) { const f = obj[obj.length - 1]; f.dec = 1; f.al = al; f.d += 2.9; } };
+  const sring = (x, z, R, rgb, al, lw, hh) => { const pts = []; for (let i = 0; i <= 30; i++) { const a = i/30*6.2832, px = x + Math.cos(a)*R, pz = z + Math.sin(a)*R; pts.push(tr(px, m3H(px, pz) + (hh == null ? 0.3 : hh), pz)); } obj.push({ fx: true, d: 1, run: () => { ctx.strokeStyle = 'rgba(' + rgb + ',' + al + ')'; ctx.lineWidth = lw || 4; ctx.beginPath(); let st = false; for (const q of pts) { if (q[2] < 0.3) { st = false; continue; } const X = W/2 + q[0]/q[2]*F, Y = H/2 - q[1]/q[2]*F; if (!st) { ctx.moveTo(X, Y); st = true; } else ctx.lineTo(X, Y); } ctx.stroke(); } }); };
+  const glow = (x, y, z, R, rgb, al) => { const q = tr(x, y, z); if (q[2] < 0.5 || q[2] > 160) return; const r = R*F/q[2]; obj.push({ fx: true, d: q[2] - 0.1, run: () => { const X = W/2 + q[0]/q[2]*F, Y = H/2 - q[1]/q[2]*F, g = ctx.createRadialGradient(X, Y, 1, X, Y, r); g.addColorStop(0, 'rgba(' + rgb + ',' + al + ')'); g.addColorStop(1, 'rgba(' + rgb + ',0)'); ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = g; ctx.beginPath(); ctx.arc(X, Y, r, 0, 7); ctx.fill(); ctx.restore(); } }); };
+  const STN = [132, 126, 140], STN2 = [104, 100, 116];
+  // gates of the three cave craters
+  for (const s of M3SITES) { if (s.k !== 'crater') continue; const dd = Math.hypot(s.x - P.x, s.z - P.z); if (dd > 230) continue; const ag = Math.atan2(-s.z, -s.x), cx = Math.cos(ag), cz = Math.sin(ag);
+    for (const sd of [-1, 1]) { const px = s.x + cx*24 - cz*sd*3.6, pz = s.z + cz*24 + cx*sd*3.6, gy = m3H(px, pz); box([px, gy + 5.5, pz], 0.8, 5.5, 0.8, STN); box([px, gy + 11.2, pz], 1.1, 0.4, 1.1, STN2); }
+    { const px = s.x + cx*24, pz = s.z + cz*24, gy = Math.max(m3H(s.x + cx*24 - cz*3.6, s.z + cz*24 + cx*3.6), m3H(s.x + cx*24 + cz*3.6, s.z + cz*24 - cx*3.6)); box([px, gy + 11, pz], Math.abs(cz)*4 + Math.abs(cx)*0.9, 0.5, Math.abs(cx)*4 + Math.abs(cz)*0.9, STN2); }
+    if (o && o.site === s && o.stage === 'travel') mark(s.x + cx*24, s.z + cz*24, [255, 214, 120], s.nm + ' (entrance)'); }
+  // maze
+  if (M3.maze) { const M = M3.maze, by = M.B; if (Math.hypot(M.ox + 22 - P.x, M.oz + 22 - P.z) < 120) for (const w of M.W) { const cx = (w.x0 + w.x1)/2, cz = (w.z0 + w.z1)/2; if (Math.abs(cx - P.x) > 70 || Math.abs(cz - P.z) > 70) continue; box([cx, by + 3, cz], (w.x1 - w.x0)/2, 3, (w.z1 - w.z0)/2, ((cx*7 + cz*3) | 0) % 2 ? [142, 130, 112] : [124, 114, 100]); box([cx, by + 6.1, cz], (w.x1 - w.x0)/2 + 0.1, 0.12, (w.z1 - w.z0)/2 + 0.1, [200, 186, 150]); }
+    if (o && o.k === 'laby') mark(o.site.x, o.site.z, [201, 160, 255], o.stage === 'travel' ? 'LABYRINTH' : 'CENTRE ROOM'); }
+  // ancient rings (idol & stars quests)
+  if (o && (o.k === 'idol' || o.k === 'stars')) M3PAD.forEach((p, i) => { const dd = Math.hypot(p.x - P.x, p.z - P.z); if (dd > 240) return; const gy = m3H(p.x, p.z), chk = o.k === 'idol' && o.chk[i], cur = o.k === 'stars' && o.stage === 'puzzle' && o.ord[o.i] === i;
+    for (let k = 0; k < 14; k++) { const a = k/14*6.2832, qx = p.x + Math.cos(a)*3.2, qz = p.z + Math.sin(a)*3.2; box([qx, m3H(qx, qz) + 0.45, qz], 0.34, 0.45, 0.34, chk ? [120, 70, 70] : cur ? [255, 226, 120] : [150, 150, 164]); }
+    gdisc(p.x, p.z, 3, chk ? [90, 50, 50] : cur ? [255, 240, 170] : [200, 200, 220], cur ? 0.7 : 0.35, 12);
+    if (o.k === 'idol') { if (o.dw > 0 && Math.hypot(p.x - P.x, p.z - P.z) < 3.6) sring(p.x, p.z, 3.4*(1 - o.dw/2), '255,255,170', 0.9, 5); if (!chk && o.stage === 'puzzle') mark(p.x, p.z, [150, 170, 220], 'RING ' + (i + 1) + ' ?', true); }
+    if (cur) { box([p.x, gy + 2.4 + 0.4*Math.sin(T*2), p.z], 0.35, 0.8, 0.35, [255, 236, 130]); box([p.x, gy + 2.4 + 0.4*Math.sin(T*2), p.z], 0.8, 0.3, 0.3, [255, 255, 200]); glow(p.x, gy + 2.6, p.z, 3, '255,240,150', 0.6); mark(p.x, p.z, [255, 226, 110], 'FALLEN STAR ' + (o.i + 1) + '/4'); } });
+  // stepping stones (STONE CAVE)
+  if (o && o.k === 'mosaic' && o.stage !== 'travel' && Math.hypot(o.site.x - P.x, o.site.z - P.z) < 150) { const S = o.site, gy = m3H(S.x, S.z);
+    for (let ix = 0; ix < 5; ix++) for (let iz = 0; iz < 5; iz++) { const px = S.x + (ix - 2)*2.8, pz = S.z + (iz - 2)*2.8, idx = o.path.findIndex(q => q[0] === ix && q[1] === iz); let col = (ix + iz) % 2 ? [120, 116, 130] : [102, 98, 114], lift = 0;
+      if (o.ph === 'show' && idx >= 0 && o.tm >= idx*0.55) { col = [110, 220, 255]; lift = 0.12; } else if (o.ph === 'go' && idx >= 0 && idx < o.pi) col = [110, 230, 140]; if (o.cool > 0.6 && o.wrong) col = [220, 70, 70];
+      box([px, gy + 0.1 + lift, pz], 1.3, 0.18, 1.3, col); } }
+  // light tiles (PRISM CAVE)
+  if (o && o.k === 'sigils' && o.stage !== 'travel' && Math.hypot(o.site.x - P.x, o.site.z - P.z) < 150) { const S = o.site, gy = m3H(S.x, S.z);
+    for (let iz = 0; iz < 3; iz++) for (let ix = 0; ix < 3; ix++) { const t = iz*3 + ix, px = S.x + (ix - 1)*3.8, pz = S.z + (iz - 1)*3.8, on = o.g[t], pr = o.on === t && o.armed ? o.dw/0.8 : 0; box([px, gy + 0.12, pz], 1.7, 0.2, 1.7, on ? [255, 232, 120] : [70, 66, 96]); box([px, gy + 0.36, pz], 1.0, 0.06, 1.0, on ? [255, 255, 220] : [40, 38, 62]); if (pr > 0) sring(px, pz, 1.9*(1 - pr*0.7), '255,255,200', 0.9, 4, 0.5); if (on) glow(px, gy + 1, pz, 3, '255,230,120', 0.35); } }
+  // flame cave: glow around the blazing pillars once solved
+  if (o && o.k === 'flame' && o.stage === 'travel') mark(o.site.x, o.site.z, [255, 140, 60], 'FLAME CAVE');
+  if (o && (o.k === 'mosaic' || o.k === 'sigils') && o.stage === 'travel') mark(o.site.x, o.site.z, o.k === 'mosaic' ? [143, 216, 255] : [255, 138, 230], o.site.nm);
+  if (o && o.k === 'laby' && !M3.maze) { }
+  // boss effects: shards, light circles, danger zones, arena wall
+  for (const q of M3.shards || []) if (!q.got) { const gy = m3H(q.x, q.z); box([q.x, gy + 1.3 + 0.25*Math.sin(T*3 + q.x), q.z], 0.3, 0.8, 0.3, [255, 232, 120]); box([q.x, gy + 1.3 + 0.25*Math.sin(T*3 + q.x), q.z], 0.7, 0.25, 0.25, [255, 255, 210]); glow(q.x, gy + 1.5, q.z, 3, '255,230,120', 0.6); mark(q.x, q.z, [255, 226, 110], 'SHARD'); }
+  for (const q of M3.lc || []) { const pu = 0.5 + 0.5*Math.sin(T*3); gdisc(q.x, q.z, q.r, [190, 255, 210], 0.34 + 0.12*pu, 22); sring(q.x, q.z, q.r, '170,255,200', 0.9, 5); }
+  for (const z of M3.zn || []) { const u = Math.min(1, z.t/(z.tm || 1));
+    if (z.kind === 'boom') { gdisc(z.x, z.z, z.r, [255, 60, 40], 0.16 + 0.42*u, 14); sring(z.x, z.z, z.r, '255,110,70', 0.95, 4); sring(z.x, z.z, Math.max(0.3, z.r*u), '255,230,120', 0.9, 3); }
+    else if (z.kind === 'burn') { const on = z.t >= z.tm; gdisc(z.x, z.z, z.r, on ? [255, 120, 30] : [255, 150, 60], on ? 0.5 + 0.15*Math.sin(T*9) : 0.2 + 0.3*u, 14); sring(z.x, z.z, z.r, '255,150,60', 0.9, 4); }
+    else if (z.kind === 'tele') { sring(z.x, z.z, z.r, '255,70,50', 0.6 + 0.4*Math.sin(T*14), 5); }
+    else if (z.kind === 'ring') { sring(z.x, z.z, z.r, '255,240,190', 0.95, 7); sring(z.x, z.z, Math.max(0.2, z.r - 0.9), '255,170,90', 0.7, 4); }
+    else if (z.kind === 'line') { const sx = Math.sin(z.ang), sz = Math.cos(z.ang), px = sz, pz = -sx, w = z.w, L = z.len, al = 0.2 + 0.35*u; gquad([[z.x + px*w, z.z + pz*w], [z.x - px*w, z.z - pz*w], [z.x - px*w + sx*L, z.z - pz*w + sz*L], [z.x + px*w + sx*L, z.z + pz*w + sz*L]], z.col || [255, 70, 50], al); } }
+  if (ar && Math.hypot(ar.x - P.x, ar.z - P.z) < 120) { const n = 24, bc = ar.id === 'warden' ? [150, 200, 255] : ar.id === 'minotaur' ? [200, 150, 90] : [255, 226, 140];
+    for (let k = 0; k < n; k++) { const a = k/n*6.2832, px = ar.x + Math.cos(a)*ar.R, pz = ar.z + Math.sin(a)*ar.R, gy = m3H(px, pz); box([px, gy + 3.2, pz], 0.22, 3.2, 0.22, bc); }
+    if (ar.id === 'warden') gdisc(ar.x, ar.z, ar.R, [232, 236, 255], 0.85, 28);
+    sring(ar.x, ar.z, ar.R, bc.join(','), 0.85, 5, 0.5); sring(ar.x, ar.z, ar.R, bc.join(','), 0.5, 3, 3.2); sring(ar.x, ar.z, ar.R, bc.join(','), 0.4, 3, 6.4);
+    for (const q of ar.pil || []) { const gy = m3H(q.x, q.z); box([q.x, gy + 3.5, q.z], q.r*0.8, 3.5, q.r*0.8, [120, 108, 96]); box([q.x, gy + 7.1, q.z], q.r, 0.2, q.r, [160, 146, 120]); box([q.x, gy + 0.3, q.z], q.r*1.1, 0.3, q.r*1.1, [100, 90, 80]); } }
+  for (const b of M3.bots || []) { if (!b.boss || b.gone || b.dead) continue; const sc = b.sc || 1, cy = b.y + (b.yo || 0) + 1.5*sc; let col = null, al = 0.35, R = 2.1*sc;
+    if (b.boss === 'seraph' && b.sh) { col = '255,226,120'; al = 0.5; R = 2.6*sc; sring(b.x, b.z, 2.6*sc, '255,230,130', 0.9, 4, (b.yo || 0) + 4.2*sc); }
+    else if (b.boss === 'stareater' && b.bright) { col = '255,255,255'; al = 0.7; R = 2.6*sc; }
+    else if (b.boss === 'warden' && b.exh > 0) { col = '255,130,90'; al = 0.4; }
+    else if (b.boss === 'minotaur' && b.stunB > 0) { col = '255,240,120'; al = 0.45; }
+    else if (b.boss === 'golem' && (b.cmb2 || 0) >= 5) { col = '255,170,240'; al = 0.5; }
+    else if (b.boss === 'grave' && m3InLight(b.x, b.z)) { col = '120,255,170'; al = 0.45; }
+    if (col) glow(b.x, cy, b.z, R, col, al);
+    if (b.boss === 'colossus') { const bx = b.x - Math.sin(b.yaw)*1.6*sc, bz = b.z - Math.cos(b.yaw)*1.6*sc; glow(bx, b.y + 1.9*sc, bz, 1.4*sc, '255,200,60', 0.55 + 0.25*Math.sin(T*6)); }
+    if (b.boss === 'warden' && (b.yo || 0) > 0.8) { gdisc(b.x, b.z, 1.6, [20, 30, 60], 0.35, 10); }
+    if (b.boss === 'wraith' || b.boss === 'wraithF') glow(b.x, cy, b.z, 1.7*sc, b.boss === 'wraith' ? '255,70,70' : '90,150,255', 0.28); } }
+
+// ===================== QUEST MAP HELPERS =====================
+function m3QTarget(o) { if (o.stage === 'boss' || o.stage === 'ascend' || o.stage === 'victory' || o.stage === 'win') return null; if (o.k === 'stars') return M3PAD[o.ord[o.i]]; if (o.k === 'laby') return o.site; if ((o.k === 'flame' || o.k === 'mosaic' || o.k === 'sigils') && o.stage === 'travel') return o.site; return null; }
+function m3QMapAdd(o, add) { if (o.stage === 'boss' || o.stage === 'ascend' || o.stage === 'victory' || o.stage === 'win') return; const S = o.site;
+  if (o.k === 'flame' && o.stage === 'travel') add(S.x, S.z, '#ff8a3a', S.nm, 1);
+  else if ((o.k === 'mosaic' || o.k === 'sigils') && o.stage === 'travel') add(S.x, S.z, o.k === 'mosaic' ? '#8fd8ff' : '#ff8ae6', S.nm, 1);
+  else if (o.k === 'laby') add(S.x, S.z, '#c9a0ff', o.stage === 'travel' ? 'LABYRINTH' : 'MAZE CENTRE', 1);
+  else if (o.k === 'idol') M3PAD.forEach((p, i) => add(p.x, p.z, o.chk[i] ? '#d96a6a' : '#9fb0d0', o.chk[i] ? 'x empty' : 'RING ' + (i + 1) + ' ?', o.chk[i] ? 2 : 0));
+  else if (o.k === 'stars') M3PAD.forEach((p, i) => { const k = o.ord.indexOf(i); if (k >= 0 && k < o.i) add(p.x, p.z, '#7dff9a', 'star taken', 2); else if (k === o.i) add(p.x, p.z, '#ffe27a', 'STAR ' + (o.i + 1) + '/4', 1); else add(p.x, p.z, '#6f7aa0', 'ring', 2); }); }
+function m3QMapDraw(c, o, X, Y, R, half, big) { const k = R/half;
+  if (o.site && o.site.k === 'crater' && !M3.arena) { c.strokeStyle = 'rgba(255,214,120,.55)'; c.lineWidth = 2; c.beginPath(); c.arc(X(o.site.x), Y(o.site.z), 22*k, 0, 7); c.stroke(); }
+  if (M3.maze) { const S = o.site, x0 = X(S.x - 19.8), x1 = X(S.x + 19.8), z0 = Y(S.z - 19.8), z1 = Y(S.z + 19.8); c.strokeStyle = 'rgba(201,160,255,.85)'; c.lineWidth = 2; c.strokeRect(Math.min(x0, x1), Math.min(z0, z1), Math.abs(x1 - x0), Math.abs(z1 - z0)); }
+  const A = M3.arena; if (A) { c.strokeStyle = 'rgba(255,226,120,.95)'; c.lineWidth = 3; c.beginPath(); c.arc(X(A.x), Y(A.z), Math.max(6, A.R*k), 0, 7); c.stroke();
+    const b = (M3.bots || []).find(q => q.boss && !q.dec && !q.gone && !q.dead); if (b) { c.fillStyle = '#e0453a'; c.strokeStyle = '#000'; c.lineWidth = 2.5; c.beginPath(); c.arc(X(b.x), Y(b.z), big ? 9 : 6, 0, 7); c.fill(); c.stroke(); } } }
+
+function m3Minimap(c, W, H) { const o = M3.obj, A = M3.altar, P = M3.p; if (!o || !A || !P) return; if (M3.arena && M3.arena.id === 'warden') return; const big = !!M3.bigMap, pts = [[A.x, A.z], [P.x, P.z]], T = [];
   const add = (x, z, col, lab, st) => { T.push({ x, z, col, lab, st }); pts.push([x, z]); };
   if (o.k === 'cross') { o.holes.forEach((h, i) => add(h.x, h.z, h.done ? '#ffe27a' : '#ffffff', h.done ? '✝ placed' : 'HOLE', h.done ? 2 : 0)); if (!o.carry && o.n < 4) add(o.stand.x, o.stand.z, '#ffd24a', '', 3); }
   else if (o.k === 'seal') o.b.forEach((b, i) => add(b.x, b.z, i < o.i ? '#7dff9a' : i === o.i ? '#ffe27a' : '#8a93c8', i < o.i ? 'sealed' : 'BEACON ' + (i + 1), i < o.i ? 2 : i === o.i ? 1 : 0));
-  else if (o.k === 'flame') o.marks.forEach(m => add(m.x, m.z, 'rgb(' + m.c.join(',') + ')', m.n, m.lit ? 1 : 0));
+  else if (o.k === 'flame' && o.stage === 'puzzle') o.marks.forEach(m => add(m.x, m.z, 'rgb(' + m.c.join(',') + ')', m.n, m.lit ? 1 : 0));
+  m3QMapAdd(o, add);
   let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const q of pts) { x0 = Math.min(x0, q[0]); x1 = Math.max(x1, q[0]); z0 = Math.min(z0, q[1]); z1 = Math.max(z1, q[1]); }
   const cx = (x0 + x1)/2, cz = (z0 + z1)/2, half = Math.max(40, Math.max(x1 - x0, z1 - z0)/2 + 24), S = big ? Math.min(W, H)*0.78 : 210, mx = big ? W/2 : W - S - 16, my = big ? H/2 - S/2 + 10 : H - S - 62, R = S/2, X = x => mx + R - (x - cx)/half*R, Y = z => my + R + (z - cz)/half*R;
   c.save(); if (big) { c.fillStyle = 'rgba(0,0,10,.55)'; c.fillRect(0, 0, W, H); }
@@ -3619,9 +3954,10 @@ function m3Minimap(c, W, H) { const o = M3.obj, A = M3.altar, P = M3.p; if (!o |
   c.strokeStyle = 'rgba(255,255,255,.08)'; c.lineWidth = 1; for (let g = -400; g <= 400; g += 20) { const gx = X(Math.round(cx/20)*20 + g); if (gx > mx && gx < mx + S) { c.beginPath(); c.moveTo(gx, my); c.lineTo(gx, my + S); c.stroke(); } const gz = Y(Math.round(cz/20)*20 + g); if (gz > my && gz < my + S) { c.beginPath(); c.moveTo(mx, gz); c.lineTo(mx + S, gz); c.stroke(); } }
   const fs = big ? 15 : 11, tt = M3.t || 0; c.textAlign = 'center'; c.font = "bold " + fs + "px 'Comic Sans MS',cursive";
   // line to where you should go next
-  let tg = null; if (o.k === 'cross') { if (o.carry) { let bd = 1e9; for (const h of o.holes) if (!h.done) { const d = Math.hypot(h.x - P.x, h.z - P.z); if (d < bd) { bd = d; tg = h; } } } else if (o.n < 4) tg = o.stand; } else if (o.k === 'seal') tg = o.b[o.i];
+  let tg = null; if (o.k === 'cross') { if (o.carry) { let bd = 1e9; for (const h of o.holes) if (!h.done) { const d = Math.hypot(h.x - P.x, h.z - P.z); if (d < bd) { bd = d; tg = h; } } } else if (o.n < 4) tg = o.stand; } else if (o.k === 'seal') tg = o.b[o.i]; else tg = m3QTarget(o);
   if (tg) { c.setLineDash([6, 6]); c.strokeStyle = 'rgba(255,240,170,.8)'; c.lineWidth = 2; c.beginPath(); c.moveTo(X(P.x), Y(P.z)); c.lineTo(X(tg.x), Y(tg.z)); c.stroke(); c.setLineDash([]); }
   if (o.k === 'seal') { c.strokeStyle = 'rgba(138,147,200,.5)'; c.lineWidth = 1.5; c.beginPath(); o.b.forEach((b, i) => i ? c.lineTo(X(b.x), Y(b.z)) : c.moveTo(X(b.x), Y(b.z))); c.stroke(); }
+  m3QMapDraw(c, o, X, Y, R, half, big);
   // altar
   { const ax = X(A.x), ay = Y(A.z); c.fillStyle = '#fff'; c.strokeStyle = '#e2b64c'; c.lineWidth = 3; c.beginPath(); c.arc(ax, ay, big ? 13 : 9, 0, 7); c.fill(); c.stroke(); c.fillStyle = '#fff3c0'; c.lineWidth = 3; c.strokeStyle = 'rgba(0,0,0,.8)'; c.strokeText('ALTAR', ax, ay + (big ? 30 : 23)); c.fillText('ALTAR', ax, ay + (big ? 30 : 23)); }
   for (const q of T) { const qx = X(q.x), qy = Y(q.z), r = (big ? 11 : 7) + (q.st === 1 ? 4 + 2*Math.sin(tt*6) : 0);
@@ -3706,7 +4042,7 @@ const M3C = [
   { id: 'bomb', n: 'Bomber', ic: '💣', c: '#c15bff', d: 'Throws a bomb at the nearest robot every 3 seconds. Every level: bigger and stronger bombs.', f: () => { M3.cls = 'bomb'; M3.it.bomb = 1; } }
 ];
 function m3NewRun() { m3Load(m3NewRunRaw); }
-function m3NewRunRaw() { M3.rm = null; m3Gen(); m3Build(); M3.p = { x: 0, y: 1 + m3H(0, 6), z: 6 }; M3.t = 0; M3.bots = null; M3.sl = {}; M3.it = {}; M3.lv = 1; M3.xp = 0; M3.pend = 0; M3.crs = []; M3.lvT = 0; M3.bn = 0; M3.kills = 0; M3.kt = 0; M3.orbs = []; M3.proj = []; M3.chests = []; M3.monkeys = []; M3.dn = []; M3.lives = 0; M3.warn = 0; M3.obj = null; M3.objDone = 0; M3.altar = { x: 0, z: 0 }; M3.life0 = 0; M3.quest = null; M3.dirT = 0; M3.packT = null; M3.bossI = 0; M3.crT = null; M3.mkT = null; M3.drumT = null; M3.over = false; M3.won = false; M3.elderMet = false; M3.ring = null; M3.aj = 0; M3.hp = null; M3.ko = 0; M3.inv = 0; M3.guard = false; M3.fx = []; M3.cls = null; M3.bombs = []; M3.arrows = []; M3.vol = null; M3.bcd = null; M3.ts = 1; M3.tsT = 1; M3.sf = null; M3.grab = null; M3.headObj = null; M3.fling = false;
+function m3NewRunRaw() { M3.rm = null; m3Gen(); m3Build(); M3.p = { x: 0, y: 1 + m3H(0, 6), z: 6 }; M3.t = 0; M3.bots = null; M3.sl = {}; M3.it = {}; M3.lv = 1; M3.xp = 0; M3.pend = 0; M3.crs = []; M3.lvT = 0; M3.bn = 0; M3.kills = 0; M3.kt = 0; M3.orbs = []; M3.proj = []; M3.chests = []; M3.monkeys = []; M3.dn = []; M3.lives = 0; M3.warn = 0; M3.obj = null; M3.zn = []; M3.arena = null; M3.shards = []; M3.lc = []; M3.maze = null; M3.objDone = 0; M3.altar = { x: 0, z: 0 }; M3.life0 = 0; M3.quest = null; M3.dirT = 0; M3.packT = null; M3.bossI = 0; M3.crT = null; M3.mkT = null; M3.drumT = null; M3.over = false; M3.won = false; M3.elderMet = false; M3.ring = null; M3.aj = 0; M3.hp = null; M3.ko = 0; M3.inv = 0; M3.guard = false; M3.fx = []; M3.cls = null; M3.bombs = []; M3.arrows = []; M3.vol = null; M3.bcd = null; M3.ts = 1; M3.tsT = 1; M3.sf = null; M3.grab = null; M3.headObj = null; M3.fling = false;
   M3.v = { x: 0, y: 0, z: 0 }; M3.anc = [null, null]; M3.held = [false, false]; m3Calc();
   m3Ov({ title: 'APE BRAWL', sub: 'Survive 15 minutes. Start with close combat, grow into a one-monkey army. Choose your class (press 1-4)', opts: M3C.map(c => ({ t: c.ic + ' ' + c.n, d: c.d, c: c.c })), pick: i => { M3C[i].f(); m3Calc(); M3.hp = null; M3.runT0 = performance.now(); toast('Fight robots, grab the green gems, level up!  Tab = your build'); } }); }
 function m3RunOver() { if (M3.over) return; M3.over = true; let best = null; try { best = JSON.parse(localStorage.getItem('apebrawl_best') || 'null'); } catch (e) {} const rec = { t: Math.floor(M3.t), kills: M3.kills, lv: M3.lv }; let nb = !best || rec.t > best.t; if (nb) { try { localStorage.setItem('apebrawl_best', JSON.stringify(rec)); } catch (e) {} best = rec; }
@@ -3739,6 +4075,7 @@ function m3HudRL(c, W, H, P) { if (M3.hp == null) return; const mm = t => Math.f
   c.textAlign = 'center'; c.font = "bold 30px 'Comic Sans MS',cursive"; c.lineWidth = 6; c.strokeStyle = 'rgba(0,0,0,.7)'; c.fillStyle = '#fff'; c.strokeText(mm(M3.t), W/2, 46); c.fillText(mm(M3.t), W/2, 46); c.font = "bold 14px 'Comic Sans MS',cursive"; c.lineWidth = 4; c.fillStyle = PH.c; c.strokeText('PHASE ' + (ph + 1) + ': ' + PH.n, W/2, 64); c.fillText('PHASE ' + (ph + 1) + ': ' + PH.n, W/2, 64);
   // boss bar
   { const bs = M3.bots.find(b => b.ty === 'titan' && !b.dead); if (bs) { const bw = Math.min(520, W*0.5), x = W/2 - bw/2, y = 76; c.fillStyle = 'rgba(0,0,0,.65)'; c.fillRect(x - 3, y - 3, bw + 6, 20); c.fillStyle = '#c15bff'; c.fillRect(x, y, bw*Math.max(0, bs.hp)/bs.mhp, 14); c.font = "bold 13px 'Comic Sans MS',cursive"; c.fillStyle = '#fff'; c.fillText('TITAN', W/2, y + 12); } }
+  m3BossBar(c, W, H);
   // stats top right
   c.textAlign = 'right'; c.font = "bold 18px 'Comic Sans MS',cursive"; c.lineWidth = 5; c.strokeStyle = 'rgba(0,0,0,.7)'; const rs = ['🍌 ' + M3.bn, '☠ ' + M3.kills + ' kills', (M3.lives > 0 ? '❤ x' + (M3.lives + 1) + ' lives' : '❤ ONE LIFE')]; rs.forEach((t, i) => { c.fillStyle = i === 0 ? '#ffd21f' : i === 1 ? '#ffb3a0' : '#ff8a8a'; c.strokeText(t, W - 16, 62 + i*24); c.fillText(t, W - 16, 62 + i*24); });
   if (M3.obj) { const o = M3.obj; c.textAlign = 'center'; c.font = "bold 17px 'Comic Sans MS',cursive"; c.lineWidth = 5; c.strokeStyle = 'rgba(0,0,0,.75)'; const tx = o.ic + ' ' + o.name + ':  ' + m3ObjTxt(o); c.strokeText(tx, W/2, 122); c.fillStyle = o.c; c.fillText(tx, W/2, 122); c.textAlign = 'left'; } else if (M3.altNear && !M3.ovl) { c.textAlign = 'center'; c.font = "bold 18px 'Comic Sans MS',cursive"; c.lineWidth = 5; c.strokeStyle = 'rgba(0,0,0,.75)'; c.strokeText('🔮 Press O to speak with the Beam', W/2, H - 130); c.fillStyle = '#fff3c0'; c.fillText('🔮 Press O to speak with the Beam', W/2, H - 130); c.textAlign = 'left'; }
@@ -3831,7 +4168,7 @@ function m3Blast(x, y, z, pw, own, rm) { const P = M3.p, V = M3.v, R = 5*(own ? 
     if (b.fall) continue; b.hp -= 9*k*pw; b.kx += dx/d*10*k; b.kz += dz/d*10*k; b.hit = 0.3; b.stun = Math.max(b.stun, 0.8); if (b.st === 'wind' || b.st === 'swing') { b.st = 'idle'; b.stT = 0; } if (b.hp <= 0.01) m3KnockDown(b, dx/d, dz/d); } }
 function m3SpawnBot() { const b = { x: 0, z: 0, yaw: Math.random()*6.28, tx: 0, tz: 0, wait: 1, ph: Math.random()*6.28, sp: 0 }; M3.bots.push(b); m3BotRespawn(b); }
 function m3HurtPlayer(b) { const P = M3.p, V = M3.v, dx = P.x - b.x, dz = P.z - b.z, d = Math.hypot(dx, dz) || 1, SC = b.sc || 1; if (d > 2.5*SC || M3.ko > 0 || M3.inv > 0) return; if ((dx*Math.sin(b.yaw) + dz*Math.cos(b.yaw))/d < 0.35) return;
-  let dm = 16*(0.65 + 0.35*Math.min(1, b.hp/b.mhp))*(b.hover ? 1.2 : 1)*(b.dmM || 1)*m3DmK(b); const big = SC > 1.3;
+  let dm = b.boss ? M3.mhp*0.28 : 16*(0.65 + 0.35*Math.min(1, b.hp/b.mhp))*(b.hover ? 1.2 : 1)*(b.dmM || 1)*m3DmK(b); const big = SC > 1.3;
   if (M3.guard) { dm *= 0.31*M3.m.gdm; M3.stam = Math.max(0, M3.stam - 14*M3.m.gst*(big ? 1.6 : 1)); b.stun = big ? 0.25 : 0.7; b.st = 'idle'; b.stT = 0; b.cd = 1.1; b.kx = -dx/d*3; b.kz = -dz/d*3; toast('BLOCKED!'); if (big) { V.x += dx/d*4; V.z += dz/d*4; } }
   else { M3.flash = 0.45; V.x += dx/d*7*Math.sqrt(SC); V.z += dz/d*7*Math.sqrt(SC); V.y = Math.max(V.y, 2.5 + (big ? 2 : 0)); if (M3.m.thorn > 0) { b.hp -= M3.m.thorn; b.hit = 0.2; m3Float(b.x, b.y + 2*SC, b.z, '' + M3.m.thorn, '#ff9a9a'); if (b.hp <= 0.01 && !b.fall) m3KnockDown(b, -dx/d, -dz/d); } }
   if (big && !M3.guard) M3.ring = { x: b.x + Math.sin(b.yaw)*1.5, z: b.z + Math.cos(b.yaw)*1.5, R: 4, t: 0 };
@@ -3839,6 +4176,7 @@ function m3HurtPlayer(b) { const P = M3.p, V = M3.v, dx = P.x - b.x, dz = P.z - 
 function m3BotCombat(b, s, P) { b.gp += ((b.agg && M3.ko <= 0 && !b.fall ? 1 : 0) - b.gp)*Math.min(1, 5*s); b.cd = Math.max(0, b.cd - s); b.stun = Math.max(0, b.stun - s); const dx = P.x - b.x, dz = P.z - b.z, d = Math.hypot(dx, dz), lc = (b.legB[0] ? 1 : 0) + (b.legB[1] ? 1 : 0);
   if (M3.ko > 0) { b.agg = false; b.st = 'idle'; return false; } { const AR = 9999; if (d < AR) b.agg = true; else if (d > AR*1.4) b.agg = false; } if (!b.agg) { b.st = 'idle'; return false; }
   let da = Math.atan2(dx, dz) - b.yaw; da = Math.atan2(Math.sin(da), Math.cos(da)); b.wait = 0; b.tx = b.x; b.tz = b.z;
+  if (b.boss && m3BossCombat(b, s, P, d, da)) return true;
   if (b.ty === 'gunner' || b.ty === 'bomber') return m3SpecAI(b, s, P, d, da);
   if (b.stun > 0) { b.sp *= 0.8; b.st = 'idle'; b.stT = 0; b.yaw += da*Math.min(1, 2*s); return true; }
   const canA = !(b.armB[0] && b.armB[1]);
@@ -4155,7 +4493,7 @@ function m3Draw() {
       if (near) { bxw([f[0] + sb*0.3, f[1] - 0.05, f[2] + cb*0.3], 0.1, 0.045, 0.06, MET); bxw([(k[0] + f[0])/2 - sb*0.1, (k[1] + f[1])/2, (k[2] + f[2])/2 - cb*0.1], 0.07, 0.14, 0.04, MET2); } };
     const drawArm = (S, sd) => { const [s0, e, h] = S.p; if (near) { limbS(ad(lerp3(s0, e, 0.25), lv(0, 0, -0.11)), ad(lerp3(e, h, 0.55), lv(0, 0, -0.11)), 0.028, 0.028, JNT, 4); limbS(ad(lerp3(s0, e, 0.25), lv(0, 0, -0.11)), ad(lerp3(s0, e, 0.8), lv(0, 0, -0.11)), 0.04, 0.04, MET, 4); bxw(lerp3(e, h, 0.5), 0.105, 0.075, 0.105, MET2); bxw(lerp3(e, h, 0.5), 0.108, 0.012, 0.108, YEL); bxw(lerp3(e, h, 0.88), 0.09, 0.025, 0.09, JNT); bxw(ad(lerp3(s0, e, 0.5), lv(0, 0, 0.0)), 0.095, 0.03, 0.095, MET); bxw(ad(h, lv(sd*0.09, -0.07, 0.02)), 0.022, 0.05, 0.022, JNT); } limbS(s0, e, 0.09, 0.08, MET2, 4); bxw(e, 0.09, 0.08, 0.09, JNT); limbS(e, h, 0.1, 0.075, MET, 4);
       if (near) bxw([e[0]*0.3 + h[0]*0.7, e[1]*0.3 + h[1]*0.7, e[2]*0.3 + h[2]*0.7], 0.1, 0.05, 0.1, MET2); bxw([h[0], h[1] - 0.04, h[2]], 0.08, 0.08, 0.08, RED); if (near) for (let i = -1; i <= 1; i++) bxw([h[0] + cb*i*0.045, h[1] - 0.15, h[2] - sb*i*0.045], 0.016, 0.05, 0.02, JNT); };
-    if (M3.gl && !M3.rm && !M3.bake && PF === F && dd > 484 && !b.fall && Math.abs(b.tilt || 0) < 0.02 && Math.abs(b.roll || 0) < 0.02 && (M3.t - (b.born == null ? (b.born = M3.t - 9) : b.born)) >= 0.7) { M3.rl.push({ x: b.x, y: b.y + (b.yo || 0) + bob2, z: b.z, sc: SC, cy: cb, sy: sb, met: MET, met2: MET2, bk: Math.round(((b.yaw % 6.2832) + 6.2832) % 6.2832/(6.2832/24)) % 24 }); } // far robots: one cached mesh drawn by the graphics card, no per-face work
+    if (M3.gl && !M3.rm && !M3.bake && PF === F && dd > 484 && !b.fall && !(b.T && b.T.boss) && Math.abs(b.tilt || 0) < 0.02 && Math.abs(b.roll || 0) < 0.02 && (M3.t - (b.born == null ? (b.born = M3.t - 9) : b.born)) >= 0.7) { M3.rl.push({ x: b.x, y: b.y + (b.yo || 0) + bob2, z: b.z, sc: SC, cy: cb, sy: sb, met: MET, met2: MET2, bk: Math.round(((b.yaw % 6.2832) + 6.2832) % 6.2832/(6.2832/24)) % 24 }); } // far robots: one cached mesh drawn by the graphics card, no per-face work
     else if (false) { bx([0, 1.12, 0], 0.4, 0.36, 0.24, MET); bx([0, 1.72, 0.02], 0.23, 0.2, 0.22, MET2); bx([-0.24, 0.42, 0], 0.13, 0.42, 0.15, MET2); bx([0.24, 0.42, 0], 0.13, 0.42, 0.15, MET2); bx([-0.62, 1.05, 0], 0.09, 0.42, 0.1, MET); bx([0.62, 1.05, 0], 0.09, 0.42, 0.1, MET); } else {
     for (const sd of [-1, 1]) { const ph2 = b.ph + (sd > 0 ? 0 : Math.PI), sw2a = Math.sin(ph2)*0.42*amp2, lifta = Math.max(0, Math.cos(ph2))*0.14*amp2, lb = b.legB[sd > 0 ? 1 : 0], sw2 = lb ? -0.25 : sw2a, lift = lb ? 0 : lifta;
       const hip = [sd*0.24, 0.8, 0], knee = [sd*0.25, 0.46 + lift*0.5, sw2*0.5 + 0.08], foot = [sd*0.25, 0.1 + lift, sw2], lg = sd > 0 ? 1 : 0;
