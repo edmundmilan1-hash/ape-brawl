@@ -75,7 +75,7 @@ canvas { display:block; width:100%; height:100%; cursor:crosshair; touch-action:
 <body>
 <canvas id="c"></canvas>
 <canvas id="ov"></canvas>
-<div id="ver" style="position:fixed;right:10px;top:6px;z-index:60;font:700 13px 'Comic Sans MS',cursive;color:#1b2a3a;opacity:.7;background:rgba(255,255,255,.55);padding:2px 8px;border-radius:8px;pointer-events:none">v5:8</div>
+<div id="ver" style="position:fixed;right:10px;top:6px;z-index:60;font:700 13px 'Comic Sans MS',cursive;color:#1b2a3a;opacity:.7;background:rgba(255,255,255,.55);padding:2px 8px;border-radius:8px;pointer-events:none">v5:9</div>
 <div id="pz"><h2>Paused</h2><div class="pb" id="pz-main"><button class="big" id="pz-res">Resume</button><button class="big" id="pz-set">Game Settings</button><button class="big" id="pz-map">Map</button><button class="big" id="pz-menu">Main Menu</button></div><div class="pp" id="pz-sp"><b>Game Settings</b><label>Mouse sensitivity <input type="range" id="pz-sens" min="0.3" max="3" step="0.1" value="1"></label><label><span>FOV <b id="pz-fovv">60</b></span> <input type="range" id="pz-fov" min="50" max="110" step="1" value="60"></label><label>Camera <button class="big" id="pz-cam" style="font-size:16px;padding:6px 14px">Third person</button></label><button class="big" data-pz="main">Back</button></div><div class="pp" id="pz-mp"><b>Map</b><div>Current map: Forest Hills</div><small>More maps are coming soon.</small><button class="big" data-pz="main">Back</button></div></div>
 <div id="menu">
 <div id="s-title" class="screen"><h1 class="logo">APE<br>BRAWL</h1><canvas id="hero" width="300" height="300"></canvas><div class="btns"><button class="big" id="b-play">Singleplayer</button><button class="big" data-go="s-char">Character</button><button class="big" id="b-upc">Upgrade Center</button><button class="big" data-go="s-set">Settings</button><button class="big" id="b-endless">Endless Mode</button><button class="big" id="b-mp">Multiplayer</button><button class="big" id="b-3d" hidden>Campaign</button></div></div>
@@ -2823,7 +2823,7 @@ const MP_WIN = 5, MP_UP = { reach: 2, hearts: 2, strength: 2, slam: 0, slamH: 0,
 const mp = { r: null, code: '', ja: 0, st: 'off', mn: 0, rdy: 0, hits: [], hid: 0, seen: 0, opp: null, full: false, cdEnd: 0, slot: 0, win: null, savedUp: null, savedChosen: null, skin: 'ape', cdV: 0, leap: 0, autoQ: 0, wasSlam: false, slamSpeed: 0, msg: '', slamHit: false, timer: 0 };
 const mpPick = h => { $('mp-skinrow').hidden = h; $('mp-pick').hidden = h; $('mp-joinbox').hidden = true; if (h) $('mp-direct').hidden = true; else dcReset(); };
 const mpSay = t => { $('mp-msg').textContent = t; };
-async function mpOpen(code) {
+async function mpOpen(code, role) {
   mp.code = code; mpPick(true); mpSay('Connecting...');
   try {
     const c = window.claude, room = c && c.use ? await c.use('room') : null; if (!room) throw new Error('noroom');
@@ -2831,27 +2831,28 @@ async function mpOpen(code) {
     mp.r = r || room; mp.ja = Date.now(); mp.st = 'lobby'; mp.mn = 0; mp.rdy = 1; mp.opp = null; mp.seen = 0; mp.hits = []; mp.hid = 0; mp.msg = '';
     if (!mp.timer) mp.timer = setInterval(mpPump, 50);
     mpFlush(); mpSay(''); mpLobbyUi();
-  } catch (e) { mp.r = null; mp.st = 'off'; mpRelay(code); }
+  } catch (e) { mp.r = null; mp.st = 'off'; mpRelay(code, role); }
 }
 
 // ---------- ROOM CODES ANYWHERE (GitHub etc.): the free PeerJS relay swaps the connection details, then the two browsers talk directly ----------
 function peerLoad() { const one = u => new Promise((res, rej) => { const sc = document.createElement('script'), tm = setTimeout(() => { sc.remove(); rej(new Error('timeout')); }, 7000); sc.src = u; sc.onload = () => { clearTimeout(tm); window.Peer ? res() : rej(new Error('nopeer')); }; sc.onerror = () => { clearTimeout(tm); rej(new Error('blocked')); }; document.head.appendChild(sc); }); if (window.Peer) return Promise.resolve(); return one('https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js').catch(() => one('https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js')); }
 const peerConn = c => ({ set onmessage(f) { c.on('data', d => f({ data: d })); }, get readyState() { return c.open ? 'open' : 'closed'; }, send: x => c.send(x), close: () => { try { c.close(); } catch (e) {} } });
 function mpRelayKill() { try { if (window.mpRP) window.mpRP.destroy(); } catch (e) {} window.mpRP = null; }
-async function mpRelay(code) {
+async function mpRelay(code, role) {
   mpPick(true); mpSay('Connecting through the relay...');
   const fail = why => { mpRelayKill(); mp.r = null; mp.st = 'off'; mpPick(false); $('mp-wait').hidden = true; mpSay(why || 'Could not reach the room relay. Press Direct connect below instead.'); };
   try { await peerLoad(); } catch (e) { return fail('Could not load the room relay (are you offline?). Press Direct connect below instead.'); }
   const id = 'apebrawl-' + code.toLowerCase(); let used = false;
   const go = (peer, c) => { if (used) return; used = true; const room = directRoom({ close: () => mpRelayKill() }, peerConn(c)); mpPick(true); mp.code = code; mp.r = room; mp.ja = Date.now(); mp.st = 'lobby'; mp.mn = 0; mp.rdy = 1; mp.opp = null; mp.seen = 0; mp.hits = []; mp.hid = 0; mp.msg = ''; if (!mp.timer) mp.timer = setInterval(mpPump, 50); mpFlush(); mpSay(''); mpLobbyUi(); };
-  const asJoiner = () => { mpRelayKill(); let peer; try { peer = new Peer(); } catch (e) { return fail(); } window.mpRP = peer; const tm = setTimeout(() => { if (!used) fail('No one is hosting room ' + code + '. Check the code, or press Create room and send them the code.'); }, 12000);
-    peer.on('open', () => { const c = peer.connect(id, { serialization: 'json', reliable: false }); c.on('open', () => { clearTimeout(tm); go(peer, c); }); c.on('error', () => { clearTimeout(tm); if (!used) fail(); }); });
-    peer.on('error', () => { clearTimeout(tm); if (!used) fail('No one is hosting room ' + code + '. Check the code, or press Create room and send them the code.'); }); };
+  const asJoiner = () => { mpRelayKill(); let peer; try { peer = new Peer(); } catch (e) { return fail(); } window.mpRP = peer; let tries = 0, lastErr = '', cur = null;
+    const attempt = () => { if (used) return; if (++tries > 7) return fail(lastErr === 'peer-unavailable' ? 'Room ' + code + ' was not found. Check the code, and make sure your friend pressed Create room and is still waiting on that screen.' : 'Found the room but could not link the two browsers (' + (lastErr || 'timed out') + '). Your network may block it. Try Direct connect below.'); mpSay('Joining room ' + code + '...' + (tries > 1 ? ' (try ' + tries + ')' : '')); let c; try { c = peer.connect(id, { serialization: 'json', reliable: false }); } catch (e) { lastErr = 'connect'; return setTimeout(attempt, 2500); } cur = c; const t = setTimeout(() => { if (!used && cur === c) { lastErr = 'timeout'; try { c.close(); } catch (e) {} attempt(); } }, 9000); c.on('open', () => { clearTimeout(t); go(peer, c); }); c.on('error', er => { clearTimeout(t); lastErr = (er && er.type) || 'conn'; setTimeout(attempt, 2000); }); };
+    peer.on('open', attempt); peer.on('error', er => { if (used) return; lastErr = (er && er.type) || 'peer'; if (er && er.type === 'peer-unavailable') { setTimeout(attempt, 3000); } else if (er && (er.type === 'network' || er.type === 'server-error' || er.type === 'socket-error' || er.type === 'socket-closed')) fail('The relay server could not be reached (' + er.type + '). Try Direct connect below.'); }); };
+  if (role === 'join') return asJoiner();
   let host; try { host = new Peer(id); } catch (e) { return fail(); } window.mpRP = host;
   const ot = setTimeout(() => { if (!used && !hostOpen) fail('The relay server did not answer (it may be down, or blocked on this network). Press Direct connect below instead.'); }, 10000); let hostOpen = false;
   host.on('open', () => { hostOpen = true; clearTimeout(ot); if (used) return; const w = $('mp-wait'); w.hidden = false; w.innerHTML = 'ROOM CODE<br><span style="font-size:54px;letter-spacing:6px">' + esc(code) + '</span><br><small>Waiting for your friend to join...</small>'; mpSay(''); });
   host.on('connection', c => { c.on('open', () => { if (used) { try { c.close(); } catch (e) {} return; } go(host, c); }); });
-  host.on('error', e => { if (e && e.type === 'unavailable-id') { asJoiner(); } else if (!used) { clearTimeout(ot); fail('Relay error: ' + ((e && e.type) || 'unknown') + '. Press Direct connect below instead.'); } });
+  host.on('error', e => { if (e && e.type === 'unavailable-id') { if (role === 'host') { clearTimeout(ot); fail('That code is already taken. Press Create room again.'); } else asJoiner(); } else if (!used) { clearTimeout(ot); fail('Relay error: ' + ((e && e.type) || 'unknown') + '. Press Direct connect below instead.'); } });
 }
 function mpLobbyUi() {
   const w = $('mp-wait'); w.hidden = false; const o = mp.opp;
@@ -3020,8 +3021,8 @@ $('en-start').onclick = () => beginEndless();
 $('en-lb').onclick = () => { lbInit(); lbFrom = 's-endless'; lbRender(); show('s-lb'); };
 $('lb-back').onclick = () => show(lbFrom);
 $('b-mp').onclick = () => { mpPick(false); $('mp-wait').hidden = true; mpSay(''); show('s-mp'); };
-$('mp-create').onclick = () => { let c = ''; for (let i = 0; i < 5; i++) c += CODE_CH[Math.floor(Math.random()*CODE_CH.length)]; mpOpen(c); };
-const mpJoinGo = () => { const c = $('mp-code').value.toUpperCase().replace(/[^A-Z0-9]/g, ''); if (c.length !== 5) { mpSay('A room code has 5 letters or numbers.'); return; } mpOpen(c); };
+$('mp-create').onclick = () => { let c = ''; for (let i = 0; i < 5; i++) c += CODE_CH[Math.floor(Math.random()*CODE_CH.length)]; mpOpen(c, 'host'); };
+const mpJoinGo = () => { const c = $('mp-code').value.toUpperCase().replace(/[^A-Z0-9]/g, ''); if (c.length !== 5) { mpSay('A room code has 5 letters or numbers.'); return; } mpOpen(c, 'join'); };
 $('mp-join').onclick = () => { $('mp-joinbox').hidden = false; $('mp-code').focus(); }; $('mp-go').onclick = mpJoinGo; $('mp-code').onkeydown = e => { if (e.key === 'Enter') mpJoinGo(); };
 $('mp-back').onclick = () => { mpRelayKill(); if (mp.r) mpLeave(); else { dcReset(); $('mp-direct').hidden = true; show('s-title'); } };
 $('mpleave').onclick = mpLeave; document.querySelectorAll('#mp-skinrow [data-sk]').forEach(b => { b.onclick = () => { mp.skin = b.dataset.sk; document.querySelectorAll('#mp-skinrow [data-sk]').forEach(x => x.classList.toggle('sel', x === b)); }; });
