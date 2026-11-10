@@ -75,7 +75,7 @@ canvas { display:block; width:100%; height:100%; cursor:crosshair; touch-action:
 <body>
 <canvas id="c"></canvas>
 <canvas id="ov"></canvas>
-<div id="ver" style="position:fixed;right:10px;top:6px;z-index:60;font:700 13px 'Comic Sans MS',cursive;color:#1b2a3a;opacity:.7;background:rgba(255,255,255,.55);padding:2px 8px;border-radius:8px;pointer-events:none">v5:7</div>
+<div id="ver" style="position:fixed;right:10px;top:6px;z-index:60;font:700 13px 'Comic Sans MS',cursive;color:#1b2a3a;opacity:.7;background:rgba(255,255,255,.55);padding:2px 8px;border-radius:8px;pointer-events:none">v5:8</div>
 <div id="pz"><h2>Paused</h2><div class="pb" id="pz-main"><button class="big" id="pz-res">Resume</button><button class="big" id="pz-set">Game Settings</button><button class="big" id="pz-map">Map</button><button class="big" id="pz-menu">Main Menu</button></div><div class="pp" id="pz-sp"><b>Game Settings</b><label>Mouse sensitivity <input type="range" id="pz-sens" min="0.3" max="3" step="0.1" value="1"></label><label><span>FOV <b id="pz-fovv">60</b></span> <input type="range" id="pz-fov" min="50" max="110" step="1" value="60"></label><label>Camera <button class="big" id="pz-cam" style="font-size:16px;padding:6px 14px">Third person</button></label><button class="big" data-pz="main">Back</button></div><div class="pp" id="pz-mp"><b>Map</b><div>Current map: Forest Hills</div><small>More maps are coming soon.</small><button class="big" data-pz="main">Back</button></div></div>
 <div id="menu">
 <div id="s-title" class="screen"><h1 class="logo">APE<br>BRAWL</h1><canvas id="hero" width="300" height="300"></canvas><div class="btns"><button class="big" id="b-play">Singleplayer</button><button class="big" data-go="s-char">Character</button><button class="big" id="b-upc">Upgrade Center</button><button class="big" data-go="s-set">Settings</button><button class="big" id="b-endless">Endless Mode</button><button class="big" id="b-mp">Multiplayer</button><button class="big" id="b-3d" hidden>Campaign</button></div></div>
@@ -2835,7 +2835,7 @@ async function mpOpen(code) {
 }
 
 // ---------- ROOM CODES ANYWHERE (GitHub etc.): the free PeerJS relay swaps the connection details, then the two browsers talk directly ----------
-function peerLoad() { return new Promise((res, rej) => { if (window.Peer) return res(); const sc = document.createElement('script'); sc.src = 'https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js'; sc.onload = () => window.Peer ? res() : rej(new Error('nopeer')); sc.onerror = () => rej(new Error('nopeer')); document.head.appendChild(sc); }); }
+function peerLoad() { const one = u => new Promise((res, rej) => { const sc = document.createElement('script'), tm = setTimeout(() => { sc.remove(); rej(new Error('timeout')); }, 7000); sc.src = u; sc.onload = () => { clearTimeout(tm); window.Peer ? res() : rej(new Error('nopeer')); }; sc.onerror = () => { clearTimeout(tm); rej(new Error('blocked')); }; document.head.appendChild(sc); }); if (window.Peer) return Promise.resolve(); return one('https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js').catch(() => one('https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js')); }
 const peerConn = c => ({ set onmessage(f) { c.on('data', d => f({ data: d })); }, get readyState() { return c.open ? 'open' : 'closed'; }, send: x => c.send(x), close: () => { try { c.close(); } catch (e) {} } });
 function mpRelayKill() { try { if (window.mpRP) window.mpRP.destroy(); } catch (e) {} window.mpRP = null; }
 async function mpRelay(code) {
@@ -2848,9 +2848,10 @@ async function mpRelay(code) {
     peer.on('open', () => { const c = peer.connect(id, { serialization: 'json', reliable: false }); c.on('open', () => { clearTimeout(tm); go(peer, c); }); c.on('error', () => { clearTimeout(tm); if (!used) fail(); }); });
     peer.on('error', () => { clearTimeout(tm); if (!used) fail('No one is hosting room ' + code + '. Check the code, or press Create room and send them the code.'); }); };
   let host; try { host = new Peer(id); } catch (e) { return fail(); } window.mpRP = host;
-  host.on('open', () => { if (used) return; const w = $('mp-wait'); w.hidden = false; w.innerHTML = 'ROOM CODE<br><span style="font-size:54px;letter-spacing:6px">' + esc(code) + '</span><br><small>Waiting for your friend to join...</small>'; mpSay(''); });
+  const ot = setTimeout(() => { if (!used && !hostOpen) fail('The relay server did not answer (it may be down, or blocked on this network). Press Direct connect below instead.'); }, 10000); let hostOpen = false;
+  host.on('open', () => { hostOpen = true; clearTimeout(ot); if (used) return; const w = $('mp-wait'); w.hidden = false; w.innerHTML = 'ROOM CODE<br><span style="font-size:54px;letter-spacing:6px">' + esc(code) + '</span><br><small>Waiting for your friend to join...</small>'; mpSay(''); });
   host.on('connection', c => { c.on('open', () => { if (used) { try { c.close(); } catch (e) {} return; } go(host, c); }); });
-  host.on('error', e => { if (e && e.type === 'unavailable-id') { asJoiner(); } else if (!used) fail(); });
+  host.on('error', e => { if (e && e.type === 'unavailable-id') { asJoiner(); } else if (!used) { clearTimeout(ot); fail('Relay error: ' + ((e && e.type) || 'unknown') + '. Press Direct connect below instead.'); } });
 }
 function mpLobbyUi() {
   const w = $('mp-wait'); w.hidden = false; const o = mp.opp;
