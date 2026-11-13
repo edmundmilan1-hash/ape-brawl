@@ -75,7 +75,7 @@ canvas { display:block; width:100%; height:100%; cursor:crosshair; touch-action:
 <body>
 <canvas id="c"></canvas>
 <canvas id="ov"></canvas>
-<div id="ver" style="position:fixed;right:10px;top:6px;z-index:60;font:700 13px 'Comic Sans MS',cursive;color:#1b2a3a;opacity:.7;background:rgba(255,255,255,.55);padding:2px 8px;border-radius:8px;pointer-events:none">v5:45</div>
+<div id="ver" style="position:fixed;right:10px;top:6px;z-index:60;font:700 13px 'Comic Sans MS',cursive;color:#1b2a3a;opacity:.7;background:rgba(255,255,255,.55);padding:2px 8px;border-radius:8px;pointer-events:none">v5:46</div>
 <div id="pz"><h2>Paused</h2><div class="pb" id="pz-main"><button class="big" id="pz-res">Resume</button><button class="big" id="pz-set">Game Settings</button><button class="big" id="pz-map">Map</button><button class="big" id="pz-menu">Main Menu</button></div><div class="pp" id="pz-sp"><b>Game Settings</b><label>Mouse sensitivity <input type="range" id="pz-sens" min="0.3" max="3" step="0.1" value="1"></label><label><span>FOV <b id="pz-fovv">60</b></span> <input type="range" id="pz-fov" min="50" max="110" step="1" value="60"></label><label>Camera <button class="big" id="pz-cam" style="font-size:16px;padding:6px 14px">Third person</button></label><button class="big" data-pz="main">Back</button></div><div class="pp" id="pz-mp"><b>Map</b><div>Current map: Forest Hills</div><small>More maps are coming soon.</small><button class="big" data-pz="main">Back</button></div></div>
 <div id="menu">
 <div id="s-title" class="screen"><h1 class="logo">APE<br>BRAWL</h1><canvas id="hero" width="300" height="300"></canvas><div class="btns"><button class="big" id="b-play">Singleplayer</button><button class="big" data-go="s-char">Character</button><button class="big" id="b-upc">Upgrade Center</button><button class="big" data-go="s-set">Settings</button><button class="big" id="b-endless">Endless Mode</button><button class="big" id="b-mp">Multiplayer</button><button class="big" id="b-3d" hidden>Campaign</button><button class="big" id="b-2d" hidden>2D</button><button class="big" id="b-3dh" hidden>3D</button></div></div>
@@ -4145,7 +4145,7 @@ function m3CDraw(G) { const { obj, tr, box, F, P } = G, T = M3.t || 0, I = M3.ci
 const DU = { x: 0, z: 400, R: 16 };
 M3T.duelist = Object.assign({}, M3T.grunt || {}, { n: 'Rival Monkey', hp: 36, met: [150, 98, 60], met2: [118, 74, 44], red: [255, 226, 180], eye: [30, 20, 24] });
 function m3DuelNew() { M3.bots = []; const P = M3.p; Object.assign(P, { x: DU.x - 5.5, z: DU.z, y: 1 + m3H(DU.x - 5.5, DU.z) }); if (M3.dl) { M3.dl.me = null; } M3.dcam = null; if (M3.A) for (const a of M3.A) { a.on = false; a.pv = 0; a.last = null; } M3.v = { x: 0, y: 0, z: 0 }; M3.yaw = Math.PI/2; M3.hp = M3.mhp; M3.stam = M3.mst; M3.ko = 0; M3.inv = 2; M3.guard = false; M3.lives = 999; M3.zOK = true; let b = null; try { b = m3SpawnAt('duelist', DU.x + 5.5, DU.z); } catch (e) {} M3.zOK = false; if (b) { b.mk = true; b.ld = Math.random() < 0.5 ? 1 : -1; b.sc = 0.9; b.hp = b.mhp = 1e6; b.dz = 0; b.agg = true; b.yaw = -Math.PI/2; } M3.dl.opp = b; M3.dl.pz = 0; M3.dl.pd = { head: 0, body: 0, armL: 0, armR: 0 }; M3.dl.st = 'fight'; M3.dl.bt = 0; if (!b) toast('Could not place the rival'); }
-function m3DuelTick(s) { const D = M3.dl; if (!D) return; if (D.pt) for (let i = D.pt.length - 1; i >= 0; i--) { const q = D.pt[i]; q.t += s; q.v[1] -= 9*s; q.p[0] += q.v[0]*s; q.p[1] += q.v[1]*s; q.p[2] += q.v[2]*s; if (q.t > 1.4 || q.p[1] < M3.p.y - 0.98) D.pt.splice(i, 1); } M3.altar = null; M3.obj = null; M3.quest = null; if (D.opp) { for (let i = 0; i < 4; i++) { m3Bal(D.opp, s/4); if (D.opp.pk) m3ApeSpring(D.opp, s/4); } D.opp.ft = D.opp.fall ? (D.opp.ft || 0) + s : 0; D.opp.dz = Math.max(0, (D.opp.dz || 0) - 0.22*s); } D.pz = Math.max(0, (D.pz || 0) - 0.2*s); if (D.imp) { D.imp.t -= s; if (D.imp.t <= 0) D.imp = null; } const P = M3.p; M3.bots = M3.bots || []; M3.lives = 999;
+function m3DuelTick(s) { const D = M3.dl; if (!D) return; if (D.pt) for (let i = D.pt.length - 1; i >= 0; i--) { const q = D.pt[i]; q.t += s; q.v[1] -= 9*s; q.p[0] += q.v[0]*s; q.p[1] += q.v[1]*s; q.p[2] += q.v[2]*s; if (q.t > 1.4 || q.p[1] < M3.p.y - 0.98) D.pt.splice(i, 1); } M3.altar = null; M3.obj = null; M3.quest = null; if (D.opp) { if (D.opp.mk && !D.opp.me) { if (!D.opp.rg) m3RgNew(D.opp); m3RgStep(D.opp, Math.min(s, 0.05)); } else for (let i = 0; i < 4; i++) { m3Bal(D.opp, s/4); if (D.opp.pk) m3ApeSpring(D.opp, s/4); } D.opp.ft = D.opp.fall ? (D.opp.ft || 0) + s : 0; D.opp.dz = Math.max(0, (D.opp.dz || 0) - 0.22*s); } D.pz = Math.max(0, (D.pz || 0) - 0.2*s); if (D.imp) { D.imp.t -= s; if (D.imp.t <= 0) D.imp = null; } const P = M3.p; M3.bots = M3.bots || []; M3.lives = 999;
   if (D.st === 'fight') { const b = D.opp; if (!b) { m3DuelNew(); return; } if (M3.ko > 0) { D.sc[1]++; D.st = 'between'; D.bt = 3; D.msg = 'THE MONKEY WINS THE ROUND'; } else if (b.hp <= 0.01 || b.dead || b.fall) { D.sc[0]++; D.st = 'between'; D.bt = 3; D.msg = 'YOU WIN THE ROUND!'; } }
   else { if (D.opp) { D.opp.stun = 99; D.opp.st = 'idle'; } D.bt -= s; if (D.bt <= 0) { if (D.sc[0] >= 3 || D.sc[1] >= 3) { toast(D.sc[0] >= 3 ? '🏆 YOU WIN THE MATCH!' : 'You lost the match. Rematch!'); D.sc = [0, 0]; D.round = 0; } D.round++; m3DuelNew(); } }
   { const dx = P.x - DU.x, dz = P.z - DU.z, d = Math.hypot(dx, dz); if (d > DU.R) { P.x = DU.x + dx/d*DU.R; P.z = DU.z + dz/d*DU.R; } }
@@ -4228,6 +4228,79 @@ function m3ApePose(b) { const amp = b.fall && !b.down ? 1 : Math.min(1, (b.sp ||
     L.hip[0] += 0.05*ob[0]; L.hip[2] += 0.05*ob[2]; L.knee[0] += 0.05*ob[0] + 0.9*ol[0]; L.knee[2] += 0.05*ob[2] + 0.9*ol[2]; L.knee[1] += 0.4*ol[1]; L.foot[0] += 0.6*ol[0]; L.foot[2] += 0.6*ol[2]; }
   return { hy, legs, arms, ob, oh }; }
 function po_arm(a) { return a; }
+
+// ===== ACTIVE RAGDOLL: a real skeleton (15 joints, verlet physics, ground, gravity). Muscles pull it toward the animated stance, a balance controller keeps its centre of mass over its feet, and it steps to catch itself. Hits are real impulses. =====
+{ const o0 = toast; toast = function (m) { if (M3.duel && /ROBOT DOWN|DESTROYED/.test(m + '')) return; return o0.apply(this, arguments); }; }
+const m3ApePose0 = m3ApePose;
+const RGI = { P: 0, C: 1, H: 2, SL: 3, SR: 4, HL: 5, HR: 6, EL: 7, ER: 8, WL: 9, WR: 10, KL: 11, KR: 12, FL: 13, FR: 14 };
+const RG_MASS = [3, 3, 1.6, 1, 1, 1.5, 1.5, 0.6, 0.6, 0.5, 0.5, 1, 1, 1, 1], RG_MINY = [0.3, 0.26, 0.24, 0.2, 0.2, 0.2, 0.2, 0.1, 0.1, 0.1, 0.1, 0.12, 0.12, 0.24, 0.24];
+const RG_ROPE = [[3, 7, 0.62], [7, 9, 0.64], [4, 8, 0.62], [8, 10, 0.64], [5, 11, 0.3], [11, 13, 0.3], [6, 12, 0.3], [12, 14, 0.3]];
+const RG_RIGID = [[0, 1], [1, 2], [3, 1], [4, 1], [3, 4], [5, 0], [6, 0], [5, 6], [3, 0], [4, 0], [5, 1], [6, 1], [3, 2], [4, 2], [3, 6], [4, 5]];
+function m3RgNew(b) {
+  const bn = Object.assign({}, b, { bl: null, pk: null, stp: null, rg: null }), po = m3ApePose0(bn), cb = Math.cos(b.yaw), sb = Math.sin(b.yaw), R = l => [cb*l[0] + sb*l[2], l[1], -sb*l[0] + cb*l[2]], py = po.hy - 0.3, SC = b.sc || 1;
+  const P = [0, py, 0], C = [0, py + 0.64, 0], H = [0, py + 1.17, 0], pts = new Array(15);
+  pts[0] = P; pts[1] = C; pts[2] = H;
+  for (let i = 0; i < 2; i++) { const sd = i ? 1 : -1, rl = R([sd*0.4, 0.08, 0.04]), rh = R([sd*0.15, 0, 0]); pts[3 + i] = [C[0] + rl[0], C[1] + rl[1], C[2] + rl[2]]; pts[5 + i] = [P[0] + rh[0], P[1], P[2] + rh[2]]; const A = po.arms[i], L = po.legs[i], re = R(A.elb), rw = R(A.hnd), rk = R(L.knee), rf = R(L.foot); pts[7 + i] = re; pts[9 + i] = rw; pts[11 + i] = rk; pts[13 + i] = rf; }
+  const d = (i, j) => Math.hypot(pts[i][0] - pts[j][0], pts[i][1] - pts[j][1], pts[i][2] - pts[j][2]);
+  b.revs = 1; b.rg = { p: pts.map(v => v.slice()), q: pts.map(v => v.slice()), o: [b.x - SC*0, b.z - SC*0], rig: RG_RIGID.map(([i, j]) => [i, j, d(i, j)]), pl: [[pts[13][0], pts[13][2]], [pts[14][0], pts[14][2]]], st: [null, null], imp: [], daze: 0, vc: [0, 0], hy: po.hy, lc: null, cd: 0 };
+}
+function m3RgStep(b, s) {
+  const g = b.rg, SC = b.sc || 1, cb = Math.cos(b.yaw), sb = Math.sin(b.yaw), p = g.p, q = g.q, R = l => [cb*l[0] + sb*l[2], l[1], -sb*l[0] + cb*l[2]];
+  { const dx = (b.x - (g.o[0] + SC*p[0][0]))/SC, dz = (b.z - (g.o[1] + SC*p[0][2]))/SC; if (dx || dz) { for (let i = 0; i < 15; i++) { p[i][0] += dx; p[i][2] += dz; q[i][0] += dx; q[i][2] += dz; } if (g.lc) { g.lc[0] += dx; g.lc[1] += dz; } for (const pl of g.pl) { pl[0] += dx; pl[1] += dz; } for (const st of g.st) if (st) { st.from[0] += dx; st.from[1] += dz; st.to[0] += dx; st.to[1] += dz; } } }
+  const pd = b.pd || { head: 0, body: 0, armL: 0, armR: 0, legL: 0, legR: 0 }, limp = !!b.fall, dz0 = Math.max(0, g.daze);
+  const sH = limp ? 0.03 : Math.max(0.05, 1 - 0.9*pd.head - dz0*0.6), sB = limp ? 0.03 : Math.max(0.05, 1 - 0.8*pd.body - dz0*0.5), sL = limp ? 0.03 : Math.max(0.05, 1 - 0.85*Math.min(1, (pd.legL + pd.legR)/1.6) - dz0*0.4), sA = [limp ? 0.03 : Math.max(0.08, 1 - 0.8*pd.armL), limp ? 0.03 : Math.max(0.08, 1 - 0.8*pd.armR)], sBal = Math.min(sB, sL);
+  g.daze = Math.max(0, g.daze - 1.2*s);
+  const po = limp ? null : m3ApePose0(Object.assign({}, b, { bl: null, pk: null, stp: null, rg: null })), walking = !limp && Math.abs(b.sp || 0) > 0.6, py0 = po ? po.hy - 0.3 : 0.63;
+  // ---- balance: capture point = where he will be if he does nothing; if it is outside his feet he takes a step
+  const comV = dt => { let x = 0, z = 0, m = 0; for (const i of [0, 1, 2]) { x += (p[i][0] - q[i][0])*RG_MASS[i]; z += (p[i][2] - q[i][2])*RG_MASS[i]; m += RG_MASS[i]; } return [x/m/dt, z/m/dt]; }, com = () => { let x = 0, z = 0, m = 0; for (const i of [0, 1, 2]) { x += p[i][0]*RG_MASS[i]; z += p[i][2]*RG_MASS[i]; m += RG_MASS[i]; } return [x/m, z/m]; };
+  const c0 = com(); g.lc = c0;
+  const sc0 = [(g.pl[0][0] + g.pl[1][0])/2, (g.pl[0][1] + g.pl[1][1])/2], cp = [c0[0] + g.vc[0]*0.3, c0[1] + g.vc[1]*0.3], off = Math.hypot(cp[0] - sc0[0], cp[1] - sc0[1]);
+  g.cd = Math.max(0, g.cd - s); g.dbg = { off, vc: g.vc.slice(), walking, sp: b.sp };
+  for (let i = 0; i < 2; i++) { const st = g.st[i]; if (!st) continue; st.t += s; const u = Math.min(1, st.t/st.d), e = u*u*(3 - 2*u); g.pl[i][0] = st.from[0] + (st.to[0] - st.from[0])*e; g.pl[i][1] = st.from[1] + (st.to[1] - st.from[1])*e; st.lift = Math.sin(u*Math.PI)*0.2; if (u >= 1) { g.st[i] = null; g.cd = 0.08; } }
+  if (!limp && !walking && !g.st[0] && !g.st[1] && g.cd <= 0 && off > 0.17 && sBal > 0.12) {
+    const ux = (cp[0] - sc0[0])/off, uz = (cp[1] - sc0[1])/off; let bi = 0, bd = -9; for (let i = 0; i < 2; i++) { const dd = (g.pl[i][0] - sc0[0])*ux + (g.pl[i][1] - sc0[1])*uz; if (dd > bd) { bd = dd; bi = i; } }
+    const oi = 1 - bi, len = Math.min(0.85, off*1.05 + 0.12); let tx = sc0[0] + ux*len, tz = sc0[1] + uz*len; const ox = g.pl[oi][0], oz = g.pl[oi][1], sep = Math.hypot(tx - ox, tz - oz); if (sep < 0.2) { tx = ox + ux*0.2 + uz*0.0; tz = oz + uz*0.2; }
+    g.st[bi] = { t: 0, d: 0.2 + 0.08*Math.random() + 0.12*(1 - sBal), from: g.pl[bi].slice(), to: [tx, tz], lift: 0 }; }
+  g.tf = (off > 0.5 && !g.st[0] && !g.st[1] && g.cd <= 0) ? (g.tf || 0) + s : 0;
+  if (!limp && (off > 0.78 || (sBal < 0.13 && off > 0.22) || (g.tf > 0.25))) { const ux = (cp[0] - sc0[0])/(off || 1), uz = (cp[1] - sc0[1])/(off || 1); try { m3KnockDown(b, ux, uz); } catch (e) {} b.kx = b.kz = 0; b.spin = 0; b.wr = 0; b.wp = 0; }
+  // ---- physics substeps
+  const N = 6, dt = s/N, G = 14;
+  for (let sub = 0; sub < N; sub++) {
+    for (const im of g.imp.splice(0)) { const i = im.i; q[i][0] -= im.v[0]*dt; q[i][1] -= im.v[1]*dt; q[i][2] -= im.v[2]*dt; }
+    const a = []; for (let i = 0; i < 15; i++) a.push([0, -G, 0]);
+    const V = i => [(p[i][0] - q[i][0])/dt, (p[i][1] - q[i][1])/dt, (p[i][2] - q[i][2])/dt];
+    const pull = (i, t, k, c, str) => { if (str <= 0) return; const v = V(i); for (let j = 0; j < 3; j++) a[i][j] += str*(k*(t[j] - p[i][j]) - c*v[j]); };
+    if (!limp) {
+      const cc = com(), vcm = comV(dt); g.vc = vcm;
+      for (const i of [0, 1]) { a[i][0] += sBal*(14*(sc0[0] - cc[0]) - 3.5*vcm[0]); a[i][2] += sBal*(14*(sc0[1] - cc[1]) - 3.5*vcm[1]); } // ankle/hip torque: push the body over the feet
+      pull(0, [p[0][0], py0, p[0][2]], 0, 0, 0); a[0][1] += sL*(420*(py0 - p[0][1]) - 34*V(0)[1]) + G; // hold the pelvis up (cancel gravity)
+      pull(1, [p[0][0], p[0][1] + 0.64, p[0][2]], 170, 20, sB); a[1][1] += sB*G; pull(2, [p[1][0], p[1][1] + 0.53, p[1][2]], 150, 15, sH); a[2][1] += sH*G;
+      for (let i = 0; i < 2; i++) { const sd = i ? 1 : -1, rs = R([sd*0.4, 0.08, 0.04]), rh = R([sd*0.15, 0, 0]); pull(3 + i, [p[1][0] + rs[0], p[1][1] + rs[1], p[1][2] + rs[2]], 160, 16, sB); a[3 + i][1] += sB*G; pull(5 + i, [p[0][0] + rh[0], p[0][1], p[0][2] + rh[2]], 160, 16, sB);
+        const A = po.arms[i], hl = R(A.hnd), el = R(A.elb), dy = p[0][1] - py0; pull(9 + i, [p[1][0] + hl[0], hl[1] + dy, p[1][2] + hl[2]], 150, 15, sA[i]); a[9 + i][1] += sA[i]*G; pull(7 + i, [p[1][0] + el[0], el[1] + dy, p[1][2] + el[2]], 60, 10, sA[i]); a[7 + i][1] += sA[i]*G;
+        const F = 13 + i, st = g.st[i]; let tx, tz, ty = 0.24 + (st ? st.lift : 0);
+        if (walking) { const L = R(po.legs[i].foot); tx = p[0][0] + L[0]; tz = p[0][2] + L[2]; ty = L[1]; g.pl[i][0] = p[F][0]; g.pl[i][1] = p[F][2]; pull(F, [tx, ty, tz], 220, 26, sL); } else { pull(F, [g.pl[i][0], ty, g.pl[i][1]], 420, 38, 1); }
+        a[F][1] += G; const mid = [(p[5 + i][0] + p[F][0])/2, (p[5 + i][1] + p[F][1])/2, (p[5 + i][2] + p[F][2])/2], fw = R([0, 0, 0.26]); pull(11 + i, [mid[0] + fw[0], mid[1], mid[2] + fw[2]], 100, 12, Math.max(sL, 0.2)); a[11 + i][1] += G*0.6; } }
+    for (let i = 0; i < 15; i++) { const x = p[i][0], y = p[i][1], z = p[i][2]; p[i][0] += (x - q[i][0])*0.996 + a[i][0]*dt*dt; p[i][1] += (y - q[i][1])*0.996 + a[i][1]*dt*dt; p[i][2] += (z - q[i][2])*0.996 + a[i][2]*dt*dt; q[i][0] = x; q[i][1] = y; q[i][2] = z; }
+    for (let it = 0; it < 4; it++) {
+      for (const [i, j, L] of g.rig) { const dx = p[j][0] - p[i][0], dy = p[j][1] - p[i][1], dzz = p[j][2] - p[i][2], d = Math.hypot(dx, dy, dzz) || 1e-6, w = (d - L)/d, mi = 1/RG_MASS[i], mj = 1/RG_MASS[j], k = w/(mi + mj); p[i][0] += dx*k*mi; p[i][1] += dy*k*mi; p[i][2] += dzz*k*mi; p[j][0] -= dx*k*mj; p[j][1] -= dy*k*mj; p[j][2] -= dzz*k*mj; }
+      for (const [i, j, L] of RG_ROPE) { const dx = p[j][0] - p[i][0], dy = p[j][1] - p[i][1], dzz = p[j][2] - p[i][2], d = Math.hypot(dx, dy, dzz); if (d <= L) continue; const w = (d - L)/d, mi = 1/RG_MASS[i], mj = 1/RG_MASS[j], k = w/(mi + mj); p[i][0] += dx*k*mi; p[i][1] += dy*k*mi; p[i][2] += dzz*k*mi; p[j][0] -= dx*k*mj; p[j][1] -= dy*k*mj; p[j][2] -= dzz*k*mj; }
+      for (let i = 0; i < 15; i++) if (p[i][1] < RG_MINY[i]) { p[i][1] = RG_MINY[i]; const f = limp ? 0.25 : (i >= 13 ? 0 : 0.5); q[i][0] += (p[i][0] - q[i][0])*f; q[i][2] += (p[i][2] - q[i][2])*f; q[i][1] = Math.min(q[i][1], p[i][1] + 0.0); }
+    }
+  }
+  b.x = g.o[0] + SC*p[0][0]; b.z = g.o[1] + SC*p[0][2]; b.y = 0; g.hy = p[0][1] + 0.3;
+  if (b.fall) { b.tilt = 0; b.roll = 0; b.wp = 0; b.wr = 0; b.spin = 0; b.kx = b.kz = 0; } else { b.kx = b.kz = 0; }
+}
+function m3RgPose(b) {
+  const g = b.rg, p = g.p, cb = Math.cos(b.yaw), sb = Math.sin(b.yaw), P = p[0], L = i => { const dx = p[i][0] - P[0], dz = p[i][2] - P[2]; return [cb*dx - sb*dz, p[i][1], sb*dx + cb*dz]; }, hy = P[1] + 0.3, kc = Math.max(0.3, m3LK(hy + 0.34)), kh = m3LK(hy + 0.76), C = L(1), H = L(2);
+  const ob = [C[0]/kc, (C[1] - P[1] - 0.64)/kc, C[2]/kc], oh = [H[0] - ob[0]*kh, H[1] - P[1] - 1.17 - ob[1]*kh, H[2] - ob[2]*kh], legs = [], arms = [];
+  for (let i = 0; i < 2; i++) { legs.push({ hip: L(5 + i), knee: L(11 + i), foot: L(13 + i) }); arms.push({ sh: L(3 + i), elb: L(7 + i), hnd: L(9 + i) }); }
+  return { hy, legs, arms, ob, oh }; }
+m3ApePose = function (b) { return b.rg ? m3RgPose(b) : m3ApePose0(b); };
+function m3RgHit(b, w, ux, uz, pw, best) {
+  const g = b.rg; if (!g) return; const SC = b.sc || 1; let bi = 0, bd = 1e9; for (let i = 0; i < 15; i++) { const d = Math.hypot(g.o[0] + SC*g.p[i][0] - w[0], SC*g.p[i][1] - (w[1] - b.y), g.o[1] + SC*g.p[i][2] - w[2]); if (d < bd) { bd = d; bi = i; } }
+  const mag = (1.4 + 5.2*pw)*(0.75 + 0.25*best.m), dir = [ux, 0.12, uz], n = Math.hypot(dir[0], dir[1], dir[2]), v = dir.map(x => x/n*mag);
+  g.imp.push({ i: bi, v }); const bulk = bi <= 2 ? [0, 1, 2] : [0, 1]; for (const i of bulk) if (i !== bi) g.imp.push({ i, v: v.map(x => x*0.5) });
+  g.daze = Math.min(1, g.daze + 0.25*pw + (best.part === 'head' ? 0.15 : 0)); }
 function m3ApeKick(b, part, lx, ly, lz) { b.pk = b.pk || { head: { p: [0, 0, 0], v: [0, 0, 0] }, body: { p: [0, 0, 0], v: [0, 0, 0] }, armL: { p: [0, 0, 0], v: [0, 0, 0] }, armR: { p: [0, 0, 0], v: [0, 0, 0] }, legL: { p: [0, 0, 0], v: [0, 0, 0] }, legR: { p: [0, 0, 0], v: [0, 0, 0] } }; const q = b.pk[part]; if (q) { q.v[0] += lx; q.v[1] += ly; q.v[2] += lz; } }
 function m3ApeSpring(b, s) { if (!b.pk) return; for (const k in b.pk) { const q = b.pk[k]; for (let c = 0; c < 3; c++) { q.v[c] += (-48*q.p[c] - 9*q.v[c])*s; q.p[c] += q.v[c]*s; q.p[c] = Math.max(-1.1, Math.min(1.1, q.p[c])); } } }
 function m3ApeBoxes(b) { const po = m3ApePose(b), cb = Math.cos(b.yaw), sb = Math.sin(b.yaw), SC = b.sc || 1, W3 = l => [b.x + (cb*l[0] + sb*l[2])*SC, b.y + l[1]*SC, b.z + (-sb*l[0] + cb*l[2])*SC], X = [], ob = po.ob, oh = po.oh;
@@ -4251,9 +4324,9 @@ function m3DuelStrike(k, a, w, vv, v, s) { const D = M3.dl, b = D && D.opp; a.tr
   if (!best) return; const P = M3.p, dx = b.x - P.x, dz = b.z - P.z, dl = Math.hypot(dx, dz) || 1, ux = dx/dl, uz = dz/dl, pw = Math.max(0, Math.min(1.6, (v - 2)/9))*(1 - 0.5*((D.pd && D.pd[k ? 'armR' : 'armL']) || 0)), mass = 0.7 + 0.3*Math.min(1, (a.trv || 0)/1.2);
   let dmg = (1.4 + 8*Math.pow(pw, 1.3))*mass*best.m, lab = best.n; const up = best.part === 'head' || /THROAT|NECK|CHEST|COLLAR|RIBS|SOLAR/.test(best.n);
   if (/FOREARM|FIST|WRIST|BICEP|ELBOW/.test(best.n) && b.st === 'idle') { dmg *= 0.5; lab = best.n + ' (guarded)'; }
-  a.cd = 0.24; b.hit = 0.3; M3.shk = Math.min(1, Math.max(M3.shk || 0, 0.35 + 0.65*pw)); M3.hs = 0.05 + 0.1*Math.min(1, pw);  { b.bl = b.bl || { x: 0, z: 0, vx: 0, vz: 0 }; const cb2 = Math.cos(b.yaw), sb2 = Math.sin(b.yaw), k2 = (0.8 + 2.4*pw)*(best.part === 'head' ? 1.3 : 1)*(0.7 + Math.random()*0.7); b.bl.vx += (cb2*ux - sb2*uz)*k2; b.bl.vz += (sb2*ux + cb2*uz)*k2; } D.imp = { p: w.slice(), t: 0.22, pw: Math.min(1.2, 0.4 + pw) }; M3.stam = Math.max(0, M3.stam - (1.5 + 4*pw));
-  b.kx = (b.kx || 0) + ux*(1.8 + 7.5*pw); b.kz = (b.kz || 0) + uz*(1.8 + 7.5*pw); b.stun = Math.max(b.stun || 0, (0.15 + 0.5*pw)*(best.m >= 1 ? 1 : 0.5)); if (b.st === 'wind' || b.st === 'swing') { b.st = 'idle'; b.stT = 0; b.cd = Math.max(b.cd || 0, 0.6); }
-  if (/THIGH|SHIN|FOOT/.test(best.n)) b.sp = (b.sp || 0)*0.3; { const cb = Math.cos(b.yaw), sb = Math.sin(b.yaw); m3DuelReact(b, best.n, best.part, pw, cb*ux - sb*uz, sb*ux + cb*uz, 2.4 + 9*pw); }
+  a.cd = 0.24; b.hit = 0.3; M3.shk = Math.min(1, Math.max(M3.shk || 0, 0.35 + 0.65*pw)); M3.hs = 0.05 + 0.1*Math.min(1, pw);  if (!b.rg) { b.bl = b.bl || { x: 0, z: 0, vx: 0, vz: 0 }; const cb2 = Math.cos(b.yaw), sb2 = Math.sin(b.yaw), k2 = (0.8 + 2.4*pw)*(best.part === 'head' ? 1.3 : 1)*(0.7 + Math.random()*0.7); b.bl.vx += (cb2*ux - sb2*uz)*k2; b.bl.vz += (sb2*ux + cb2*uz)*k2; } D.imp = { p: w.slice(), t: 0.22, pw: Math.min(1.2, 0.4 + pw) }; M3.stam = Math.max(0, M3.stam - (1.5 + 4*pw));
+  if (!b.rg) { b.kx = (b.kx || 0) + ux*(1.8 + 7.5*pw); b.kz = (b.kz || 0) + uz*(1.8 + 7.5*pw); } b.stun = Math.max(b.stun || 0, (0.15 + 0.5*pw)*(best.m >= 1 ? 1 : 0.5)); if (b.st === 'wind' || b.st === 'swing') { b.st = 'idle'; b.stT = 0; b.cd = Math.max(b.cd || 0, 0.6); }
+  if (/THIGH|SHIN|FOOT/.test(best.n)) b.sp = (b.sp || 0)*0.3; { const cb = Math.cos(b.yaw), sb = Math.sin(b.yaw); if (b.rg) m3RgHit(b, w, ux, uz, pw, best); else m3DuelReact(b, best.n, best.part, pw, cb*ux - sb*uz, sb*ux + cb*uz, 2.4 + 9*pw); }
   m3Float(b.x, b.y + 2.3, b.z, lab, /guarded/.test(lab) ? '#9ad' : best.m >= 1.6 ? '#ff5a4a' : best.m >= 0.9 ? '#ffd21f' : '#cfd8e8');
   D.pt = D.pt || []; { const nn = 8 + Math.round(10*pw); for (let i = 0; i < nn && D.pt.length < 90; i++) D.pt.push({ p: w.slice(), v: [ux*(1 + Math.random()*3.5) + (Math.random() - 0.5)*2.2, 0.8 + Math.random()*2.6, uz*(1 + Math.random()*3.5) + (Math.random() - 0.5)*2.2], t: 0 }); } b.wd = b.wd || []; { const ix = X.indexOf(best); if (ix >= 0 && b.wd.length < 16 && (best.m >= 0.9 || pw > 0.5)) b.wd.push(ix); }
   const pd = b.pd = b.pd || { head: 0, body: 0, armL: 0, armR: 0, legL: 0, legR: 0 }, kf = best.part === 'head' ? 0.011 : best.part === 'body' ? 0.02 : /arm/.test(best.part) ? 0.03 : 0.025; pd[best.part] = Math.min(1, pd[best.part] + dmg*kf); // every body part wears down on its own
@@ -4702,7 +4775,7 @@ function m3Draw() {
     const ct = Math.cos(b.tilt || 0), st = Math.sin(b.tilt || 0), cr2 = Math.cos(b.roll || 0), sr2 = Math.sin(b.roll || 0), pv = (b.fall ? 0.9 : 0)*SC, lowr = SC*(b.fall ? -0.75*Math.sin(Math.min(Math.PI, Math.max(Math.abs(b.tilt || 0), Math.abs(b.roll || 0)))) : 0),
       bw = (lx, ly, lz) => { lx *= SC; ly *= SC; lz *= SC; const y0 = ly - pv, x1 = lx*cr2 - y0*sr2, y1 = lx*sr2 + y0*cr2, y2 = y1*ct + lz*st, z2 = lz*ct - y1*st; return [b.x + cb*x1 + sb*z2, b.y + (b.yo || 0) + pv + lowr + y2 + bob2 + (b.fall ? 0 : st*0.25), b.z - sb*x1 + cb*z2]; };
     if (b.mk) { // the rival is drawn with the SAME monkey body as the player (so multiplayer opponents will look the same)
-      const AF = [150, 98, 60], AF2 = [178, 122, 78], AFC = [255, 226, 180], ACH = [226, 178, 128], ADK = [64, 42, 36], GLV = b.me ? [46, 96, 232] : [226, 56, 56], hy = 1 + bob2*0.5 - 0.07 - (b.dp || 0) - 0.07*(b.pd ? b.pd.legL + b.pd.legR : 0), an = b.yaw, ge = (c, r, col, ns, nr) => ell(c, [r[0]*1.08*SC, r[1]*SC, r[2]*1.08*SC], col, Math.round(ns*2.4), Math.round(nr*2.4), an), limbT = (a2, b2, w0, w1, col, N) => limb(a2, b2, w0*1.1, w1*1.1, col, (N || 12) + 8);
+      const AF = [150, 98, 60], AF2 = [178, 122, 78], AFC = [255, 226, 180], ACH = [226, 178, 128], ADK = [64, 42, 36], GLV = b.me ? [46, 96, 232] : [226, 56, 56], hy = b.rg ? b.rg.hy : 1 + bob2*0.5 - 0.07 - (b.dp || 0) - 0.07*(b.pd ? b.pd.legL + b.pd.legR : 0), an = b.yaw, ge = (c, r, col, ns, nr) => ell(c, [r[0]*1.08*SC, r[1]*SC, r[2]*1.08*SC], col, Math.round(ns*2.4), Math.round(nr*2.4), an), limbT = (a2, b2, w0, w1, col, N) => limb(a2, b2, w0*1.1, w1*1.1, col, (N || 12) + 8);
       const PO = m3ApePose(b), Bd = (x, y, z) => { const k = m3LK(y); return bw(x + PO.ob[0]*k, y + PO.ob[1]*k, z + PO.ob[2]*k); }, Hd = (x, y, z) => { const k = m3LK(y); return bw(x + PO.ob[0]*k + PO.oh[0], y + 0.11 + PO.ob[1]*k + PO.oh[1], z + PO.ob[2]*k + PO.oh[2]); }; { for (let i = 0; i < 2; i++) { const L = PO.legs[i], hip = bw(L.hip[0], L.hip[1], L.hip[2]), knee = bw(L.knee[0], L.knee[1], L.knee[2]), foot = bw(L.foot[0], L.foot[1], L.foot[2]);
         limbT(hip, knee, 0.105*SC, 0.078*SC, AF, 12); ge(knee, [0.08, 0.08, 0.08], AF, 7, 4); limbT(knee, foot, 0.078*SC, 0.058*SC, AF, 12); ge([foot[0] + sb*0.07, foot[1] - 0.02, foot[2] + cb*0.07], [0.08, 0.06, 0.16], ADK, 7, 4); }
         for (let i = 0; i < 2; i++) { const A = PO.arms[i], sh = bw(A.sh[0], A.sh[1], A.sh[2]), elb = bw(A.elb[0], A.elb[1], A.elb[2]), hnd = bw(A.hnd[0], A.hnd[1], A.hnd[2]);
