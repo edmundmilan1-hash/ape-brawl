@@ -75,7 +75,7 @@ canvas { display:block; width:100%; height:100%; cursor:crosshair; touch-action:
 <body>
 <canvas id="c"></canvas>
 <canvas id="ov"></canvas>
-<div id="ver" style="position:fixed;right:10px;top:6px;z-index:60;font:700 13px 'Comic Sans MS',cursive;color:#1b2a3a;opacity:.7;background:rgba(255,255,255,.55);padding:2px 8px;border-radius:8px;pointer-events:none">v5:49</div>
+<div id="ver" style="position:fixed;right:10px;top:6px;z-index:60;font:700 13px 'Comic Sans MS',cursive;color:#1b2a3a;opacity:.7;background:rgba(255,255,255,.55);padding:2px 8px;border-radius:8px;pointer-events:none">v5:50</div>
 <div id="pz"><h2>Paused</h2><div class="pb" id="pz-main"><button class="big" id="pz-res">Resume</button><button class="big" id="pz-set">Game Settings</button><button class="big" id="pz-map">Map</button><button class="big" id="pz-menu">Main Menu</button></div><div class="pp" id="pz-sp"><b>Game Settings</b><label>Mouse sensitivity <input type="range" id="pz-sens" min="0.3" max="3" step="0.1" value="1"></label><label><span>FOV <b id="pz-fovv">60</b></span> <input type="range" id="pz-fov" min="50" max="110" step="1" value="60"></label><label>Camera <button class="big" id="pz-cam" style="font-size:16px;padding:6px 14px">Third person</button></label><button class="big" data-pz="main">Back</button></div><div class="pp" id="pz-mp"><b>Map</b><div>Current map: Forest Hills</div><small>More maps are coming soon.</small><button class="big" data-pz="main">Back</button></div></div>
 <div id="menu">
 <div id="s-title" class="screen"><h1 class="logo">APE<br>BRAWL</h1><canvas id="hero" width="300" height="300"></canvas><div class="btns"><button class="big" id="b-play">Singleplayer</button><button class="big" data-go="s-char">Character</button><button class="big" id="b-upc">Upgrade Center</button><button class="big" data-go="s-set">Settings</button><button class="big" id="b-endless">Endless Mode</button><button class="big" id="b-mp">Multiplayer</button><button class="big" id="b-3d" hidden>Campaign</button><button class="big" id="b-2d" hidden>2D</button><button class="big" id="b-3dh" hidden>3D</button></div></div>
@@ -4248,8 +4248,8 @@ function m3RgStep(b, s) {
   const g = b.rg, SC = b.sc || 1, cb = Math.cos(b.yaw), sb = Math.sin(b.yaw), p = g.p, q = g.q, R = l => [cb*l[0] + sb*l[2], l[1], -sb*l[0] + cb*l[2]];
   { const dx = (b.x - (g.o[0] + SC*p[0][0]))/SC, dz = (b.z - (g.o[1] + SC*p[0][2]))/SC; if (dx || dz) { for (let i = 0; i < 15; i++) { p[i][0] += dx; p[i][2] += dz; q[i][0] += dx; q[i][2] += dz; } if (g.lc) { g.lc[0] += dx; g.lc[1] += dz; } for (const pl of g.pl) { pl[0] += dx; pl[1] += dz; } for (const st of g.st) if (st) { st.from[0] += dx; st.from[1] += dz; st.to[0] += dx; st.to[1] += dz; } } }
   const pd = b.pd || { head: 0, body: 0, armL: 0, armR: 0, legL: 0, legR: 0 }, limp = !!b.fall, dz0 = Math.max(0, g.daze);
-  const sH = limp ? 0.03 : Math.max(0.05, 1 - 0.9*pd.head - dz0*0.6), sB = limp ? 0.03 : Math.max(0.05, 1 - 0.8*pd.body - dz0*0.5), sL = limp ? 0.03 : Math.max(0.05, 1 - 0.85*Math.min(1, (pd.legL + pd.legR)/1.6) - dz0*0.4), sA = [limp ? 0.03 : Math.max(0.08, 1 - 0.8*pd.armL), limp ? 0.03 : Math.max(0.08, 1 - 0.8*pd.armR)], sBal = Math.min(sB, sL);
-  g.daze = Math.max(0, g.daze - 1.2*s); g.ht = Math.max(0, (g.ht || 0) - s);
+  const sH = limp ? 0.03 : Math.max(0.05, 1 - 0.9*pd.head - dz0*0.8), sB = limp ? 0.03 : Math.max(0.05, 1 - 0.8*pd.body - dz0*0.6), sL = limp ? 0.03 : Math.max(0.05, 1 - 0.85*Math.min(1, (pd.legL + pd.legR)/1.6) - dz0*0.4), sA = [limp ? 0.03 : Math.max(0.08, 1 - 0.8*pd.armL), limp ? 0.03 : Math.max(0.08, 1 - 0.8*pd.armR)], sBal = Math.min(sB, sL);
+  g.daze = Math.max(0, g.daze - 0.7*s); g.ht = Math.max(0, (g.ht || 0) - s);
   const po = limp ? null : m3ApePose0(Object.assign({}, b, { bl: null, pk: null, stp: null, rg: null })), walking = !limp && Math.abs(b.sp || 0) > 0.6 && !(g.ht > 0), py0 = po ? po.hy - 0.3 : 0.63;
   // ---- balance: capture point = where he will be if he does nothing; if it is outside his feet he takes a step
   const comV = dt => { let x = 0, z = 0, m = 0; for (const i of [0, 1, 2]) { x += (p[i][0] - q[i][0])*RG_MASS[i]; z += (p[i][2] - q[i][2])*RG_MASS[i]; m += RG_MASS[i]; } return [x/m/dt, z/m/dt]; }, com = () => { let x = 0, z = 0, m = 0; for (const i of [0, 1, 2]) { x += p[i][0]*RG_MASS[i]; z += p[i][2]*RG_MASS[i]; m += RG_MASS[i]; } return [x/m, z/m]; };
@@ -4261,8 +4261,8 @@ function m3RgStep(b, s) {
     const ux = (cp[0] - sc0[0])/off, uz = (cp[1] - sc0[1])/off; let bi = 0, bd = -9; for (let i = 0; i < 2; i++) { const dd = (g.pl[i][0] - sc0[0])*ux + (g.pl[i][1] - sc0[1])*uz; if (dd > bd) { bd = dd; bi = i; } }
     const oi = 1 - bi, len = Math.min(0.85, off*1.05 + 0.12); let tx = sc0[0] + ux*len, tz = sc0[1] + uz*len; const ox = g.pl[oi][0], oz = g.pl[oi][1], sep = Math.hypot(tx - ox, tz - oz); if (sep < 0.2) { tx = ox + ux*0.2 + uz*0.0; tz = oz + uz*0.2; }
     g.st[bi] = { t: 0, d: 0.2 + 0.08*Math.random() + 0.12*(1 - sBal), from: g.pl[bi].slice(), to: [tx, tz], lift: 0 }; }
-  const lim = 0.3 + 1.1*sBal*sBal*sBal; g.tf = (off > lim && !g.st[0] && !g.st[1] && g.cd <= 0) ? (g.tf || 0) + s : 0;
-  if (!limp && (off > 0.55 + 1.4*sBal*sBal*sBal || (sBal < 0.13 && off > 0.22) || (g.tf > 0.25))) { const ux = (cp[0] - sc0[0])/(off || 1), uz = (cp[1] - sc0[1])/(off || 1); g.why = { off, lim: 0.3 + 1.1*sBal*sBal*sBal, tf: g.tf, sBal, walking, vc: g.vc.slice(), st: !!(g.st[0] || g.st[1]) }; try { m3KnockDown(b, ux, uz); } catch (e) {} b.kx = b.kz = 0; b.spin = 0; b.wr = 0; b.wp = 0; }
+  const sBP = limp ? 0 : Math.min(Math.max(0.05, 1 - 0.8*pd.body), Math.max(0.05, 1 - 0.85*Math.min(1, (pd.legL + pd.legR)/1.6))), lim = 0.3 + 1.1*sBP*sBP*sBP; g.tf = (off > lim && !g.st[0] && !g.st[1] && g.cd <= 0) ? (g.tf || 0) + s : 0;
+  if (!limp && (off > 0.55 + 1.4*sBP*sBP*sBP || (sBP < 0.13 && off > 0.22) || (g.tf > 0.25))) { const ux = (cp[0] - sc0[0])/(off || 1), uz = (cp[1] - sc0[1])/(off || 1); g.why = { off, lim: 0.3 + 1.1*sBP*sBP*sBP, tf: g.tf, sBal, walking, vc: g.vc.slice(), st: !!(g.st[0] || g.st[1]) }; try { m3KnockDown(b, ux, uz); } catch (e) {} b.kx = b.kz = 0; b.spin = 0; b.wr = 0; b.wp = 0; }
   // ---- physics substeps
   const N = 6, dt = s/N, G = 14;
   for (let sub = 0; sub < N; sub++) {
@@ -4274,9 +4274,9 @@ function m3RgStep(b, s) {
       const cc = com(), vcm = comV(dt); g.vc = vcm;
       for (const i of [0, 1]) { a[i][0] += sBal*(14*(sc0[0] - cc[0]) - 3.5*vcm[0]); a[i][2] += sBal*(14*(sc0[1] - cc[1]) - 3.5*vcm[1]); } // ankle/hip torque: push the body over the feet
       pull(0, [p[0][0], py0, p[0][2]], 0, 0, 0); a[0][1] += sL*(420*(py0 - p[0][1]) - 34*V(0)[1]) + G; // hold the pelvis up (cancel gravity)
-      pull(1, [p[0][0], p[0][1] + 0.64, p[0][2]], 170, 20, sB); a[1][1] += sB*G; pull(2, [p[1][0], p[1][1] + 0.53, p[1][2]], 150, 15, sH); a[2][1] += sH*G;
-      for (let i = 0; i < 2; i++) { const sd = i ? 1 : -1, rs = R([sd*0.4, 0.08, 0.04]), rh = R([sd*0.15, 0, 0]); pull(3 + i, [p[1][0] + rs[0], p[1][1] + rs[1], p[1][2] + rs[2]], 160, 16, sB); a[3 + i][1] += sB*G; pull(5 + i, [p[0][0] + rh[0], p[0][1], p[0][2] + rh[2]], 160, 16, sB);
-        const A = po.arms[i], hl = R(A.hnd), el = R(A.elb), dy = p[0][1] - py0; pull(9 + i, [p[1][0] + hl[0], hl[1] + dy, p[1][2] + hl[2]], 150, 15, sA[i]); a[9 + i][1] += sA[i]*G; pull(7 + i, [p[1][0] + el[0], el[1] + dy, p[1][2] + el[2]], 60, 10, sA[i]); a[7 + i][1] += sA[i]*G;
+      pull(1, [p[0][0], p[0][1] + 0.64, p[0][2]], 38, 5, sB); a[1][1] += sB*G; pull(2, [p[1][0], p[1][1] + 0.53, p[1][2]], 26, 3.5, sH); a[2][1] += sH*G;
+      for (let i = 0; i < 2; i++) { const sd = i ? 1 : -1, rs = R([sd*0.4, 0.08, 0.04]), rh = R([sd*0.15, 0, 0]); pull(3 + i, [p[1][0] + rs[0], p[1][1] + rs[1], p[1][2] + rs[2]], 90, 9, sB); a[3 + i][1] += sB*G; pull(5 + i, [p[0][0] + rh[0], p[0][1], p[0][2] + rh[2]], 160, 16, sB);
+        const A = po.arms[i], hl = R(A.hnd), el = R(A.elb), dy = p[0][1] - py0; pull(9 + i, [p[1][0] + hl[0], hl[1] + dy, p[1][2] + hl[2]], 100, 9, sA[i]); a[9 + i][1] += sA[i]*G; pull(7 + i, [p[1][0] + el[0], el[1] + dy, p[1][2] + el[2]], 35, 5, sA[i]); a[7 + i][1] += sA[i]*G;
         const F = 13 + i, st = g.st[i]; let tx, tz, ty = 0.24 + (st ? st.lift : 0);
         if (walking) { const L = R(po.legs[i].foot); tx = p[0][0] + L[0]; tz = p[0][2] + L[2]; ty = L[1]; g.pl[i][0] = p[F][0]; g.pl[i][1] = p[F][2]; pull(F, [tx, ty, tz], 220, 26, sL); } else { pull(F, [g.pl[i][0], ty, g.pl[i][1]], 420, 38, 1); }
         a[F][1] += G; const mid = [(p[5 + i][0] + p[F][0])/2, (p[5 + i][1] + p[F][1])/2, (p[5 + i][2] + p[F][2])/2], fw = R([0, 0, 0.26]); pull(11 + i, [mid[0] + fw[0], mid[1], mid[2] + fw[2]], 100, 12, Math.max(sL, 0.2)); a[11 + i][1] += G*0.6; } }
@@ -4298,9 +4298,18 @@ function m3RgPose(b) {
 m3ApePose = function (b) { return b.rg ? m3RgPose(b) : m3ApePose0(b); };
 function m3RgHit(b, w, ux, uz, pw, best) {
   const g = b.rg; if (!g) return; const SC = b.sc || 1; let bi = 0, bd = 1e9; for (let i = 0; i < 15; i++) { const d = Math.hypot(g.o[0] + SC*g.p[i][0] - w[0], SC*g.p[i][1] - (w[1] - b.y), g.o[1] + SC*g.p[i][2] - w[2]); if (d < bd) { bd = d; bi = i; } }
-  const mag = (0.9 + 3.0*pw)*(0.75 + 0.25*best.m), dir = [ux, 0.12, uz], n = Math.hypot(dir[0], dir[1], dir[2]), v = dir.map(x => x/n*mag);
-  g.ht = 0.7; b.sp = (b.sp || 0)*0.15; g.imp.push({ i: bi, v }); const bulk = bi <= 2 ? [0, 1, 2] : [0, 1]; for (const i of bulk) if (i !== bi) g.imp.push({ i, v: v.map(x => x*0.5) });
-  g.daze = Math.min(1, g.daze + 0.25*pw + (best.part === 'head' ? 0.15 : 0)); }
+  const mag = (1.6 + 6.0*pw)*(0.75 + 0.25*best.m), dir = [ux, 0.12, uz], n = Math.hypot(dir[0], dir[1], dir[2]), v = dir.map(x => x/n*mag);
+  g.ht = 0.7; b.sp = (b.sp || 0)*0.15; g.imp.push({ i: bi, v });
+  { const n = best.n, sg = Math.random() < 0.5 ? -1 : 1, M = (i, x, y, z) => g.imp.push({ i, v: [x, y, z] }), sx = -uz*sg, sz = ux*sg;
+    if (/JAW|CHEEK|EAR|EYE|NOSE|FOREHEAD|SKULL/.test(n)) { M(2, sx*mag*0.9, 0.2*mag*0.2, sz*mag*0.9); M(1, sx*mag*0.25, 0, sz*mag*0.25); } // the head whips round
+    else if (/BACK OF HEAD/.test(n)) { M(2, ux*mag*0.6, -0.5*mag*0.3, uz*mag*0.6); M(1, ux*mag*0.4, 0, uz*mag*0.4); }
+    else if (/SOLAR|STOMACH|BELLY/.test(n)) { M(2, -ux*mag*0.8, -0.4*mag*0.4, -uz*mag*0.8); M(1, -ux*mag*0.7, -0.3*mag*0.3, -uz*mag*0.7); M(0, ux*mag*0.2, 0, uz*mag*0.2); M(9, -ux*mag*0.4, 0, -uz*mag*0.4); M(10, -ux*mag*0.4, 0, -uz*mag*0.4); M(11, 0, -mag*0.15, 0); M(12, 0, -mag*0.15, 0); } // doubles over
+    else if (/THROAT|NECK/.test(n)) { M(2, ux*mag*0.7, 0.3*mag*0.3, uz*mag*0.7); M(9, 0, mag*0.7, 0); M(10, 0, mag*0.7, 0); }
+    else if (/CHEST|RIBS|COLLAR|SHOULDER|UPPER BACK|SPINE/.test(n)) { M(2, ux*mag*0.8, 0.2*mag*0.3, uz*mag*0.8); M(9, ux*mag*0.3, mag*0.6, uz*mag*0.3); M(10, ux*mag*0.3, mag*0.6, uz*mag*0.3); } // rocks back, arms fly up
+    else if (/KIDNEY|LOWER BACK|HIP/.test(n)) { M(2, -ux*mag*0.5, mag*0.25, -uz*mag*0.5); M(1, ux*mag*0.3, 0, uz*mag*0.3); } // arches
+    else if (/BICEP|ELBOW|FOREARM|WRIST|FIST/.test(n)) { const ar = best.part === 'armR' ? 10 : 9; M(ar, ux*mag*1.2, 0.2*mag, uz*mag*1.2); M(1, sx*mag*0.3, 0, sz*mag*0.3); }
+    else if (/KNEE|THIGH|SHIN|ANKLE|FOOT/.test(n)) { const kn = best.part === 'legR' ? 12 : 11; M(kn, ux*mag*1.0, 0, uz*mag*1.0); M(0, 0, -mag*0.2, 0); } } const bulk = bi <= 2 ? [0, 1, 2] : [0, 1]; for (const i of bulk) if (i !== bi) g.imp.push({ i, v: v.map(x => x*0.5) });
+  g.daze = Math.min(1, g.daze + 0.45*pw + (best.part === 'head' ? 0.25 : 0.1)); }
 function m3ApeKick(b, part, lx, ly, lz) { b.pk = b.pk || { head: { p: [0, 0, 0], v: [0, 0, 0] }, body: { p: [0, 0, 0], v: [0, 0, 0] }, armL: { p: [0, 0, 0], v: [0, 0, 0] }, armR: { p: [0, 0, 0], v: [0, 0, 0] }, legL: { p: [0, 0, 0], v: [0, 0, 0] }, legR: { p: [0, 0, 0], v: [0, 0, 0] } }; const q = b.pk[part]; if (q) { q.v[0] += lx; q.v[1] += ly; q.v[2] += lz; } }
 function m3ApeSpring(b, s) { if (!b.pk) return; for (const k in b.pk) { const q = b.pk[k]; for (let c = 0; c < 3; c++) { q.v[c] += (-48*q.p[c] - 9*q.v[c])*s; q.p[c] += q.v[c]*s; q.p[c] = Math.max(-1.1, Math.min(1.1, q.p[c])); } } }
 function m3ApeBoxes(b) { const po = m3ApePose(b), cb = Math.cos(b.yaw), sb = Math.sin(b.yaw), SC = b.sc || 1, W3 = l => [b.x + (cb*l[0] + sb*l[2])*SC, b.y + l[1]*SC, b.z + (-sb*l[0] + cb*l[2])*SC], X = [], ob = po.ob, oh = po.oh;
