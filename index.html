@@ -75,7 +75,7 @@ canvas { display:block; width:100%; height:100%; cursor:crosshair; touch-action:
 <body>
 <canvas id="c"></canvas>
 <canvas id="ov"></canvas>
-<div id="ver" style="position:fixed;right:10px;top:6px;z-index:60;font:700 13px 'Comic Sans MS',cursive;color:#1b2a3a;opacity:.7;background:rgba(255,255,255,.55);padding:2px 8px;border-radius:8px;pointer-events:none">v5:46</div>
+<div id="ver" style="position:fixed;right:10px;top:6px;z-index:60;font:700 13px 'Comic Sans MS',cursive;color:#1b2a3a;opacity:.7;background:rgba(255,255,255,.55);padding:2px 8px;border-radius:8px;pointer-events:none">v5:47</div>
 <div id="pz"><h2>Paused</h2><div class="pb" id="pz-main"><button class="big" id="pz-res">Resume</button><button class="big" id="pz-set">Game Settings</button><button class="big" id="pz-map">Map</button><button class="big" id="pz-menu">Main Menu</button></div><div class="pp" id="pz-sp"><b>Game Settings</b><label>Mouse sensitivity <input type="range" id="pz-sens" min="0.3" max="3" step="0.1" value="1"></label><label><span>FOV <b id="pz-fovv">60</b></span> <input type="range" id="pz-fov" min="50" max="110" step="1" value="60"></label><label>Camera <button class="big" id="pz-cam" style="font-size:16px;padding:6px 14px">Third person</button></label><button class="big" data-pz="main">Back</button></div><div class="pp" id="pz-mp"><b>Map</b><div>Current map: Forest Hills</div><small>More maps are coming soon.</small><button class="big" data-pz="main">Back</button></div></div>
 <div id="menu">
 <div id="s-title" class="screen"><h1 class="logo">APE<br>BRAWL</h1><canvas id="hero" width="300" height="300"></canvas><div class="btns"><button class="big" id="b-play">Singleplayer</button><button class="big" data-go="s-char">Character</button><button class="big" id="b-upc">Upgrade Center</button><button class="big" data-go="s-set">Settings</button><button class="big" id="b-endless">Endless Mode</button><button class="big" id="b-mp">Multiplayer</button><button class="big" id="b-3d" hidden>Campaign</button><button class="big" id="b-2d" hidden>2D</button><button class="big" id="b-3dh" hidden>3D</button></div></div>
@@ -4261,8 +4261,8 @@ function m3RgStep(b, s) {
     const ux = (cp[0] - sc0[0])/off, uz = (cp[1] - sc0[1])/off; let bi = 0, bd = -9; for (let i = 0; i < 2; i++) { const dd = (g.pl[i][0] - sc0[0])*ux + (g.pl[i][1] - sc0[1])*uz; if (dd > bd) { bd = dd; bi = i; } }
     const oi = 1 - bi, len = Math.min(0.85, off*1.05 + 0.12); let tx = sc0[0] + ux*len, tz = sc0[1] + uz*len; const ox = g.pl[oi][0], oz = g.pl[oi][1], sep = Math.hypot(tx - ox, tz - oz); if (sep < 0.2) { tx = ox + ux*0.2 + uz*0.0; tz = oz + uz*0.2; }
     g.st[bi] = { t: 0, d: 0.2 + 0.08*Math.random() + 0.12*(1 - sBal), from: g.pl[bi].slice(), to: [tx, tz], lift: 0 }; }
-  g.tf = (off > 0.5 && !g.st[0] && !g.st[1] && g.cd <= 0) ? (g.tf || 0) + s : 0;
-  if (!limp && (off > 0.78 || (sBal < 0.13 && off > 0.22) || (g.tf > 0.25))) { const ux = (cp[0] - sc0[0])/(off || 1), uz = (cp[1] - sc0[1])/(off || 1); try { m3KnockDown(b, ux, uz); } catch (e) {} b.kx = b.kz = 0; b.spin = 0; b.wr = 0; b.wp = 0; }
+  const lim = 0.3 + 1.1*sBal*sBal*sBal; g.tf = (off > lim && !g.st[0] && !g.st[1] && g.cd <= 0) ? (g.tf || 0) + s : 0;
+  if (!limp && (off > 0.55 + 1.4*sBal*sBal*sBal || (sBal < 0.13 && off > 0.22) || (g.tf > 0.25))) { const ux = (cp[0] - sc0[0])/(off || 1), uz = (cp[1] - sc0[1])/(off || 1); try { m3KnockDown(b, ux, uz); } catch (e) {} b.kx = b.kz = 0; b.spin = 0; b.wr = 0; b.wp = 0; }
   // ---- physics substeps
   const N = 6, dt = s/N, G = 14;
   for (let sub = 0; sub < N; sub++) {
@@ -4298,7 +4298,7 @@ function m3RgPose(b) {
 m3ApePose = function (b) { return b.rg ? m3RgPose(b) : m3ApePose0(b); };
 function m3RgHit(b, w, ux, uz, pw, best) {
   const g = b.rg; if (!g) return; const SC = b.sc || 1; let bi = 0, bd = 1e9; for (let i = 0; i < 15; i++) { const d = Math.hypot(g.o[0] + SC*g.p[i][0] - w[0], SC*g.p[i][1] - (w[1] - b.y), g.o[1] + SC*g.p[i][2] - w[2]); if (d < bd) { bd = d; bi = i; } }
-  const mag = (1.4 + 5.2*pw)*(0.75 + 0.25*best.m), dir = [ux, 0.12, uz], n = Math.hypot(dir[0], dir[1], dir[2]), v = dir.map(x => x/n*mag);
+  const mag = (0.9 + 3.0*pw)*(0.75 + 0.25*best.m), dir = [ux, 0.12, uz], n = Math.hypot(dir[0], dir[1], dir[2]), v = dir.map(x => x/n*mag);
   g.imp.push({ i: bi, v }); const bulk = bi <= 2 ? [0, 1, 2] : [0, 1]; for (const i of bulk) if (i !== bi) g.imp.push({ i, v: v.map(x => x*0.5) });
   g.daze = Math.min(1, g.daze + 0.25*pw + (best.part === 'head' ? 0.15 : 0)); }
 function m3ApeKick(b, part, lx, ly, lz) { b.pk = b.pk || { head: { p: [0, 0, 0], v: [0, 0, 0] }, body: { p: [0, 0, 0], v: [0, 0, 0] }, armL: { p: [0, 0, 0], v: [0, 0, 0] }, armR: { p: [0, 0, 0], v: [0, 0, 0] }, legL: { p: [0, 0, 0], v: [0, 0, 0] }, legR: { p: [0, 0, 0], v: [0, 0, 0] } }; const q = b.pk[part]; if (q) { q.v[0] += lx; q.v[1] += ly; q.v[2] += lz; } }
